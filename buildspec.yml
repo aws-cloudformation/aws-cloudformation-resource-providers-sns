@@ -35,11 +35,11 @@ phases:
       - pip install "$CODEBUILD_SRC_DIR_RPDK" .
       # end-to-end test child repo(s)
       - cd "$CODEBUILD_SRC_DIR"
-      - cd aws-ses-configurationset
+      - cd aws-sns-topic
       - mvn clean verify --no-transfer-progress
       - cd "$CODEBUILD_SRC_DIR"
-      - cd aws-ses-receiptfilter
+      - cd aws-sns-topicpolicy
       - mvn clean verify --no-transfer-progress
     finally:
-      - cat "$CODEBUILD_SRC_DIR/aws-ses-configurationset/rpdk.log"
-      - cat "$CODEBUILD_SRC_DIR/aws-ses-receiptfilter/rpdk.log"
+      - cat "$CODEBUILD_SRC_DIR/aws-sns-topic/rpdk.log"
+      - cat "$CODEBUILD_SRC_DIR/aws-sns-topicpolicy/rpdk.log"
