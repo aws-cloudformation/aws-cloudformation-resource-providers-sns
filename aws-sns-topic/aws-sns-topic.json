@@ -1,0 +1,129 @@
+{
+    "typeName": "AWS::SNS::Topic",
+    "description": "The AWS::SNS::Topic resource creates a topic to which notifications can be published.\n\nNote\n\nOne user can create a maximum of 100,000 topics.\n\nThis action is idempotent: If the requester already owns a topic with the specified name, that topic's ARN is returned without creating a new topic.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-sns",
+    "definitions": {
+        "Subscription": {
+            "$comment": "Subscription is an embedded property that describes the subscription endpoints of an Amazon SNS topic.\n\nNote\n\nFor full control over subscription behavior (for example, delivery policy, filtering, raw message delivery, and cross-region subscriptions), use the AWS::SNS::Subscription resource.",
+            "type": "object",
+            "properties": {
+                "Endpoint": {
+                    "description": "The endpoint that receives notifications from the Amazon SNS topic. The endpoint value depends on the protocol that you specify. For more information, see the Endpoint parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
+                    "type": "string"
+                },
+                "Protocol": {
+                    "description": "The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
+                    "type": "string",
+                    "enum": [
+                        "http",
+                        "https",
+                        "email",
+                        "email-json",
+                        "sms",
+                        "sqs",
+                        "application",
+                        "lambda"
+                    ]
+                }
+            },
+            "required": [
+                "Endpoint",
+                "Protocol"
+            ]
+        },
+        "Subscriptions": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Subscription"
+            }
+        }
+    },
+    "properties": {
+        "Arn": {
+            "description": "The topic's ARN",
+            "type": "string"
+        },
+        "DisplayName": {
+            "description": "The display name to use for an Amazon SNS topic with SMS subscriptions.",
+            "type": "string"
+        },
+        "KmsMasterKeyId": {
+            "description": "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK. For more information, see Key Terms. For more examples, see KeyId in the AWS Key Management Service API Reference.",
+            "type": "string"
+        },
+        "Owner": {
+            "description": "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK. For more information, see Key Terms. For more examples, see KeyId in the AWS Key Management Service API Reference.",
+            "type": "string"
+        },
+        "Subscription": {
+            "description": "The SNS subscriptions (endpoints) for this topic.",
+            "$ref": "#/definitions/Subscriptions"
+        },
+        "SubscriptionsConfirmed": {
+            "description": "The number of confirmed subscriptions on this topic.",
+            "type": "integer"
+        },
+        "SubscriptionsDeleted": {
+            "description": "The number of deleted subscriptions on this topic.",
+            "type": "integer"
+        },
+        "SubscriptionsPending": {
+            "description": "The number of pending subscriptions on this topic.",
+            "type": "integer"
+        },
+        "TopicName": {
+            "description": "The name of the topic you want to create. Topic names must include only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256 characters long.\n\nIf you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the topic name. For more information, see Name Type.\n\nImportant\n\nIf you specify a name, you can't perform updates that require replacement of this resource. You can perform updates that require no or some interruption. If you must replace the resource, specify a new name.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[.\\-_/#A-Za-z0-9]{1,256}\\Z"
+        }
+    },
+    "readOnlyProperties": [
+        "/properties/Arn",
+        "/properties/Owner",
+        "/properties/SubscriptionsConfirmed",
+        "/properties/SubscriptionsDeleted",
+        "/properties/SubscriptionsPending"
+    ],
+    "additionalIdentifiers": [
+        [
+            "/properties/TopicName"
+        ]
+    ],
+    "primaryIdentifier": [
+        "/properties/Arn"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "sns:CreateTopic",
+                "sns:GetTopicAttributes",
+                "sns:SetTopicAttributes"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "sns:GetTopicAttributes"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "sns:GetTopicAttributes",
+                "sns:SetTopicAttributes"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "sns:DeleteTopic",
+                "sns:GetTopicAttributes"
+            ]
+        },
+        "list": {
+            "permissions": [
+                "sns:ListTopics"
+            ]
+        }
+    },
+    "additionalProperties": false
+}

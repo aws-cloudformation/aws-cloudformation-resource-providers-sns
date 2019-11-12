@@ -37,9 +37,5 @@ phases:
       - cd "$CODEBUILD_SRC_DIR"
       - cd aws-sns-topic
       - mvn clean verify --no-transfer-progress
-      - cd "$CODEBUILD_SRC_DIR"
-      - cd aws-sns-topicpolicy
-      - mvn clean verify --no-transfer-progress
     finally:
       - cat "$CODEBUILD_SRC_DIR/aws-sns-topic/rpdk.log"
-      - cat "$CODEBUILD_SRC_DIR/aws-sns-topicpolicy/rpdk.log"

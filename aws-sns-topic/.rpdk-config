@@ -1,0 +1,15 @@
+{
+    "typeName": "AWS::SNS::Topic",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "com.amazonaws.sns.topic.HandlerWrapper::handleRequest",
+    "testEntrypoint": "com.amazonaws.sns.topic.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "com",
+            "amazonaws",
+            "sns",
+            "topic"
+        ]
+    }
+}
