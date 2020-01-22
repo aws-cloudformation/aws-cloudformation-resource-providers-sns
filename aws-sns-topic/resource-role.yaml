@@ -23,11 +23,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                - "sns:UntagResource"
+                - "sns:CreateTopic"
+                - "sns:DeleteTopic"
+                - "sns:ListSubscriptionsByTopic"
+                - "sns:Unsubscribe"
+                - "sns:TagResource"
+                - "sns:Subscribe"
+                - "sns:SetTopicAttributes"
                 - "sns:GetTopicAttributes"
                 - "sns:ListTopics"
-                - "sns:DeleteTopic"
-                - "sns:CreateTopic"
-                - "sns:SetTopicAttributes"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

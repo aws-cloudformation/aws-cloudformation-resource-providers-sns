@@ -1,0 +1,24 @@
+Resources:
+  MyAlarmSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: MyTopic2
+  Policy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        -
+          Effect: "Allow"
+          Principal: "*"
+          Action: "SNS:Publish"
+          Resource: "arn:aws:sns:*:*:*"
+      Topics:
+      - !Ref MyAlarmSNSTopic
+
+Outputs:
+    AlarmSNSTopic:
+      Export:
+        Name: AlarmSNSTopic
+      Value: !Ref MyAlarmSNSTopic

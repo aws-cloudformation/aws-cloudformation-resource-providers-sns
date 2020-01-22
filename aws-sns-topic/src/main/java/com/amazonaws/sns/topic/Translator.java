@@ -76,6 +76,52 @@ final class Translator {
         return requests;
     }
 
+    static List<Subscription> getSubscriptionArnsToAdd(final ResourceModel desiredModel,
+                                                       final ResourceModel previousModel) {
+
+        final List<Subscription> requests = new ArrayList<>();
+
+        List<Subscription> desiredSubscriptions = new ArrayList<>();
+        if (desiredModel != null && !desiredModel.getSubscription().isEmpty()) {
+            desiredSubscriptions.addAll(desiredModel.getSubscription());
+        }
+
+        List<Subscription> previousSubscriptions = new ArrayList<>();
+        if (previousModel != null && !previousModel.getSubscription().isEmpty()) {
+            previousSubscriptions.addAll(previousModel.getSubscription());
+        }
+
+        desiredSubscriptions.stream()
+            .filter(s -> !previousSubscriptions.contains(s))
+            .forEach(requests::add);
+
+        return requests;
+    }
+
+    static List<String> getSubscriptionArnsToDelete(final ResourceModel desiredModel,
+                                                    final List<software.amazon.awssdk.services.sns.model.Subscription> previousSubscriptions) {
+        List<Subscription> desiredSubscriptions = new ArrayList<>();
+        if (desiredModel != null && !desiredModel.getSubscription().isEmpty()) {
+            desiredSubscriptions.addAll(desiredModel.getSubscription());
+        }
+
+        List<software.amazon.awssdk.services.sns.model.Subscription> previousSubscriptionsCopy = new ArrayList<>(previousSubscriptions);
+
+        for (software.amazon.awssdk.services.sns.model.Subscription previousSubscription : previousSubscriptions) {
+            for (Subscription s : desiredSubscriptions) {
+                if (s.getEndpoint().equals(previousSubscription.endpoint()) &&
+                    s.getProtocol().equals(previousSubscription.protocol())) {
+                    previousSubscriptionsCopy.remove(previousSubscription);
+                    break;
+                }
+            }
+        }
+
+        return previousSubscriptionsCopy.stream()
+            .map(software.amazon.awssdk.services.sns.model.Subscription::subscriptionArn)
+            .collect(Collectors.toList());
+    }
+
     static DeleteTopicRequest translateToDeleteRequest(final ResourceModel model) {
         return DeleteTopicRequest.builder()
             .topicArn(model.getArn())

@@ -1,0 +1,15 @@
+{
+    "typeName": "AWS::SNS::TopicPolicy",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "com.amazonaws.sns.topicpolicy.HandlerWrapper::handleRequest",
+    "testEntrypoint": "com.amazonaws.sns.topicpolicy.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "com",
+            "amazonaws",
+            "sns",
+            "topicpolicy"
+        ]
+    }
+}

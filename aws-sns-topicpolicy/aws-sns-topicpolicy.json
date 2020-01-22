@@ -1,0 +1,63 @@
+{
+    "typeName": "AWS::SNS::TopicPolicy",
+    "description": "The AWS::SNS::TopicPolicy resource associates Amazon SNS topics with a policy. For an example snippet, see Declaring an Amazon SNS Policy in the AWS CloudFormation User Guide.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-sns.git",
+    "definitions": {
+        "PolicyDocument": {
+            "type": "object",
+            "properties": {
+                "Version": {}
+            }
+        },
+        "Topics": {
+            "type": "object",
+            "properties": {
+                "Heading": {
+                    "type": "string"
+                },
+                "Body": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "properties": {
+        "PolicyDocument": {
+            "description": "A policy document that contains permissions to add to the specified SNS topics.",
+            "$ref": "#/definitions/PolicyDocument"
+        },
+        "Topics": {
+            "description": "The Amazon Resource Names (ARN) of the topics to which you want to add the policy. You can use the Ref function to specify an AWS::SNS::Topic resource.",
+            "$ref": "#/definitions/Topics"
+        }
+    },
+    "required": [
+        "PolicyDocument",
+        "Topics"
+    ],
+    "primaryIdentifier": [
+        "/properties/Topics"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "sns:SetTopicAttributes"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "sns:GetTopicAttributes"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "sns:SetTopicAttributes"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "sns:SetTopicAttributes"
+            ]
+        }
+    }
+}

@@ -51,22 +51,31 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
             }
 
             createTopic(model, context);
+
+            context.setSubscriptionsToAdd(model.getSubscription());
         }
 
-        try {
-            request.getDesiredResourceState().setArn(context.getTopicArn());
-            return new ReadHandler().handleRequest(proxy, request, context, logger);
-        } catch (CfnNotFoundException e) {
-            logger.log(request.getDesiredResourceState().getPrimaryIdentifier() +
-                " does not exist; retrying stabilization.");
+        if (!context.isCreateStabilized()) {
+            try {
+                request.getDesiredResourceState().setArn(context.getTopicArn());
+                context.setCreateStabilized(true);
+            } catch (CfnNotFoundException e) {
+                logger.log(request.getDesiredResourceState().getPrimaryIdentifier() +
+                    " does not exist; retrying stabilization.");
+                return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                    .callbackContext(context)
+                    .callbackDelaySeconds(5)
+                    .status(OperationStatus.IN_PROGRESS)
+                    .resourceModel(request.getDesiredResourceState())
+                    .build();
+            }
         }
 
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-            .callbackContext(context)
-            .callbackDelaySeconds(5)
-            .status(OperationStatus.IN_PROGRESS)
-            .resourceModel(request.getDesiredResourceState())
-            .build();
+        while (!context.getSubscriptionsToAdd().isEmpty()) {
+            new UpdateHandler().addSubscriptions(model, context);
+        }
+
+        return new ReadHandler().handleRequest(proxy, request, context, logger);
     }
 
     private CreateTopicResponse createTopic(

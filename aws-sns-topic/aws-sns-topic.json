@@ -99,7 +99,9 @@
             "permissions": [
                 "sns:CreateTopic",
                 "sns:GetTopicAttributes",
-                "sns:SetTopicAttributes"
+                "sns:SetTopicAttributes",
+                "sns:Subscribe",
+                "sns:TagResource"
             ]
         },
         "read": {
@@ -110,7 +112,12 @@
         "update": {
             "permissions": [
                 "sns:GetTopicAttributes",
-                "sns:SetTopicAttributes"
+                "sns:ListSubscriptionsByTopic",
+                "sns:SetTopicAttributes",
+                "sns:Subscribe",
+                "sns:TagResource",
+                "sns:Unsubscribe",
+                "sns:UntagResource"
             ]
         },
         "delete": {
