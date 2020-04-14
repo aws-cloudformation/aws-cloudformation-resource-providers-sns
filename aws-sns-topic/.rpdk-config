@@ -1,0 +1,16 @@
+{
+    "typeName": "AWS::SNS::Topic",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.sns.topic.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.sns.topic.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "sns",
+            "topic"
+        ],
+        "codegen_template_path": "guided_aws"
+    }
+}
