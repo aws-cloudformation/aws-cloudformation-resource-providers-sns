@@ -1,0 +1,16 @@
+{
+    "typeName": "AWS::SNS::Subscription",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.sns.subscription.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.sns.subscription.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "sns",
+            "subscription"
+        ],
+        "codegen_template_path": "guided_aws"
+    }
+}
