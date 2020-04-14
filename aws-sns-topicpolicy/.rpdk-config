@@ -1,0 +1,16 @@
+{
+    "typeName": "AWS::SNS::TopicPolicy",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.sns.topicpolicy.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.sns.topicpolicy.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "sns",
+            "topicpolicy"
+        ],
+        "codegen_template_path": "guided_aws"
+    }
+}
