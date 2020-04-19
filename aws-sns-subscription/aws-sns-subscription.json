@@ -2,38 +2,169 @@
     "typeName": "AWS::SNS::Subscription",
     "description": "Resource Type definition for AWS::SNS::Subscription",
     "additionalProperties": false,
+    "definitions": {
+        "RetryPolicy": {
+            "type": "object",
+            "properties": {
+                "maxDelayTarget": {
+                    "description": "The maximum delay for a retry.\nUnit: Seconds",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3600,
+                    "default": 20
+                },
+                "minDelayTarget": {
+                    "description": "The minimum delay for a retry.\nUnit: Seconds",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 20
+                },
+                "numRetries": {
+                    "description": "The total number of retries, including immediate, pre-backoff, backoff, and post-backoff retries.",
+                    "type": "integer",
+                    "default": 3,
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "numNoDelayRetries": {
+                    "description": "The number of retries to be done immediately, with no delay between them.",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "numMinDelayRetries": {
+                    "description": "The number of retries in the pre-backoff phase, with the specified minimum delay between them.",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "numMaxDelayRetries": {
+                    "description": "The number of retries in the post-backoff phase, with the maximum delay between them.",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "backoffFunction": {
+                    "description": "The model for backoff between retries.",
+                    "type": "string",
+                    "enum": [
+                        "arithmetic",
+                        "exponential",
+                        "geometric",
+                        "linear"
+                    ],
+                    "default": "linear"
+                }
+            },
+            "required": [
+                "#/properties/maxDelayTarget",
+                "#/properties/minDelayTarget",
+                "#/properties/numRetries"
+            ]
+        },
+        "DeliveryPolicyJson": {
+            "type": "object",
+            "properties": {
+                "healthyRetryPolicy": {
+                    "$ref": "#/definitions/RetryPolicy"
+                },
+                "sicklyRetryPolicy": {
+                    "$ref": "#/definitions/RetryPolicy"
+                },
+                "disableSubscriptionOverrides": {
+                    "description": "Apply this policy to all subscriptions, even if they have their own policies.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "throttlePolicy": {
+                    "type": "object",
+                    "properties": {
+                        "maxReceivesPerSecond": {
+                            "description": "The maximum number of deliveries per second, per subscription.",
+                            "minimum": 1,
+                            "default": 0
+                        }
+                    }
+                }
+            }
+        },
+        "FilterPolicyJson": {
+            "type": "object"
+        },
+        "RedrivePolicyJson": {
+            "type": "object",
+            "properties": {
+                "deadLetterTargetArn": {
+                    "description": "Send undeliverable messages to a dead-letter SQS queue.",
+                    "type": "string"
+                }
+            }
+        }
+    },
     "properties": {
-        "RawMessageDelivery": {
+        "Arn": {
+            "description": "The subscription's ARN",
+            "type": "string"
+        },
+        "ConfirmationWasAuthenticated": {
+            "description": "`true` if the subscription confirmation request was authenticated.",
             "type": "boolean"
         },
+        "DeliveryPolicy": {
+            "description": "The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic. For more information, see GetSubscriptionAttributes in the Amazon Simple Notification Service API Reference and Message Delivery Retries in the Amazon SNS Developer Guide.",
+            "$ref": "#/definitions/DeliveryPolicyJson"
+        },
+        "EffectiveDeliveryPolicy": {
+            "description": "The JSON serialization of the effective delivery policy that takes into account the topic delivery policy and account system defaults.",
+            "$ref": "#/definitions/DeliveryPolicyJson"
+        },
         "Endpoint": {
+            "description": "The subscription's endpoint. The endpoint value depends on the protocol that you specify. For more information, see the Endpoint parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
             "type": "string"
         },
         "FilterPolicy": {
-            "type": "object"
+            "description": "The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages. For more information, see GetSubscriptionAttributes in the Amazon Simple Notification Service API Reference and Message Filtering in the Amazon SNS Developer Guide.",
+            "$ref": "#/definitions/FilterPolicyJson"
         },
-        "TopicArn": {
+        "Owner": {
+            "description": "The AWS account ID of the subscription's owner.",
             "type": "string"
         },
-        "RedrivePolicy": {
-            "type": "object"
-        },
-        "DeliveryPolicy": {
-            "type": "object"
-        },
-        "Region": {
-            "type": "string"
-        },
-        "Id": {
-            "type": "string"
+        "PendingConfirmation": {
+            "description": "`true` if the subscription hasn't been confirmed. To confirm a pending subscription, call the ConfirmSubscription action with a confirmation token.",
+            "type": "boolean"
         },
         "Protocol": {
+            "description": "The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
+            "type": "string",
+            "enum": [
+                "http",
+                "https",
+                "email",
+                "email-json",
+                "sms",
+                "sqs",
+                "application",
+                "lambda"
+            ]
+        },
+        "RawMessageDelivery": {
+            "description": "When set to true, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints. For more information, see GetSubscriptionAttributes in the Amazon Simple Notification Service API Reference.",
+            "type": "boolean"
+        },
+        "RedrivePolicy": {
+            "description": "When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.",
+            "$ref": "#/definitions/RedrivePolicyJson"
+        },
+        "Region": {
+            "description": "For cross-region subscriptions, the region in which the topic resides.\n\nIf no region is specified, CloudFormation uses the region of the caller as the default.\n\nIf you perform an update operation that only updates the Region property of a AWS::SNS::Subscription resource, that operation will fail unless you are either:\n\nUpdating the Region from NULL to the caller region.\n\nUpdating the Region from the caller region to NULL.",
+            "type": "string"
+        },
+        "TopicArn": {
+            "description": "The ARN of the topic to subscribe to.",
             "type": "string"
         }
     },
     "required": [
-        "TopicArn",
-        "Protocol"
+        "Protocol",
+        "TopicArn"
     ],
     "createOnlyProperties": [
         "/properties/Endpoint",
@@ -41,9 +172,11 @@
         "/properties/TopicArn"
     ],
     "primaryIdentifier": [
-        "/properties/Id"
+        "/properties/Arn"
     ],
     "readOnlyProperties": [
-        "/properties/Id"
+        "/properties/ConfirmationWasAuthenticated",
+        "/properties/EffectiveDeliveryPolicy",
+        "/properties/PendingConfirmation"
     ]
 }
