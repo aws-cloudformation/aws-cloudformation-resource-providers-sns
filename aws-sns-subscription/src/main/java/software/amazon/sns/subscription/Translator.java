@@ -1,114 +1,84 @@
 package software.amazon.sns.subscription;
 
-import com.google.common.collect.Lists;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesRequest;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.cloudformation.resource.Serializer;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-/**
- * This class is a centralized placeholder for
- *  - api request construction
- *  - object translation to/from aws sdk
- *  - resource model construction for read/list handlers
- */
 
 public class Translator {
 
-  /**
-   * Request to create a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to create a resource
-   */
-  static AwsRequest translateToCreateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L39
-    return awsRequest;
-  }
+    static final String ATTRIBUTE_NAME_DELIVERY_POLICY = "DeliveryPolicy";
+    static final String ATTRIBUTE_NAME_FILTER_POLICY = "FilterPolicy";
+    static final String ATTRIBUTE_NAME_RAW_MESSAGE_DELIVERY = "RawMessageDelivery";
+    static final String ATTRIBUTE_NAME_REDRIVE_POLICY = "RedrivePolicy";
 
-  /**
-   * Request to read a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to describe a resource
-   */
-  static AwsRequest translateToReadRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L20
-    return awsRequest;
-  }
+    private Translator() {
+    }
 
-  /**
-   * Translates resource object from sdk into a resource model
-   * @param awsResponse the aws service describe resource response
-   * @return model resource model
-   */
-  static ResourceModel translateFromReadResponse(final AwsResponse awsResponse) {
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L58
-    return ResourceModel.builder()
-        //.primaryIdentifier(response.primaryIdentifier())
-        //.someProperty(response.property())
-        .build();
-  }
+    static SubscribeRequest translateToCreateRequest(final ResourceModel model) throws JsonProcessingException {
+        return SubscribeRequest.builder()
+            .endpoint(model.getEndpoint())
+            .protocol(model.getProtocol())
+            .topicArn(model.getTopicArn())
+            .attributes(translateAttributesForCreate(model))
+            .returnSubscriptionArn(true)
+            .build();
+    }
 
-  /**
-   * Request to delete a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to delete a resource
-   */
-  static AwsRequest translateToDeleteRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L33
-    return awsRequest;
-  }
+    private static Map<String, String> translateAttributesForCreate(final ResourceModel model) throws JsonProcessingException {
+        final Serializer serializer = new Serializer();
+        final Map<String, String> attributes = new HashMap<>();
+        attributes.put(ATTRIBUTE_NAME_DELIVERY_POLICY, serializer.serialize(model.getDeliveryPolicy()));
+        attributes.put(ATTRIBUTE_NAME_FILTER_POLICY, serializer.serialize(model.getFilterPolicy()));
+        attributes.put(ATTRIBUTE_NAME_RAW_MESSAGE_DELIVERY, serializer.serialize(model.getRawMessageDelivery()));
+        attributes.put(ATTRIBUTE_NAME_REDRIVE_POLICY, serializer.serialize(model.getRedrivePolicy()));
+        return attributes;
+    }
 
-  /**
-   * Request to update properties of a previously created resource
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static AwsRequest translateToUpdateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L45
-    return awsRequest;
-  }
+    static GetSubscriptionAttributesRequest translateToReadRequest(final ResourceModel model) {
+        return GetSubscriptionAttributesRequest.builder()
+            .subscriptionArn(model.getArn())
+            .build();
+    }
 
-  /**
-   * Request to update properties of a previously created resource
-   * @param nextToken token passed to the aws service describe resource request
-   * @return awsRequest the aws service request to describe resources within aws account
-   */
-  static AwsRequest translateToListRequest(final String nextToken) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L26
-    return awsRequest;
-  }
+    static List<SetSubscriptionAttributesRequest> translateToUpdateRequests(final ResourceModel desiredModel,
+                                                                            final ResourceModel previousModel) {
+        final List<SetSubscriptionAttributesRequest> requests = new ArrayList<>();
 
-  /**
-   * Translates resource objects from sdk into a resource model (primary identifier only)
-   * @param awsResponse the aws service describe resource response
-   * @return list of resource models
-   */
-  static List<ResourceModel> translateFromListRequest(final AwsResponse awsResponse) {
-    // e.g. e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L81
-    return streamOfOrEmpty(Lists.newArrayList())
-        .map(resource -> ResourceModel.builder()
-            //.primaryIdentifier(resource.primaryIdentifier())
-            .build())
-        .collect(Collectors.toList());
-  }
+        if (!desiredModel.getDisplayName().equals(previousModel.getDisplayName())) {
+            requests.add(SetTopicAttributesRequest.builder()
+                .topicArn(desiredModel.getArn())
+                .attributeName(ATTRIBUTE_NAME_DISPLAY_NAME)
+                .attributeValue(desiredModel.getDisplayName())
+                .build());
+        }
 
-  private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
-    return Optional.ofNullable(collection)
-        .map(Collection::stream)
-        .orElseGet(Stream::empty);
-  }
+        if (!desiredModel.getKmsMasterKeyId().equals(previousModel.getKmsMasterKeyId())) {
+            requests.add(SetTopicAttributesRequest.builder()
+                .topicArn(desiredModel.getArn())
+                .attributeName(ATTRIBUTE_NAME_KMS_MASTER_KEY_ID)
+                .attributeValue(desiredModel.getKmsMasterKeyId())
+                .build());
+        }
+
+        return requests;
+    }
+
+    private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
+        return Optional.ofNullable(collection)
+            .map(Collection::stream)
+            .orElseGet(Stream::empty);
+    }
 }
