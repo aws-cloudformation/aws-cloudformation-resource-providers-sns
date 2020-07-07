@@ -17,7 +17,7 @@
         },
         "Subscription": {
             "type": "array",
-            "uniqueItems": false,
+            "uniqueItems": true,
             "items": {
                 "$ref": "#/definitions/Subscription"
             }
