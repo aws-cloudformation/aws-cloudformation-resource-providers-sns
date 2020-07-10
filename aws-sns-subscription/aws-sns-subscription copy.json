@@ -3,61 +3,49 @@
     "description": "An example resource schema demonstrating some basic constructs and validation rules.",
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
     "definitions": {
+        "InitechDateFormat": {
+            "$comment": "Use the `definitions` block to provide shared resource property schemas",
+            "type": "string",
+            "format": "date-time"
+        },
+        "Memo": {
+            "type": "object",
+            "properties": {
+                "Heading": {
+                    "type": "string"
+                },
+                "Body": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
         "DeliveryPolicy": {
             "type": "object",
-            "additionalProperties": false,
             "properties": {
-                "minDelayTarget": {
-                    "type": "number",
-                    "default": 20
-                },
-                "maxDelayTarget": {
-                    "type": "number",
-                    "default": 20
-                },
-                "numRetries": {
-                    "type": "number",
-                    "default": 3
-                },
-                "numNoDelayRetries": {
-                    "type": "number",
-                    "default": 0
-                },
-                "numMinDelayRetries": {
-                    "type": "number",
-                    "default": 0
-                },
-                "numMaxDelayRetries": {
-                    "type": "number",
-                    "default": 0
-                },
-                "backoffFunction": {
-                    "type": "string",
-                    "default": "linear"
-                },
-                "maxReceivesPerSecond": {
-                    "type": "number",
-                    "default": 0
-                }
-            }
-        },
-        "RedrivePolicy": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "deadLetterTargetArn": {
-                    "type": "string"
-                },
-                "maxReceiveCount": {
-                    "type": "string"
+                "healthyRetryPolicy": {
+                    "minDelayTarget": "number"
                 }
             }
         }
+        // "FilterPolicy": {
+        //     "type": "object",
+        //     "properties": {
+        //         "healthyRetryPolicy": {
+        //             "minDelayTarget": "number"
+        //         }
+        //     }
+        // },
+        // "RedrivePolicy": {
+        //     "type": "object",
+        //     "properties": {
+        //         "healthyRetryPolicy": {
+        //             "minDelayTarget": "number"
+        //         }
+        //     }
+        // }
     },
     "properties": {
-        "Id": {
-            "type": "string"
-        },
         "DeliveryPolicy": {
             "description": "The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic.",
             "type": "object",
@@ -67,6 +55,11 @@
             "description": "The subscription's endpoint. The endpoint value depends on the protocol that you specify.",
             "type": "string"
         },
+        // "FilterPolicy": {
+        //     "description": "The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages.",
+        //     "type": "object",
+        //     "$ref": "#/definitions/FilterPolicy"
+        // },
         "Protocol": {
             "description": "The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
             "type": "string",
@@ -76,6 +69,11 @@
             "description": "When set to true, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints.",
             "type": "boolean"
         },
+        // "RedrivePolicy": {
+        //     "description": "When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.",
+        //     "type": "object",
+        //     "$ref": "#/definitions/RedrivePolicy"
+        // },
         "Region": {
             "description": "For cross-region subscriptions, the region in which the topic resides. If no region is specified, CloudFormation uses the region of the caller as the default.",
             "type": "string"
@@ -83,33 +81,19 @@
         "TopicArn": {
             "description": "The ARN of the topic to subscribe to.",
             "type": "string"
-        },
-        "FilterPolicy": {
-            "description": "The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages.",
-            "type": "object"
-        },
-        "RedrivePolicy": {
-            "description": "When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.",
-            "type": "object",
-            "$ref": "#/definitions/RedrivePolicy"
         }
+
     },
     "additionalProperties": false,
     "required": [
-        "Endpoint",
-        "Protocol",
-        "TopicArn"
-    ],
-    "createOnlyProperties": [
-        "/properties/Endpoint",
-        "/properties/Protocol",
-        "/properties/TopicArn"
-    ],
-    "primaryIdentifier": [
-        "/properties/Id"
+        "TestCode",
+        "Title"
     ],
     "readOnlyProperties": [
-        "/properties/Id"
+        "/properties/TPSCode"
+    ],
+    "primaryIdentifier": [
+        "/properties/TPSCode"
     ],
     "handlers": {
         "create": {

@@ -6,6 +6,7 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.awssdk.services.sns.SnsClient;
 
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
@@ -29,6 +30,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final AmazonWebServicesClientProxy proxy,
     final ResourceHandlerRequest<ResourceModel> request,
     final CallbackContext callbackContext,
-    final ProxyClient<SdkClient> proxyClient,
+    final ProxyClient<SnsClient> proxyClient,
     final Logger logger);
 }
