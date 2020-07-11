@@ -1,6 +1,5 @@
 package software.amazon.sns.subscription;
 
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;

@@ -114,27 +114,33 @@
     "handlers": {
         "create": {
             "permissions": [
-                "initech:CreateReport"
+                "sns:Subscribe"
             ]
         },
         "read": {
             "permissions": [
-                "initech:DescribeReport"
+                "sns:GetSubscriptionAttributes",
+                "sns:ListSubscriptionsByTopic",
+                "sns:ListSubscriptions"
             ]
         },
         "update": {
             "permissions": [
-                "initech:UpdateReport"
+                "sns:GetSubscriptionAttributes",
+                "sns:SetSubscriptionAttributes"
             ]
         },
         "delete": {
             "permissions": [
-                "initech:DeleteReport"
+                "sns:ListSubscriptionsByTopic",
+                "sns:ListSubscriptions",
+                "sns:Unsubscribe"
             ]
         },
         "list": {
             "permissions": [
-                "initech:ListReports"
+                "sns:ListSubscriptions",
+                "sns:ListSubscriptionsByTopic"
             ]
         }
     }

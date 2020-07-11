@@ -21,6 +21,7 @@ public class CreateHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
+        System.out.println("!!!!!");
         final ResourceModel model = request.getDesiredResourceState();
 
         return ProgressEvent.progress(model, callbackContext)
@@ -28,6 +29,7 @@ public class CreateHandler extends BaseHandlerStd {
                     proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
                     .translateToServiceRequest(Translator::translateToCreateRequest)
                     .makeServiceCall(this::createSubscription)
+               //     .stabilize(this::stabilizeSubscription)
                     .progress());
 
         // return ProgressEvent.progress(model, callbackContext)
@@ -54,7 +56,7 @@ public class CreateHandler extends BaseHandlerStd {
         subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
             // }
 
-        logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s successfully created.", ResourceModel.IDENTIFIER_KEY_ID));
         return subscribeResponse;
     }
     

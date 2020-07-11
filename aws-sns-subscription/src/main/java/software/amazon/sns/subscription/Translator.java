@@ -62,11 +62,12 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to delete a resource
    */
-  static AwsRequest translateToDeleteRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L33-L37
-    return awsRequest;
+  static SubscribeRequest translateToDeleteRequest(final ResourceModel model) {
+    return SubscribeRequest.builder()
+        .protocol(model.getProtocol())
+        .topicArn(model.getTopicArn())
+        .endpoint(model.getEndpoint())
+        .build();
   }
 
   /**
