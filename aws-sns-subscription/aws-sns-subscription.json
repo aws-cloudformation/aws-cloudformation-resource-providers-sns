@@ -55,7 +55,7 @@
         }
     },
     "properties": {
-        "Id": {
+        "SubscriptionArn": {
             "type": "string"
         },
         "DeliveryPolicy": {
@@ -106,10 +106,10 @@
         "/properties/TopicArn"
     ],
     "primaryIdentifier": [
-        "/properties/Id"
+        "/properties/SubscriptionArn"
     ],
     "readOnlyProperties": [
-        "/properties/Id"
+        "/properties/SubscriptionArn"
     ],
     "handlers": {
         "create": {

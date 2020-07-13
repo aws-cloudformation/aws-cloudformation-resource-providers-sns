@@ -38,47 +38,46 @@ public class DeleteHandler extends BaseHandlerStd {
     }
 
     private UnsubscribeResponse deleteSubscription(
-        final SubscribeRequest subscribeRequest,
+        final UnsubscribeRequest unsubscribeRequest,
         final ProxyClient<SnsClient> proxyClient) {
 
-        String token = null;
-        String subscriptionArn = getSubscriptionArnForTopic(subscribeRequest, proxyClient, token);
-      
-        UnsubscribeRequest unsubscribeRequest = UnsubscribeRequest.builder().subscriptionArn(subscriptionArn).build();
         UnsubscribeResponse unsubscribeResponse = null;
 
         // UnsubscribeRequest a = new Un
         // proxyClient.client().uns
         //     // try {
+        logger.log(String.format("delete subscription for arn: %s", unsubscribeRequest.subscriptionArn()));
+
+        System.out.println("arn " + unsubscribeRequest.subscriptionArn());
         unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
         //     // }
 
-        logger.log(String.format("%s successfully delete.", ResourceModel.IDENTIFIER_KEY_ID));
+        logger.log(String.format("%s successfully delete.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
         return unsubscribeResponse;
     }
 
-    private String getSubscriptionArnForTopic(final SubscribeRequest subscribeRequest,
-    final ProxyClient<SnsClient> proxyClient, String token) {
-        ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.client().listSubscriptionsByTopic(ListSubscriptionsByTopicRequest
-        .builder()
-        .topicArn(subscribeRequest.topicArn()).build());
+    // private String getSubscriptionArnForTopic(final SubscribeRequest subscribeRequest,
+    // final ProxyClient<SnsClient> proxyClient, String token) {
+    //     ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.client().listSubscriptionsByTopic(ListSubscriptionsByTopicRequest
+    //     .builder()
+    //     .topicArn(subscribeRequest.topicArn()).build());
 
-        if (listSubscriptionsByTopicResponse.hasSubscriptions()) {
-            for (Subscription subscription : listSubscriptionsByTopicResponse.subscriptions()) {
-                if ((subscription.protocol().compareTo(subscribeRequest.protocol()) == 0)
-                    && (subscription.endpoint().compareTo(subscribeRequest.endpoint()) == 0)) {
-                        return subscription.subscriptionArn();
-                    }
-            }
-        } 
+    //     if (listSubscriptionsByTopicResponse.hasSubscriptions()) {
+    //         for (Subscription subscription : listSubscriptionsByTopicResponse.subscriptions()) {
+    //             if ((subscription.protocol().compareTo(subscribeRequest.protocol()) == 0)
+    //                 && (subscription.endpoint().compareTo(subscribeRequest.endpoint()) == 0)) {
+    //                     return subscription.subscriptionArn();
+    //                 }
+    //         }
+    //     } 
         
-        token = listSubscriptionsByTopicResponse.nextToken();
+    //     token = listSubscriptionsByTopicResponse.nextToken();
 
-        if (token == null) {
-            return token;
-        }
+    //     if (token == null) {
+    //         return token;
+    //     }
 
-        return getSubscriptionArnForTopic(subscribeRequest, proxyClient, token);
-    }
+    //     return getSubscriptionArnForTopic(subscribeRequest, proxyClient, token);
+    // }
 
 }

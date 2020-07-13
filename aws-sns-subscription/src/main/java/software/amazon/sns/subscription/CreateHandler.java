@@ -56,7 +56,7 @@ public class CreateHandler extends BaseHandlerStd {
         subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
             // }
 
-        logger.log(String.format("%s successfully created.", ResourceModel.IDENTIFIER_KEY_ID));
+        logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
         return subscribeResponse;
     }
     

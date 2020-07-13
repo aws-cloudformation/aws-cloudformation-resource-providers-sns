@@ -30,6 +30,7 @@ public class Translator {
         .protocol(model.getProtocol())
         .topicArn(model.getTopicArn())
         .endpoint(model.getEndpoint())
+        .returnSubscriptionArn(true)
         .build();
   }
 
@@ -62,11 +63,9 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to delete a resource
    */
-  static SubscribeRequest translateToDeleteRequest(final ResourceModel model) {
-    return SubscribeRequest.builder()
-        .protocol(model.getProtocol())
-        .topicArn(model.getTopicArn())
-        .endpoint(model.getEndpoint())
+  static UnsubscribeRequest translateToDeleteRequest(final ResourceModel model) {
+    return UnsubscribeRequest.builder()
+        .subscriptionArn(model.getSubscriptionArn())
         .build();
   }
 
