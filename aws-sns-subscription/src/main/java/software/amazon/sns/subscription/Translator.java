@@ -65,23 +65,10 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to delete a resource
    */
-  static SubscribeRequest translateToDeleteRequest(final ResourceModel model) {
+  static UnsubscribeRequest translateToDeleteRequest(final ResourceModel model) {
 
-  //   public static Map<String,String> getAttributesForCreate(final SubscriptionResource subscription) {
-  //     final Map<String,String> attributes = Maps.newHashMap();
-  //     putIfNotNull(attributes, SubscriptionAttribute.DeliveryPolicy, subscription.getDeliveryPolicy());
-  //     putIfNotNull(attributes, SubscriptionAttribute.FilterPolicy, subscription.getFilterPolicy());
-  //     putIfNotNull(attributes, SubscriptionAttribute.RawMessageDelivery, subscription.isRawMessageDelivery());
-  //     putIfNotNull(attributes, SubscriptionAttribute.RedrivePolicy, subscription.getRedrivePolicy());
-  //     return attributes;
-  // }
-
-
-    return SubscribeRequest.builder()
-        .protocol(model.getProtocol())
-        .topicArn(model.getTopicArn())
-        .endpoint(model.getEndpoint())
-      //  .subscriptionArn(model.getSubscriptionArn())
+    return UnsubscribeRequest.builder()
+        .subscriptionArn(model.getSubscriptionArn())
         .build();
   }
 

@@ -32,25 +32,25 @@ public class DeleteHandler extends BaseHandlerStd {
     }
 
     private UnsubscribeResponse deleteSubscription(
-        final SubscribeRequest subscribeRequest,
+        final UnsubscribeRequest unsubscribeRequest,
         final ProxyClient<SnsClient> proxyClient) {
 
         UnsubscribeResponse unsubscribeResponse = null;
         String token = null;
         
-        UnsubscribeRequest unsubscribeRequest = UnsubscribeRequest.builder()
-                                                .subscriptionArn(getSubscriptionArnForTopic(subscribeRequest, proxyClient, token))
-                                                .build();
+        // UnsubscribeRequest unsubscribeRequest = UnsubscribeRequest.builder()
+        //                                         .subscriptionArn(getSubscriptionArnForTopic(subscribeRequest, proxyClient, token))
+        //                                         .build();
         
         try {
-            logger.log(String.format("delete subscription for topic arn: %s", subscribeRequest.topicArn()));
+            logger.log(String.format("delete subscription for topic arn: %s", unsubscribeRequest.subscriptionArn()));
        
             unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
         } catch (final NotFoundException e) {
             throw new CfnNotFoundException(e);
         }
 
-        logger.log(String.format("%s successfully delete.", ResourceModel.IDENTIFIER_KEY_ID));
+        logger.log(String.format("%s successfully delete.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
         return unsubscribeResponse;
     }
 

@@ -16,10 +16,11 @@ import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
 import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
 import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
 import software.amazon.cloudformation.proxy.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
+
+    // handle issue with multiple region clients todo!!
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
@@ -32,25 +33,43 @@ public class CreateHandler extends BaseHandlerStd {
 
         System.out.println("!!!!!");
         final ResourceModel model = request.getDesiredResourceState();
-
-       
+        r
         return ProgressEvent.progress(model, callbackContext)
                     .then(progress -> 
                         proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToCreateRequest)
                         .makeServiceCall(this::createSubscription)
-                //     .stabilize(this::stabilizeSubscription)
+                        .stabilize(this::updateResourceModel)
                         .progress());
+           
     }
+
+    // is this the right place to update the subscription arn??
+    private Boolean updateResourceModel(
+        final SubscribeRequest subscribeRequest,
+        final SubscribeResponse subscribeResponse,
+        final ProxyClient<SnsClient> proxyClient,
+        final ResourceModel model,
+        final CallbackContext callbackContext) {
+            model.setSubscriptionArn(subscribeResponse.subscriptionArn());
+            System.out.println("here !!!!!!!!!!!!! " + model.getSubscriptionArn());
+
+            if (model.getSubscriptionArn() != null && model.getSubscriptionArn().length() > 0) {
+                System.out.println("true!!");
+                return true;
+            }
+            
+            return false;
+        }
 
     private SubscribeResponse createSubscription(
         final SubscribeRequest subscribeRequest,
         final ProxyClient<SnsClient> proxyClient) {
 
         SubscribeResponse subscribeResponse = null;
-        
         try {
             subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
+       
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {
