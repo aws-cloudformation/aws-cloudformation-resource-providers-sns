@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * This class is a centralized placeholder for
@@ -25,8 +26,9 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to create a resource
    */
-  static SubscribeRequest translateToCreateRequest(final ResourceModel model) {
+  static SubscribeRequest translateToCreateRequest(final ResourceModel model) throws JsonProcessingException {
     return SubscribeRequest.builder()
+        .attributes(SnsSubscriptionUtils.getAttributesForCreate(model))
         .protocol(model.getProtocol())
         .topicArn(model.getTopicArn())
         .endpoint(model.getEndpoint())
@@ -63,9 +65,23 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to delete a resource
    */
-  static UnsubscribeRequest translateToDeleteRequest(final ResourceModel model) {
-    return UnsubscribeRequest.builder()
-        .subscriptionArn(model.getSubscriptionArn())
+  static SubscribeRequest translateToDeleteRequest(final ResourceModel model) {
+
+  //   public static Map<String,String> getAttributesForCreate(final SubscriptionResource subscription) {
+  //     final Map<String,String> attributes = Maps.newHashMap();
+  //     putIfNotNull(attributes, SubscriptionAttribute.DeliveryPolicy, subscription.getDeliveryPolicy());
+  //     putIfNotNull(attributes, SubscriptionAttribute.FilterPolicy, subscription.getFilterPolicy());
+  //     putIfNotNull(attributes, SubscriptionAttribute.RawMessageDelivery, subscription.isRawMessageDelivery());
+  //     putIfNotNull(attributes, SubscriptionAttribute.RedrivePolicy, subscription.getRedrivePolicy());
+  //     return attributes;
+  // }
+
+
+    return SubscribeRequest.builder()
+        .protocol(model.getProtocol())
+        .topicArn(model.getTopicArn())
+        .endpoint(model.getEndpoint())
+      //  .subscriptionArn(model.getSubscriptionArn())
         .build();
   }
 

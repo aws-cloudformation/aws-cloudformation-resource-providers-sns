@@ -7,7 +7,16 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-
+import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
+import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
+import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
+import software.amazon.cloudformation.proxy.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -24,26 +33,14 @@ public class CreateHandler extends BaseHandlerStd {
         System.out.println("!!!!!");
         final ResourceModel model = request.getDesiredResourceState();
 
+       
         return ProgressEvent.progress(model, callbackContext)
-                .then(progress -> 
-                    proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToCreateRequest)
-                    .makeServiceCall(this::createSubscription)
-               //     .stabilize(this::stabilizeSubscription)
-                    .progress());
-
-        // return ProgressEvent.progress(model, callbackContext)
-        // .then(progress ->
-        //         proxy.initiate("AWS-Kinesis-Stream::Create", proxyClient, model, callbackContext)
-        //                 .translateToServiceRequest(Translator::translateToCreateStreamRequest)
-        //                 .makeServiceCall(this::createStream)
-        //                 .stabilize(this::stabilizeKinesisStream)
-        //                 .progress())
-        // .then(progress -> modifyStreamEncryption(proxy, proxyClient, model, null, progress, logger))
-        // .then(progress -> modifyRetentionPeriodHours(proxy, proxyClient, model, DEFAULT_RETENTION_PERIOD_HOURS, progress, logger))
-        // .then(progress -> modifyTags(proxy, proxyClient, model, null, progress, logger))
-        // .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-
+                    .then(progress -> 
+                        proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
+                        .translateToServiceRequest(Translator::translateToCreateRequest)
+                        .makeServiceCall(this::createSubscription)
+                //     .stabilize(this::stabilizeSubscription)
+                        .progress());
     }
 
     private SubscribeResponse createSubscription(
@@ -52,27 +49,26 @@ public class CreateHandler extends BaseHandlerStd {
 
         SubscribeResponse subscribeResponse = null;
         
-            // try {
-        subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
-            // }
+        try {
+            subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
+        } catch (final SubscriptionLimitExceededException e) {
+            throw new CfnServiceLimitExceededException(e);
+        } catch (final FilterPolicyLimitExceededException e) {
+            throw new CfnServiceLimitExceededException(e);
+        } catch (final InvalidParameterException e) {
+            throw new CfnInvalidRequestException(e);
+        } catch (final InternalErrorException e) {
+            throw new CfnInternalFailureException(e);
+        } catch (final NotFoundException e) {
+            throw new CfnNotFoundException(e);
+        } catch (final AuthorizationErrorException e) {
+            throw new CfnAccessDeniedException(e);
+        } catch (final InvalidSecurityException e) {
+            throw new CfnInvalidCredentialsException(e);
+        } 
 
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
         return subscribeResponse;
     }
-    
-
-    // private CreateStreamResponse createStream(
-    //     final CreateStreamRequest createStreamRequest,
-    //     final ProxyClient<KinesisClient> proxyClient) {
-    // CreateStreamResponse createStreamResponse = null;
-    // try {
-    //     createStreamResponse = proxyClient.injectCredentialsAndInvokeV2(createStreamRequest, proxyClient.client()::createStream);
-    // } catch (final ResourceInUseException e) {
-    //     throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createStreamRequest.streamName(), e);
-    // } catch (final InvalidArgumentException e) {
-    //     throw new CfnInvalidRequestException(e);
-    // } catch (final LimitExceededException e) {
-    //     throw new CfnServiceLimitExceededException(ResourceModel.TYPE_NAME, e.getMessage(), e);
-    // }
 
 }

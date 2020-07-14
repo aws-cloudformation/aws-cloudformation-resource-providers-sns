@@ -24,7 +24,6 @@ Resources:
               - Effect: Allow
                 Action:
                 - "sns:GetSubscriptionAttributes"
-                - "sns:ListSubscriptions"
                 - "sns:ListSubscriptionsByTopic"
                 - "sns:SetSubscriptionAttributes"
                 - "sns:Subscribe"

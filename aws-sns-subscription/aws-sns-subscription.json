@@ -9,27 +9,36 @@
             "properties": {
                 "minDelayTarget": {
                     "type": "number",
-                    "default": 20
+                    "default": 20,
+                    "minimum": 1,
+                    "maximum": 3600
                 },
                 "maxDelayTarget": {
                     "type": "number",
-                    "default": 20
+                    "default": 20,
+                    "minimum": 1,
+                    "maximum": 3600
                 },
                 "numRetries": {
                     "type": "number",
-                    "default": 3
+                    "default": 3,
+                    "minimum": 0,
+                    "maximum": 100
                 },
                 "numNoDelayRetries": {
                     "type": "number",
-                    "default": 0
+                    "default": 0,
+                    "minimum": 0
                 },
                 "numMinDelayRetries": {
                     "type": "number",
-                    "default": 0
+                    "default": 0,
+                    "minimum": 0
                 },
                 "numMaxDelayRetries": {
                     "type": "number",
-                    "default": 0
+                    "default": 0,
+                    "minimum": 0
                 },
                 "backoffFunction": {
                     "type": "string",
@@ -37,9 +46,11 @@
                 },
                 "maxReceivesPerSecond": {
                     "type": "number",
-                    "default": 0
+                    "default": 0,
+                    "minimum": 1
                 }
             }
+
         },
         "RedrivePolicy": {
             "type": "object",
@@ -55,6 +66,9 @@
         }
     },
     "properties": {
+        "Id": {
+            "type": "string"
+        },
         "SubscriptionArn": {
             "type": "string"
         },
@@ -71,7 +85,7 @@
             "description": "The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
             "type": "string",
             "examples": ["http","https","email","email-json","sms","sqs","Endpoint Arn for mobile app and device","lambda"]
-        },
+         },
         "RawMessageDelivery": {
             "description": "When set to true, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints.",
             "type": "boolean"
@@ -106,10 +120,10 @@
         "/properties/TopicArn"
     ],
     "primaryIdentifier": [
-        "/properties/SubscriptionArn"
+        "/properties/Id"
     ],
     "readOnlyProperties": [
-        "/properties/SubscriptionArn"
+        "/properties/Id"
     ],
     "handlers": {
         "create": {
@@ -120,26 +134,23 @@
         "read": {
             "permissions": [
                 "sns:GetSubscriptionAttributes",
-                "sns:ListSubscriptionsByTopic",
-                "sns:ListSubscriptions"
+                "sns:ListSubscriptionsByTopic"
             ]
         },
         "update": {
             "permissions": [
-                "sns:GetSubscriptionAttributes",
+                "sns:ListSubscriptionsByTopic",
                 "sns:SetSubscriptionAttributes"
             ]
         },
         "delete": {
             "permissions": [
                 "sns:ListSubscriptionsByTopic",
-                "sns:ListSubscriptions",
                 "sns:Unsubscribe"
             ]
         },
         "list": {
             "permissions": [
-                "sns:ListSubscriptions",
                 "sns:ListSubscriptionsByTopic"
             ]
         }

@@ -12,6 +12,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::SNS::Subscription",
     "Properties" : {
+        "<a href="#subscriptionarn" title="SubscriptionArn">SubscriptionArn</a>" : <i>String</i>,
         "<a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>" : <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>,
         "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i>String</i>,
         "<a href="#protocol" title="Protocol">Protocol</a>" : <i>String</i>,
@@ -29,6 +30,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::SNS::Subscription
 Properties:
+    <a href="#subscriptionarn" title="SubscriptionArn">SubscriptionArn</a>: <i>String</i>
     <a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>: <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i>String</i>
     <a href="#protocol" title="Protocol">Protocol</a>: <i>String</i>
@@ -40,6 +42,14 @@ Properties:
 </pre>
 
 ## Properties
+
+#### SubscriptionArn
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### DeliveryPolicy
 
@@ -121,7 +131,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 ### Ref
 
-When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the SubscriptionArn.
+When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the Id.
 
 ### Fn::GetAtt
 
@@ -129,7 +139,7 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### SubscriptionArn
+#### Id
 
-Returns the <code>SubscriptionArn</code> value.
+Returns the <code>Id</code> value.
 
