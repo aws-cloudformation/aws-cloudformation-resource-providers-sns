@@ -74,8 +74,7 @@
         },
         "DeliveryPolicy": {
             "description": "The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic.",
-            "type": "object",
-            "$ref": "#/definitions/DeliveryPolicy"
+            "type": "string"
         },
         "Endpoint": {
             "description": "The subscription's endpoint. The endpoint value depends on the protocol that you specify.",
@@ -100,12 +99,11 @@
         },
         "FilterPolicy": {
             "description": "The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages.",
-            "type": "object"
+            "type": "string"
         },
         "RedrivePolicy": {
             "description": "When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.",
-            "type": "object",
-            "$ref": "#/definitions/RedrivePolicy"
+            "type": "string"
         }
     },
     "additionalProperties": false,

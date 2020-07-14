@@ -4,18 +4,15 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 public final class SnsSubscriptionUtils {
-    public static Map<String,String> getAttributesForCreate(final ResourceModel subscription) throws JsonProcessingException {
+    public static Map<String,String> getAttributesForCreate(final ResourceModel subscription) {
         final Map<String,String> attributes = Maps.newHashMap();
-        ObjectMapper mapper = new ObjectMapper();
     
-        //convert object to json
-        // putIfNotNull(attributes, SubscriptionAttribute.DeliveryPolicy, mapper.writeValueAsString(subscription.getDeliveryPolicy()));
-        // putIfNotNull(attributes, SubscriptionAttribute.FilterPolicy,  mapper.writeValueAsString(subscription.getFilterPolicy()));
-        // putIfNotNull(attributes, SubscriptionAttribute.RawMessageDelivery,  mapper.writeValueAsString(subscription.getRawMessageDelivery()));
-        // putIfNotNull(attributes, SubscriptionAttribute.RedrivePolicy,  mapper.writeValueAsString(subscription.getRedrivePolicy()));
+        putIfNotNull(attributes, SubscriptionAttribute.DeliveryPolicy, subscription.getDeliveryPolicy());
+        putIfNotNull(attributes, SubscriptionAttribute.FilterPolicy,  subscription.getFilterPolicy());
+        putIfNotNull(attributes, SubscriptionAttribute.RawMessageDelivery,  subscription.getRawMessageDelivery());
+        putIfNotNull(attributes, SubscriptionAttribute.RedrivePolicy,  subscription.getRedrivePolicy());
         return attributes;
     }
 

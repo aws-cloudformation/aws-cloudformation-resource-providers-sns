@@ -13,14 +13,14 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Type" : "AWS::SNS::Subscription",
     "Properties" : {
         "<a href="#subscriptionarn" title="SubscriptionArn">SubscriptionArn</a>" : <i>String</i>,
-        "<a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>" : <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>,
+        "<a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>" : <i>String</i>,
         "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i>String</i>,
         "<a href="#protocol" title="Protocol">Protocol</a>" : <i>String</i>,
         "<a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>" : <i>Boolean</i>,
         "<a href="#region" title="Region">Region</a>" : <i>String</i>,
         "<a href="#topicarn" title="TopicArn">TopicArn</a>" : <i>String</i>,
-        "<a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>" : <i><a href="filterpolicy.md">FilterPolicy</a></i>,
-        "<a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>" : <i><a href="redrivepolicy.md">RedrivePolicy</a></i>
+        "<a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>" : <i>String</i>,
+        "<a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>" : <i>String</i>
     }
 }
 </pre>
@@ -31,14 +31,14 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 Type: AWS::SNS::Subscription
 Properties:
     <a href="#subscriptionarn" title="SubscriptionArn">SubscriptionArn</a>: <i>String</i>
-    <a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>: <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>
+    <a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>: <i>String</i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i>String</i>
     <a href="#protocol" title="Protocol">Protocol</a>: <i>String</i>
     <a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>: <i>Boolean</i>
     <a href="#region" title="Region">Region</a>: <i>String</i>
     <a href="#topicarn" title="TopicArn">TopicArn</a>: <i>String</i>
-    <a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>: <i><a href="filterpolicy.md">FilterPolicy</a></i>
-    <a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>: <i><a href="redrivepolicy.md">RedrivePolicy</a></i>
+    <a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>: <i>String</i>
+    <a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -53,9 +53,11 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### DeliveryPolicy
 
+The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic.
+
 _Required_: No
 
-_Type_: <a href="deliverypolicy.md">DeliveryPolicy</a>
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -115,15 +117,17 @@ The filter policy JSON assigned to the subscription. Enables the subscriber to f
 
 _Required_: No
 
-_Type_: <a href="filterpolicy.md">FilterPolicy</a>
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### RedrivePolicy
 
+When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.
+
 _Required_: No
 
-_Type_: <a href="redrivepolicy.md">RedrivePolicy</a>
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

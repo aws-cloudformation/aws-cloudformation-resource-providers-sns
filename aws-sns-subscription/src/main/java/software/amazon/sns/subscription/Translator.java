@@ -26,7 +26,7 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to create a resource
    */
-  static SubscribeRequest translateToCreateRequest(final ResourceModel model) throws JsonProcessingException {
+  static SubscribeRequest translateToCreateRequest(final ResourceModel model) {
     return SubscribeRequest.builder()
         .attributes(SnsSubscriptionUtils.getAttributesForCreate(model))
         .protocol(model.getProtocol())
