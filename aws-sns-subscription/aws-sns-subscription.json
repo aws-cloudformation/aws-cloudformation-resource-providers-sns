@@ -14,6 +14,10 @@
             "description": "The subscription's endpoint. The endpoint value depends on the protocol that you specify.",
             "type": "string"
         },
+        "Owner": {
+            "description": "The AWS account ID of the subscription's owner.",
+            "type": "string"
+        },
         "Protocol": {
             "description": "The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
             "type": "string",

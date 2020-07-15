@@ -12,6 +12,8 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.*;
 
 public class ReadHandler extends BaseHandlerStd {
     private Logger logger;
@@ -25,6 +27,14 @@ public class ReadHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
+        final ResourceModel model = request.getDesiredResourceState();
+        System.out.println("!!!!!!!!!!!!!!");
+        System.out.println("res " + model.getPrimaryIdentifier());
+        // GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder().subscriptionArn(model.getSubscriptionArn()).build();
+
+        // proxyClient.client().getSubscriptionAttributes(getSubscriptionAttributesRequest);
+
+        System.out.println("here!!!");
         // TODO: Adjust Progress Chain according to your implementation
         // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
 
@@ -37,11 +47,16 @@ public class ReadHandler extends BaseHandlerStd {
             // STEP 3 [TODO: make an api call]
             // Implement client invocation of the read request through the proxyClient, which is already initialised with
             // caller credentials, correct region and retry settings
-            .makeServiceCall((awsRequest, client) -> {
-                AwsResponse awsResponse = null;
+            .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
+                GetSubscriptionAttributesResponse getSubscriptionAttributesResponse= null;
                 try {
 
-                    // TODO: add custom read resource logic
+                    
+               
+                    getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
+            
+                   
+
 
                 } catch (final AwsServiceException e) { // ResourceNotFoundException
                     /*
@@ -54,12 +69,12 @@ public class ReadHandler extends BaseHandlerStd {
                 }
 
                 logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
-                return awsResponse;
+                return getSubscriptionAttributesResponse;
             })
 
             // STEP 4 [TODO: gather all properties of the resource]
             // Implement client invocation of the read request through the proxyClient, which is already initialised with
             // caller credentials, correct region and retry settings
-            .done(awsResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse)));
+            .done(getSubscriptionAttributesResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(getSubscriptionAttributesResponse)));
     }
 }

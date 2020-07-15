@@ -33,14 +33,15 @@ public class CreateHandler extends BaseHandlerStd {
 
         System.out.println("!!!!!");
         final ResourceModel model = request.getDesiredResourceState();
-        r
+        
         return ProgressEvent.progress(model, callbackContext)
                     .then(progress -> 
                         proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToCreateRequest)
                         .makeServiceCall(this::createSubscription)
                         .stabilize(this::updateResourceModel)
-                        .progress());
+                        .progress())
+                    .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
            
     }
 
@@ -64,12 +65,12 @@ public class CreateHandler extends BaseHandlerStd {
 
     private SubscribeResponse createSubscription(
         final SubscribeRequest subscribeRequest,
-        final ProxyClient<SnsClient> proxyClient) {
+        final ProxyClient<SnsClient> proxyClient)  {
 
         SubscribeResponse subscribeResponse = null;
         try {
             subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
-       
+
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {

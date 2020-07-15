@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.sns.*;
 import software.amazon.awssdk.services.sns.model.*;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,11 +42,10 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to describe a resource
    */
-  static AwsRequest translateToReadRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L20-L24
-    return awsRequest;
+  static GetSubscriptionAttributesRequest translateToReadRequest(final ResourceModel model) {
+    return GetSubscriptionAttributesRequest.builder()
+        .subscriptionArn(model.getSubscriptionArn())
+        .build();
   }
 
   /**
@@ -53,11 +53,13 @@ public class Translator {
    * @param awsResponse the aws service describe resource response
    * @return model resource model
    */
-  static ResourceModel translateFromReadResponse(final AwsResponse awsResponse) {
+  static ResourceModel translateFromReadResponse(final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse) {
     // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L58-L73
-    return ResourceModel.builder()
-        //.someProperty(response.property())
-        .build();
+    final Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
+    final ResourceModel resourceModel = new ResourceModel();
+    resourceModel.setSubscriptionArn(attributes.get("SubscriptionArn"));
+    resourceModel.setTopicArn(attributes.get("TopicArn"));
+    return resourceModel;
   }
 
   /**

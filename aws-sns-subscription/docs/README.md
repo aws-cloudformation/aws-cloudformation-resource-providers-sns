@@ -14,6 +14,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>" : <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>,
         "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i>String</i>,
+        "<a href="#owner" title="Owner">Owner</a>" : <i>String</i>,
         "<a href="#protocol" title="Protocol">Protocol</a>" : <i>String</i>,
         "<a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>" : <i>Boolean</i>,
         "<a href="#region" title="Region">Region</a>" : <i>String</i>,
@@ -31,6 +32,7 @@ Type: AWS::SNS::Subscription
 Properties:
     <a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>: <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i>String</i>
+    <a href="#owner" title="Owner">Owner</a>: <i>String</i>
     <a href="#protocol" title="Protocol">Protocol</a>: <i>String</i>
     <a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>: <i>Boolean</i>
     <a href="#region" title="Region">Region</a>: <i>String</i>
@@ -54,6 +56,16 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### Endpoint
 
 The subscription's endpoint. The endpoint value depends on the protocol that you specify.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Owner
+
+The AWS account ID of the subscription's owner.
 
 _Required_: No
 
