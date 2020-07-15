@@ -43,6 +43,7 @@ public class Translator {
    * @return awsRequest the aws service request to describe a resource
    */
   static GetSubscriptionAttributesRequest translateToReadRequest(final ResourceModel model) {
+    System.out.println("translator " + model.getSubscriptionArn());
     return GetSubscriptionAttributesRequest.builder()
         .subscriptionArn(model.getSubscriptionArn())
         .build();
@@ -56,10 +57,18 @@ public class Translator {
   static ResourceModel translateFromReadResponse(final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse) {
     // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L58-L73
     final Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
-    final ResourceModel resourceModel = new ResourceModel();
-    resourceModel.setSubscriptionArn(attributes.get("SubscriptionArn"));
-    resourceModel.setTopicArn(attributes.get("TopicArn"));
-    return resourceModel;
+    //final ResourceModel resourceModel = new ResourceModel();
+
+    //anyway to prevent hard coding??
+    return ResourceModel.builder().subscriptionArn(attributes.get("SubscriptionArn"))
+                            .topicArn(attributes.get("TopicArn"))
+                            .endpoint(attributes.get("Endpoint"))
+                            .protocol(attributes.get("Protocol"))
+                            .filterPolicy(SnsSubscriptionUtils.convertToJson(attributes.get("FilterPolicy")))
+                            .redrivePolicy(SnsSubscriptionUtils.convertToJson(attributes.get("RedrivePolicy")))
+                            .deliveryPolicy(SnsSubscriptionUtils.convertToJson(attributes.get("DeliveryPolicy")))
+                            .rawMessageDelivery(Boolean.valueOf(attributes.get("RawMessageDelivery")))
+                            .build();
   }
 
   /**

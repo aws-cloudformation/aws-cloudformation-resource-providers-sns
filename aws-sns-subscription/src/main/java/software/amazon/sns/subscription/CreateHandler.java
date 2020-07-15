@@ -45,6 +45,7 @@ public class CreateHandler extends BaseHandlerStd {
            
     }
 
+
     // is this the right place to update the subscription arn??
     private Boolean updateResourceModel(
         final SubscribeRequest subscribeRequest,
@@ -52,6 +53,7 @@ public class CreateHandler extends BaseHandlerStd {
         final ProxyClient<SnsClient> proxyClient,
         final ResourceModel model,
         final CallbackContext callbackContext) {
+
             model.setSubscriptionArn(subscribeResponse.subscriptionArn());
             System.out.println("here !!!!!!!!!!!!! " + model.getSubscriptionArn());
 

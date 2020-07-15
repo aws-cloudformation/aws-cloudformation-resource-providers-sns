@@ -28,6 +28,7 @@ public class ReadHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
+        System.out.println("out: " + model);
         System.out.println("!!!!!!!!!!!!!!");
         System.out.println("res " + model.getPrimaryIdentifier());
         // GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder().subscriptionArn(model.getSubscriptionArn()).build();
@@ -52,9 +53,9 @@ public class ReadHandler extends BaseHandlerStd {
                 try {
 
                     
-               
+                    System.out.println("before!!!");
                     getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
-            
+                    System.out.println("after!!!");
                    
 
 

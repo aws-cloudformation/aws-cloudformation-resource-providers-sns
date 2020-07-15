@@ -8,6 +8,9 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.proxy.*;
+import java.util.Map;
 
 public class DeleteHandler extends BaseHandlerStd {
     private Logger logger;
@@ -23,12 +26,13 @@ public class DeleteHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        return ProgressEvent.progress(model, callbackContext)
-                .then(progress ->
-                        proxy.initiate("AWS-SNS-Subscription::Delete", proxyClient, model, callbackContext)
+        return proxy.initiate("AWS-SNS-Subscription::Delete", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToDeleteRequest)
                         .makeServiceCall(this::deleteSubscription)
-                        .progress());
+                        .stabilize(this::stabilizeOnDelete)
+                        .done(awsResponse -> ProgressEvent.<ResourceModel, CallbackContext>builder()
+                            .status(OperationStatus.SUCCESS)
+                            .build());
     }
 
     private UnsubscribeResponse deleteSubscription(
@@ -38,14 +42,16 @@ public class DeleteHandler extends BaseHandlerStd {
         UnsubscribeResponse unsubscribeResponse = null;
         String token = null;
         
+        // TODO figure out what exception is thrown when subscription pending = true TODO
+
         // UnsubscribeRequest unsubscribeRequest = UnsubscribeRequest.builder()
         //                                         .subscriptionArn(getSubscriptionArnForTopic(subscribeRequest, proxyClient, token))
         //                                         .build();
         
         try {
             logger.log(String.format("delete subscription for topic arn: %s", unsubscribeRequest.subscriptionArn()));
-       
             unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
+
         } catch (final NotFoundException e) {
             throw new CfnNotFoundException(e);
         }
@@ -54,28 +60,53 @@ public class DeleteHandler extends BaseHandlerStd {
         return unsubscribeResponse;
     }
 
-    private String getSubscriptionArnForTopic(final SubscribeRequest subscribeRequest,
-    final ProxyClient<SnsClient> proxyClient, String token) {
-        ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.client().listSubscriptionsByTopic(ListSubscriptionsByTopicRequest
-        .builder()
-        .topicArn(subscribeRequest.topicArn()).build());
+    private boolean stabilizeOnDelete(
+        final UnsubscribeRequest unsbscribeRequest,
+        final UnsubscribeResponse unsubscribeResponse,
+        final ProxyClient<SnsClient> proxyClient,
+        final ResourceModel model,
+        final CallbackContext callbackContext) {
 
-        if (listSubscriptionsByTopicResponse.hasSubscriptions()) {
-            for (Subscription subscription : listSubscriptionsByTopicResponse.subscriptions()) {
-                if ((subscription.protocol().compareTo(subscribeRequest.protocol()) == 0)
-                    && (subscription.endpoint().compareTo(subscribeRequest.endpoint()) == 0)) {
-                        return subscription.subscriptionArn();
-                    }
-            }
-        } 
-        
-        token = listSubscriptionsByTopicResponse.nextToken();
-
-        if (token == null) {
-            return token;
+        try {
+            proxyClient.injectCredentialsAndInvokeV2(Translator.translateToReadRequest(model), proxyClient.client()::getSubscriptionAttributes);
+        } catch (final ResourceNotFoundException e) {
+            return true;
         }
-
-        return getSubscriptionArnForTopic(subscribeRequest, proxyClient, token);
+        return false;
     }
+    // private Boolean subscriptionCanBeDeleted(final UnsubscribeRequest unsubscribeRequest, final ProxyClient<SnsClient> proxyClient) {
+
+    //     GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
+    //                                                                         .subscriptionArn(unsubscribeRequest.subscriptionArn()).build();
+
+    //     GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = proxyClient.client().getSubscriptionAttributes(getSubscriptionAttributesRequest);
+    //     Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
+    //     if (attributes.get("PendingConfirmation").equals("false"))
+    //         return true;
+    //     return false;
+    // }
+    // private String getSubscriptionArnForTopic(final SubscribeRequest subscribeRequest,
+    // final ProxyClient<SnsClient> proxyClient, String token) {
+    //     ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.client().listSubscriptionsByTopic(ListSubscriptionsByTopicRequest
+    //     .builder()
+    //     .topicArn(subscribeRequest.topicArn()).build());
+
+    //     if (listSubscriptionsByTopicResponse.hasSubscriptions()) {
+    //         for (Subscription subscription : listSubscriptionsByTopicResponse.subscriptions()) {
+    //             if ((subscription.protocol().compareTo(subscribeRequest.protocol()) == 0)
+    //                 && (subscription.endpoint().compareTo(subscribeRequest.endpoint()) == 0)) {
+    //                     return subscription.subscriptionArn();
+    //                 }
+    //         }
+    //     } 
+        
+    //     token = listSubscriptionsByTopicResponse.nextToken();
+
+    //     if (token == null) {
+    //         return token;
+    //     }
+
+    //     return getSubscriptionArnForTopic(subscribeRequest, proxyClient, token);
+    // }
 
 }
