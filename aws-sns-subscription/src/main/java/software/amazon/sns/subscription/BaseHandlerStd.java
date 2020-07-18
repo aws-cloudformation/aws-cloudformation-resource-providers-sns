@@ -16,8 +16,11 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.regions.Region;
 
 import java.util.Map;
+import java.util.function.Supplier;
+import com.amazonaws.regions.Regions;
 
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
@@ -28,11 +31,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final ResourceHandlerRequest<ResourceModel> request,
     final CallbackContext callbackContext,
     final Logger logger) {
+
     return handleRequest(
       proxy,
       request,
       callbackContext != null ? callbackContext : new CallbackContext(),
-      proxy.newProxy(ClientBuilder::getClient),
+      proxy.newProxy(() -> {return request.getRegion() != null ? 
+                           ClientBuilder.getClient(Region.of(request.getRegion())) :  
+                           ClientBuilder.getClient();}),
       logger
     );
 
