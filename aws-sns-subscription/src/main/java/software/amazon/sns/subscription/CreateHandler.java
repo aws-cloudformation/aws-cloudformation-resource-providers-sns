@@ -31,55 +31,32 @@ public class CreateHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
-        System.out.println("!!!!!");
         final ResourceModel model = request.getDesiredResourceState();
         
         return ProgressEvent.progress(model, callbackContext)
                     .then(progress -> 
                         proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToCreateRequest)
-                        .makeServiceCall(this::createSubscription)
-                        .stabilize(this::updateResourceModel)
+                        .makeServiceCall((subscribeRequest, client) -> createSubscription(subscribeRequest, client, model))
                         .progress())
                     .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
            
     }
 
-
-    // is this the right place to update the subscription arn??
-    private Boolean updateResourceModel(
-        final SubscribeRequest subscribeRequest,
-        final SubscribeResponse subscribeResponse,
-        final ProxyClient<SnsClient> proxyClient,
-        final ResourceModel model,
-        final CallbackContext callbackContext) {
-
-            model.setSubscriptionArn(subscribeResponse.subscriptionArn());
-            System.out.println("here !!!!!!!!!!!!! " + model.getSubscriptionArn());
-
-            if (model.getSubscriptionArn() != null && model.getSubscriptionArn().length() > 0) {
-                System.out.println("true!!");
-                return true;
-            }
-            
-            return false;
-        }
-
-
     private SubscribeResponse createSubscription(
         final SubscribeRequest subscribeRequest,
-        final ProxyClient<SnsClient> proxyClient)  {
+        final ProxyClient<SnsClient> proxyClient,
+        final ResourceModel model)  {
 
-        System.out.println("creat subscription!");
-        System.out.println("req " + subscribeRequest.topicArn());
-        System.out.println("attr" + subscribeRequest.attributes().values());
         SubscribeResponse subscribeResponse = null;
         try {
-            if (checkTopicExists(subscribeRequest.topicArn(), proxyClient, logger))
+            if (checkTopicExists(subscribeRequest.topicArn(), proxyClient, logger)) {
                 subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
+                model.setSubscriptionArn(subscribeResponse.subscriptionArn());
+            }
             else 
                 throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", subscribeRequest.topicArn())));
-                
+                    
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {

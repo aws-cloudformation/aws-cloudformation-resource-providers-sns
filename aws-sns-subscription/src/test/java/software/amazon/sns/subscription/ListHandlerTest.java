@@ -66,4 +66,6 @@ public class ListHandlerTest {
 
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
     }
+
+    // todo test with token
 }

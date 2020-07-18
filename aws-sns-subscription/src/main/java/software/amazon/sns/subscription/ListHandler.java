@@ -10,6 +10,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +27,16 @@ public class ListHandler extends BaseHandlerStd {
 
         final ListSubscriptionsByTopicRequest listSubscriptionsByTopicRequest = 
                                                     ListSubscriptionsByTopicRequest.builder()
-                                                    .topicArn(request.getNextToken())
+                                                    .topicArn(request.getDesiredResourceState().getTopicArn())
                                                     .build();
+
+        if (!checkTopicExists(listSubscriptionsByTopicRequest.topicArn(), proxyClient, logger))
+            throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", listSubscriptionsByTopicRequest.topicArn())));
 
         final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, proxyClient.client()::listSubscriptionsByTopic);
 
         final List<ResourceModel> models = Translator.translateFromListRequest(listSubscriptionsByTopicResponse);
 
-        // Todo check topic exists
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
                 .resourceModels(models)
                 .nextToken(listSubscriptionsByTopicRequest.nextToken())
