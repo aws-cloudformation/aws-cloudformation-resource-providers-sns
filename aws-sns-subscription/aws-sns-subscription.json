@@ -62,26 +62,34 @@
     "handlers": {
         "create": {
             "permissions": [
-                "sns:Subscribe"
+                "sns:Subscribe",
+                "sns:GetSubscriptionAttributes",
+                "sns:GetTopicAttributes"
             ]
         },
         "read": {
             "permissions": [
-                "sns:GetSubscriptionAttributes"
+                "sns:GetSubscriptionAttributes",
+                "sns:GetTopicAttributes"
             ]
         },
         "update": {
             "permissions": [
-                "sns:SetSubscriptionAttributes"
+                "sns:SetSubscriptionAttributes",
+                "sns:GetSubscriptionAttributes",
+                "sns:GetTopicAttributes"
             ]
         },
         "delete": {
             "permissions": [
+                "sns:GetSubscriptionAttributes",
+                "sns:GetTopicAttributes",
                 "sns:Unsubscribe"
             ]
         },
         "list": {
             "permissions": [
+                "sns:GetTopicAttributes",
                 "sns:ListSubscriptionsByTopic"
             ]
         }

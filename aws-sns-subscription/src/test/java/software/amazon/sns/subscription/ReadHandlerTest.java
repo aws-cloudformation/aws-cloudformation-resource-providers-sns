@@ -7,6 +7,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.awssdk.services.sns.*;
 import software.amazon.awssdk.services.sns.model.*;
 import org.junit.jupiter.api.AfterEach;
@@ -45,6 +46,8 @@ public class ReadHandlerTest extends AbstractTestBase {
     SnsClient snsClient;
 
     private ReadHandler handler;
+    private ResourceModel model;
+    private Map<String, String> attributes;
 
     @BeforeEach
     public void setup() {
@@ -52,6 +55,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
         snsClient = mock(SnsClient.class);
         proxyClient = MOCK_PROXY(proxy, snsClient);
+        buildObjects();
     }
 
     @AfterEach
@@ -60,14 +64,31 @@ public class ReadHandlerTest extends AbstractTestBase {
         verifyNoMoreInteractions(snsClient);
     }
 
+    private void buildObjects() {
+       
+        model = ResourceModel.builder().subscriptionArn("testArn").topicArn("topicArn").build();
+        attributes = new HashMap<>();
+        attributes.put("SubscriptionArn", model.getSubscriptionArn());
+        attributes.put("TopicArn", "topicArn");
+        attributes.put("Protocol", "email");
+        attributes.put("Endpoint", "end1");
+        attributes.put("RawMessageDelivery", "false");
+        attributes.put("PendingConfirmation", "false");
+
+    }
+
     @Test
     public void handleRequest_SimpleSuccess() throws JsonProcessingException {
 
-        // final ResourceModel model = ResourceModel.builder().subscriptionArn("testArn").build();
+        Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
 
-        // final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-        //     .desiredResourceState(model)
-        //     .build();
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+        // final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
+        // when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
+
 
         ObjectMapper objectMapper = new ObjectMapper();
         //   Object ob1 = new String("[\"example_corp\"]");
@@ -91,9 +112,6 @@ public class ReadHandlerTest extends AbstractTestBase {
         deliveryPolicy.put("maxDelayTarget", 2);
         String deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
 
-        final ResourceModel model = ResourceModel.builder()
-                                    .subscriptionArn("arn1")
-                                    .build();
 
 
         Map<String, String> attributes = new HashMap<>();
@@ -117,7 +135,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         final ResourceModel desiredModel = ResourceModel.builder()
-                                                .subscriptionArn("arn1")
+                                                .subscriptionArn("testArn")
                                                 .protocol("email")
                                                 .endpoint("end1")
                                                 .topicArn("topicArn")
@@ -135,5 +153,30 @@ public class ReadHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_TopicArnDoesNotExist()  {
+
+        Map<String, String> topicAttributes = new HashMap<>();
+
+        GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(model)
+                                                                .build();
+        boolean exceptionThrown = false;
+        try {
+            final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(CfnNotFoundException.class);
+            assertThat(e).hasMessage("topic topicArn not found!");
+            exceptionThrown = true;
+        }
+
+        assertThat(exceptionThrown).isTrue();
     }
 }

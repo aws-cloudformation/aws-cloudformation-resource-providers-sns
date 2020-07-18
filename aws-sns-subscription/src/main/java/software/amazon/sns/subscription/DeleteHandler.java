@@ -26,13 +26,37 @@ public class DeleteHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        return proxy.initiate("AWS-SNS-Subscription::Delete", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToDeleteRequest)
+        return ProgressEvent.progress(model, callbackContext)
+                    .then(process -> proxy.initiate("AWS-SNS-Subscription::Check-Subscription-Exists", proxyClient, model, callbackContext)
+                        .translateToServiceRequest(Translator::translateToReadRequest)
+                        .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
+                            GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = null;
+
+                            // note handle subscription pending
+                            try {
+                                if (!checkTopicExists(model.getTopicArn(), proxyClient, logger))
+                                    throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", model.getTopicArn())));
+
+                                if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient, logger))
+                                    throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
+
+                                if (!checkSubscriptionNotPending(model.getSubscriptionArn(), proxyClient, logger))
+                                    throw new CfnNotFoundException(new Exception(String.format("subscription %s cannot be deleted if pending confirmation", model.getSubscriptionArn())));
+                      
+                            } catch (final NotFoundException e) {
+                                throw new CfnNotFoundException(e);
+                            }
+                    
+                            return getSubscriptionAttributesResponse;
+                        })
+                        .progress())
+                    .then(process -> proxy.initiate("AWS-SNS-Subscription::Unsubscribe", proxyClient, model, callbackContext)
+                        .translateToServiceRequest(Translator::translateToDeleteRequest)           
                         .makeServiceCall(this::deleteSubscription)
                         .stabilize(this::stabilizeOnDelete)
                         .done(awsResponse -> ProgressEvent.<ResourceModel, CallbackContext>builder()
                             .status(OperationStatus.SUCCESS)
-                            .build());
+                            .build()));
     }
 
     private UnsubscribeResponse deleteSubscription(
@@ -44,10 +68,6 @@ public class DeleteHandler extends BaseHandlerStd {
         
         // TODO figure out what exception is thrown when subscription pending = true TODO
 
-        // UnsubscribeRequest unsubscribeRequest = UnsubscribeRequest.builder()
-        //                                         .subscriptionArn(getSubscriptionArnForTopic(subscribeRequest, proxyClient, token))
-        //                                         .build();
-        
         try {
             logger.log(String.format("delete subscription for topic arn: %s", unsubscribeRequest.subscriptionArn()));
             unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
@@ -74,39 +94,6 @@ public class DeleteHandler extends BaseHandlerStd {
         }
         return false;
     }
-    // private Boolean subscriptionCanBeDeleted(final UnsubscribeRequest unsubscribeRequest, final ProxyClient<SnsClient> proxyClient) {
-
-    //     GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
-    //                                                                         .subscriptionArn(unsubscribeRequest.subscriptionArn()).build();
-
-    //     GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = proxyClient.client().getSubscriptionAttributes(getSubscriptionAttributesRequest);
-    //     Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
-    //     if (attributes.get("PendingConfirmation").equals("false"))
-    //         return true;
-    //     return false;
-    // }
-    // private String getSubscriptionArnForTopic(final SubscribeRequest subscribeRequest,
-    // final ProxyClient<SnsClient> proxyClient, String token) {
-    //     ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.client().listSubscriptionsByTopic(ListSubscriptionsByTopicRequest
-    //     .builder()
-    //     .topicArn(subscribeRequest.topicArn()).build());
-
-    //     if (listSubscriptionsByTopicResponse.hasSubscriptions()) {
-    //         for (Subscription subscription : listSubscriptionsByTopicResponse.subscriptions()) {
-    //             if ((subscription.protocol().compareTo(subscribeRequest.protocol()) == 0)
-    //                 && (subscription.endpoint().compareTo(subscribeRequest.endpoint()) == 0)) {
-    //                     return subscription.subscriptionArn();
-    //                 }
-    //         }
-    //     } 
-        
-    //     token = listSubscriptionsByTopicResponse.nextToken();
-
-    //     if (token == null) {
-    //         return token;
-    //     }
-
-    //     return getSubscriptionArnForTopic(subscribeRequest, proxyClient, token);
-    // }
+  
 
 }

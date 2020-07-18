@@ -65,14 +65,21 @@ public class CreateHandler extends BaseHandlerStd {
             return false;
         }
 
+
     private SubscribeResponse createSubscription(
         final SubscribeRequest subscribeRequest,
         final ProxyClient<SnsClient> proxyClient)  {
 
+        System.out.println("creat subscription!");
+        System.out.println("req " + subscribeRequest.topicArn());
+        System.out.println("attr" + subscribeRequest.attributes().values());
         SubscribeResponse subscribeResponse = null;
         try {
-            subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
-
+            if (checkTopicExists(subscribeRequest.topicArn(), proxyClient, logger))
+                subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
+            else 
+                throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", subscribeRequest.topicArn())));
+                
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {

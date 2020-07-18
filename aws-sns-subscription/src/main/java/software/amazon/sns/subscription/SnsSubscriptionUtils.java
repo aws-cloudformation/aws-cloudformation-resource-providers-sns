@@ -12,56 +12,74 @@ public final class SnsSubscriptionUtils {
     public static Map<String,Object> convertToJson(String jsonString) {
         final ObjectMapper objectMapper = new ObjectMapper(); 
         Map<String, Object> attribute = null;
-        try {
-            attribute = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-        } catch (JsonProcessingException ex) {
-            // TODO temp until fix provided
+
+        if (jsonString != null) {
+            try {
+                attribute = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
+            } catch (JsonProcessingException ex) {
+                // TODO temp until fix provided
+            }
         }
 
         return attribute;
     } 
 
-    public static Map<String,String> getAttributesForCreate(final ResourceModel subscription) {
+    public static Map<String,String> getAttributesForCreate(final ResourceModel model) {
         final Map<String,String> attributeMap = Maps.newHashMap();
-    
-        // ObjectMapper objectMapper = new ObjectMapper(); 
-        // final Map<String, Object> policy = subscription.getFilterPolicy();
-        // System.out.println(policy.entrySet());
-        // if (policy != null)
-        //     System.out.println(policy.values());
+     
+       final ObjectMapper objectMapper = new ObjectMapper(); 
+ 
+        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.DeliveryPolicy, model.getDeliveryPolicy());
+        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.FilterPolicy,  model.getFilterPolicy());
+        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RawMessageDelivery, model.getRawMessageDelivery());
+        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RedrivePolicy,  model.getRedrivePolicy());
 
-        // try {
-        //     String val = objectMapper.writeValueAsString(policy);
-        //     System.out.println("snsutils " + val);
-        //     attributeMap.put(SubscriptionAttribute.FilterPolicy.name(), val);
-        // } catch(JsonProcessingException ex) {
+        return attributeMap;
+    }
 
-        //      }
+    public static Map<String,String> getAttributesForCreate(final SubscriptionAttribute subscriptionAttribute, final Map<String,Object> policy) {
+        final Map<String,String> attributeMap = Maps.newHashMap();
+
 
              
        final ObjectMapper objectMapper = new ObjectMapper(); 
  
-        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.DeliveryPolicy, subscription.getDeliveryPolicy());
-        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.FilterPolicy,  subscription.getFilterPolicy());
-        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RawMessageDelivery, subscription.getRawMessageDelivery());
-        putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RedrivePolicy,  subscription.getRedrivePolicy());
+        putIfNotNull(objectMapper, attributeMap, subscriptionAttribute, policy);
+        // putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.FilterPolicy,  subscription.getFilterPolicy());
+        // putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RawMessageDelivery, subscription.getRawMessageDelivery());
+        // putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RedrivePolicy,  subscription.getRedrivePolicy());
 
-         return attributeMap;
+        return attributeMap;
+    }
+
+    public static Map<String,String> getAttributesForCreate(final SubscriptionAttribute subscriptionAttribute, final Boolean value) {
+        final Map<String,String> attributeMap = Maps.newHashMap();
+
+
+             
+       final ObjectMapper objectMapper = new ObjectMapper(); 
+ 
+        putIfNotNull(objectMapper, attributeMap, subscriptionAttribute, value);
+        // putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.FilterPolicy,  subscription.getFilterPolicy());
+        // putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RawMessageDelivery, subscription.getRawMessageDelivery());
+        // putIfNotNull(objectMapper, attributeMap, SubscriptionAttribute.RedrivePolicy,  subscription.getRedrivePolicy());
+
+        return attributeMap;
     }
 
     private static void putIfNotNull(final ObjectMapper objectMapper, final Map<String,String> attributeMap, final SubscriptionAttribute key, final Map<String,Object> objectMap) {
-        if (objectMap != null)
+        if (objectMap != null) {
             System.out.println(objectMap.values());
 
-        try {
-            String val = objectMapper.writeValueAsString(objectMap);
-            System.out.println("snsutils " + val);
-            attributeMap.put(key.name(), val);
-        } catch(JsonProcessingException ex) {
-                // TODO temp until fix provided
+            try {
+                String val = objectMapper.writeValueAsString(objectMap);
+                System.out.println("snsutils " + val);
+                attributeMap.put(key.name(), val);
+            } catch(JsonProcessingException ex) {
+                    // TODO temp until fix provided
+            }
+
         }
-
-
     }
 
     private static void putIfNotNull(final Map<String,String> map, final SubscriptionAttribute key, final String value) {

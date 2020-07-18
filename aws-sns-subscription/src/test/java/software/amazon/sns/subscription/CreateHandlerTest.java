@@ -9,6 +9,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,9 +27,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// import com.fasterxml.jackson.databind.ObjectMapper;
-// import java.util.Map;
-// import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,13 +43,19 @@ public class CreateHandlerTest extends AbstractTestBase {
     SnsClient SnsClient;
 
     private CreateHandler handler;
+    private ObjectMapper objectMapper;
+    private ResourceModel model;
+    private String filterPolicyString;
+    private String redrivePolicyString;
+    private String deliveryPolicyString;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws JsonProcessingException {
         handler = new CreateHandler();
         proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
         SnsClient = mock(SnsClient.class);
         proxyClient = MOCK_PROXY(proxy, SnsClient);
+        buildObjects();
     }
 
     @AfterEach
@@ -60,43 +64,50 @@ public class CreateHandlerTest extends AbstractTestBase {
         verifyNoMoreInteractions(SnsClient);
     }
 
-    @Test
-    public void handleRequest_SimpleSuccess() throws JsonProcessingException {
- 
-
-        ObjectMapper objectMapper = new ObjectMapper();
-     //   Object ob1 = new String("[\"example_corp\"]");
-
+    private void buildObjects() throws JsonProcessingException {
+        objectMapper = new ObjectMapper();
+        //   Object ob1 = new String("[\"example_corp\"]");
+   
         Map<String, Object> filterPolicy = new HashMap<>();
         filterPolicy.put("store", "[\"example_corp\"]");
         filterPolicy.put("event", "[\"order_placed\"]");
 
-        String filterPolicyString = objectMapper.writeValueAsString(filterPolicy);
+        filterPolicyString = objectMapper.writeValueAsString(filterPolicy);
 
         Map<String, Object> redrivePolicy = new HashMap<>();
         redrivePolicy.put("deadLetterTargetArn", "arn");
         redrivePolicy.put("maxReceiveCount", "1");
 
-        String redrivePolicyString = objectMapper.writeValueAsString(redrivePolicy);
+        redrivePolicyString = objectMapper.writeValueAsString(redrivePolicy);
 
         System.out.println(filterPolicyString);
 
         Map<String, Object> deliveryPolicy = new HashMap<>();
         deliveryPolicy.put("minDelayTarget", 1);
         deliveryPolicy.put("maxDelayTarget", 2);
-        String deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
+        deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
 
-        final ResourceModel model = ResourceModel.builder()
-                                    .protocol("email")
-                                    .endpoint("end1")
-                                    .topicArn("topicArn")
-                                    .filterPolicy(filterPolicy)
-                                    .redrivePolicy(redrivePolicy)
-                                    .deliveryPolicy(deliveryPolicy)
-                                    .rawMessageDelivery(false)
-                                    .build();
+        model = ResourceModel.builder()
+                            .protocol("email")
+                            .endpoint("end1")
+                            .topicArn("topicArn")
+                            .filterPolicy(filterPolicy)
+                            .redrivePolicy(redrivePolicy)
+                            .deliveryPolicy(deliveryPolicy)
+                            .rawMessageDelivery(false)
+                            .build();
+    }
+    @Test
+    public void handleRequest_TopicArnExists()  {
 
-        System.out.println("after model!!");
+        Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
         final SubscribeResponse subscribeResponse = SubscribeResponse.builder().subscriptionArn("testarn").build();;
         when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenReturn(subscribeResponse);
 
@@ -135,5 +146,30 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
 
+    }
+
+    @Test
+    public void handleRequest_TopicArnDoesNotExist() {
+
+        Map<String, String> topicAttributes = new HashMap<>();
+
+        GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(model)
+                                                                .build();
+        boolean exceptionThrown = false;
+        try {
+         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(CfnNotFoundException.class);
+            assertThat(e).hasMessage("topic topicArn not found!");
+            exceptionThrown = true;
+        }
+
+        assertThat(exceptionThrown).isTrue();
     }
 }

@@ -120,54 +120,12 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                                                                 .build();
     GetTopicAttributesResponse getTopicAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getTopicAttributesRequest, proxyClient.client()::getTopicAttributes);
     
-    System.out.println(getTopicAttributesResponse.hasAttributes());
-    System.out.println(getTopicAttributesResponse.attributes().size());
-    if (getTopicAttributesResponse.hasAttributes() && 
-        getTopicAttributesResponse.attributes().get("TopicArn") != null)
+    if (getTopicAttributesResponse.hasAttributes())
         return true;
 
     return false;
   }
 
-  protected boolean checkSubscriptionExists(final String subscriptionArn, final ProxyClient<SnsClient> proxyClient, final Logger logger) {
-
-    logger.log("Checking topic exists");
-    final GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
-                                                                .subscriptionArn(subscriptionArn)
-                                                                .build();
-
-    final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
-    getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
-  
-    
-    System.out.println(getSubscriptionAttributesResponse.hasAttributes());
-    System.out.println(getSubscriptionAttributesResponse.attributes().size());
-    if (getSubscriptionAttributesResponse.hasAttributes() && 
-    getSubscriptionAttributesResponse.attributes().get("Protocol") != null)
-        return true;
-
-    return false;
-  }
-
-  protected boolean checkSubscriptionNotPending(final String subscriptionArn, final ProxyClient<SnsClient> proxyClient, final Logger logger) {
-
-    logger.log("Checking topic exists");
-    final GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
-                                                                .subscriptionArn(subscriptionArn)
-                                                                .build();
-
-    final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
-    getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
-  
-    
-    System.out.println(getSubscriptionAttributesResponse.hasAttributes());
-    System.out.println(getSubscriptionAttributesResponse.attributes().size());
-    if (getSubscriptionAttributesResponse.hasAttributes() && 
-       getSubscriptionAttributesResponse.attributes().get("PendingConfirmation").equals("false"))
-        return true;
-
-    return false;
-  }
 
   protected boolean stabilizeSnsSubscriptionUpdate(
     final AwsRequest awsRequest,
