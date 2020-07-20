@@ -66,10 +66,8 @@ public class DeleteHandler extends BaseHandlerStd {
         UnsubscribeResponse unsubscribeResponse = null;
         String token = null;
         
-        // TODO figure out what exception is thrown when subscription pending = true TODO
-
         try {
-            logger.log(String.format("delete subscription for topic arn: %s", unsubscribeRequest.subscriptionArn()));
+            logger.log(String.format("Deleted subscription for topic arn: %s", unsubscribeRequest.subscriptionArn()));
             unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
 
         } catch (final NotFoundException e) {

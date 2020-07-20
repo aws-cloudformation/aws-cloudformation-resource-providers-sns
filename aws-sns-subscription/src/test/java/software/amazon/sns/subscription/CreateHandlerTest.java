@@ -43,7 +43,6 @@ public class CreateHandlerTest extends AbstractTestBase {
     SnsClient SnsClient;
 
     private CreateHandler handler;
-    private ObjectMapper objectMapper;
     private ResourceModel model;
     private String filterPolicyString;
     private String redrivePolicyString;
@@ -65,24 +64,21 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     private void buildObjects() throws JsonProcessingException {
-        objectMapper = new ObjectMapper();
-        //   Object ob1 = new String("[\"example_corp\"]");
-   
-        Map<String, Object> filterPolicy = new HashMap<>();
+        final ObjectMapper objectMapper = new ObjectMapper();
+
+        final Map<String, Object> filterPolicy = new HashMap<>();
         filterPolicy.put("store", "[\"example_corp\"]");
         filterPolicy.put("event", "[\"order_placed\"]");
 
         filterPolicyString = objectMapper.writeValueAsString(filterPolicy);
 
-        Map<String, Object> redrivePolicy = new HashMap<>();
+        final Map<String, Object> redrivePolicy = new HashMap<>();
         redrivePolicy.put("deadLetterTargetArn", "arn");
         redrivePolicy.put("maxReceiveCount", "1");
 
         redrivePolicyString = objectMapper.writeValueAsString(redrivePolicy);
 
-        System.out.println(filterPolicyString);
-
-        Map<String, Object> deliveryPolicy = new HashMap<>();
+        final Map<String, Object> deliveryPolicy = new HashMap<>();
         deliveryPolicy.put("minDelayTarget", 1);
         deliveryPolicy.put("maxDelayTarget", 2);
         deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
@@ -97,10 +93,11 @@ public class CreateHandlerTest extends AbstractTestBase {
                             .rawMessageDelivery(false)
                             .build();
     }
+
     @Test
     public void handleRequest_TopicArnExists()  {
 
-        Map<String, String> topicAttributes = new HashMap<>();
+        final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn","topicarn");
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
@@ -111,8 +108,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         final SubscribeResponse subscribeResponse = SubscribeResponse.builder().subscriptionArn("testarn").build();;
         when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenReturn(subscribeResponse);
 
-        Map<String, String> attributes = new HashMap<>();
-        // dont want to hard code these
+        final Map<String, String> attributes = new HashMap<>();
+      
         attributes.put("SubscriptionArn", subscribeResponse.subscriptionArn());
         attributes.put("TopicArn", model.getTopicArn());
         attributes.put("Protocol", model.getProtocol());
@@ -131,8 +128,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        //System.out.println()
-
         assertThat(response).isNotNull();
  
         // in progress waiting for the user confirm subscription.
@@ -145,6 +140,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
 
         verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
 
     }
 

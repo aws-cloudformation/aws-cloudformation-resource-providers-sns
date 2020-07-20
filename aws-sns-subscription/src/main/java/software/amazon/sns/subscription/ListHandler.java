@@ -27,6 +27,7 @@ public class ListHandler extends BaseHandlerStd {
 
         final ListSubscriptionsByTopicRequest listSubscriptionsByTopicRequest = 
                                                     ListSubscriptionsByTopicRequest.builder()
+                                                    .nextToken(request.getNextToken())
                                                     .topicArn(request.getDesiredResourceState().getTopicArn())
                                                     .build();
 
@@ -39,7 +40,7 @@ public class ListHandler extends BaseHandlerStd {
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
                 .resourceModels(models)
-                .nextToken(listSubscriptionsByTopicRequest.nextToken())
+                .nextToken(listSubscriptionsByTopicResponse.nextToken())
                 .status(OperationStatus.SUCCESS)
                 .build();
     }

@@ -13,7 +13,6 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import java.util.Map;
 
@@ -29,7 +28,6 @@ public class ReadHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
-        // should this be previous state TODO check!!!
         final ResourceModel model = request.getDesiredResourceState();
 
         return proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, request.getDesiredResourceState(), callbackContext)

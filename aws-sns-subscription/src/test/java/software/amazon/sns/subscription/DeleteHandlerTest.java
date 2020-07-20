@@ -68,7 +68,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
         attributes.put("Endpoint", "end1");
         attributes.put("RawMessageDelivery", "false");
         attributes.put("PendingConfirmation", "false");
-
    
     }
 
@@ -79,7 +78,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
             .desiredResourceState(model)
             .build();
 
-        Map<String, String> topicAttributes = new HashMap<>();
+        final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn","topicarn");
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
@@ -92,16 +91,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
 
-        // GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
-        //                                                                         .subscriptionArn(model.getSubscriptionArn())
-        //                                                                         .build();
-       
-     //   when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionAttributesResponse).thenThrow(ResourceNotFoundException.class);
-
-    //  final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
-    // when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
-
-
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
@@ -111,14 +100,18 @@ public class DeleteHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).unsubscribe(any(UnsubscribeRequest.class));
+        verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
      @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
-        Map<String, String> topicAttributes = new HashMap<>();
+        final Map<String, String> topicAttributes = new HashMap<>();
 
-        GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
@@ -136,5 +129,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
         }
 
         assertThat(exceptionThrown).isTrue();
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
     }
 }

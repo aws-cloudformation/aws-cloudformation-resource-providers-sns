@@ -41,8 +41,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                            ClientBuilder.getClient();}),
       logger
     );
-
-
   }
 
   // protected ProgressEvent<ResourceModel, CallbackContext> modifyFilterPolicy(
@@ -67,49 +65,65 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     
   // }
 
-  protected ProgressEvent<ResourceModel, CallbackContext> modifyPolicy(
+  protected ProgressEvent<ResourceModel, CallbackContext> modifyAttributes(
     AmazonWebServicesClientProxy proxy,
     ProxyClient<SnsClient> proxyClient,
-    Map<String, Object> desiredPolicy,
-    ResourceModel model,
-    SubscriptionAttribute subscriptionAttribute,
-    Map<String, Object> previousPolicy,
+    ResourceModel currentModel,
+    ResourceModel previousModel,
     ProgressEvent<ResourceModel, CallbackContext> progress,
     Logger logger) {
 
-    if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
-        return progress;
-    }
-
-    return proxy.initiate("AWS-Kinesis-Stream::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
-            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, desiredPolicy))
+    return proxy.initiate("AWS-Kinesis-Stream::Update", proxyClient, currentModel, progress.getCallbackContext())
+            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(previousModel, currentModel))
             .makeServiceCall(this::updateSubscription)
             .stabilize(this::stabilizeSnsSubscriptionUpdate)
             .progress();
     
   }
 
-  protected ProgressEvent<ResourceModel, CallbackContext> modifyRawMessageDelivery(
-    AmazonWebServicesClientProxy proxy,
-    ProxyClient<SnsClient> proxyClient,
-    Boolean rawMessageDelivery,
-    ResourceModel model,
-    SubscriptionAttribute subscriptionAttribute,
-    Boolean previousRawMessageDelivery,
-    ProgressEvent<ResourceModel, CallbackContext> progress,
-    Logger logger) {
+  // protected ProgressEvent<ResourceModel, CallbackContext> modifyPolicy(
+  //   AmazonWebServicesClientProxy proxy,
+  //   ProxyClient<SnsClient> proxyClient,
+  //   Map<String, Object> desiredPolicy,
+  //   ResourceModel model,
+  //   SubscriptionAttribute subscriptionAttribute,
+  //   Map<String, Object> previousPolicy,
+  //   ProgressEvent<ResourceModel, CallbackContext> progress,
+  //   Logger logger) {
 
-    if (previousRawMessageDelivery == null || rawMessageDelivery.equals(previousRawMessageDelivery)) {
-        return progress;
-    }
+  //   if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
+  //       return progress;
+  //   }
 
-    return proxy.initiate("AWS-Kinesis-Stream::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
-            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, rawMessageDelivery))
-            .makeServiceCall(this::updateSubscription)
-            .stabilize(this::stabilizeSnsSubscriptionUpdate)
-            .progress();
+  //   return proxy.initiate("AWS-Kinesis-Stream::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
+  //           .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, desiredPolicy))
+  //           .makeServiceCall(this::updateSubscription)
+  //           .stabilize(this::stabilizeSnsSubscriptionUpdate)
+  //           .progress();
     
-  }
+  // }
+
+  // protected ProgressEvent<ResourceModel, CallbackContext> modifyRawMessageDelivery(
+  //   AmazonWebServicesClientProxy proxy,
+  //   ProxyClient<SnsClient> proxyClient,
+  //   Boolean rawMessageDelivery,
+  //   ResourceModel model,
+  //   SubscriptionAttribute subscriptionAttribute,
+  //   Boolean previousRawMessageDelivery,
+  //   ProgressEvent<ResourceModel, CallbackContext> progress,
+  //   Logger logger) {
+
+  //   if (previousRawMessageDelivery == null || rawMessageDelivery.equals(previousRawMessageDelivery)) {
+  //       return progress;
+  //   }
+
+  //   return proxy.initiate("AWS-Kinesis-Stream::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
+  //           .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, rawMessageDelivery))
+  //           .makeServiceCall(this::updateSubscription)
+  //           .stabilize(this::stabilizeSnsSubscriptionUpdate)
+  //           .progress();
+    
+  // }
 
   protected abstract ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
@@ -126,8 +140,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                                                                 .build();
     GetTopicAttributesResponse getTopicAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getTopicAttributesRequest, proxyClient.client()::getTopicAttributes);
     
-    System.out.println(getTopicAttributesResponse.hasAttributes());
-    System.out.println(getTopicAttributesResponse.attributes().size());
     if (getTopicAttributesResponse.hasAttributes() && 
         getTopicAttributesResponse.attributes().get("TopicArn") != null)
         return true;
@@ -137,7 +149,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected boolean checkSubscriptionExists(final String subscriptionArn, final ProxyClient<SnsClient> proxyClient, final Logger logger) {
 
-    logger.log("Checking topic exists");
+    logger.log("Checking subscription exists");
     final GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
                                                                 .subscriptionArn(subscriptionArn)
                                                                 .build();
@@ -145,9 +157,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
     getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
   
-    
-    System.out.println(getSubscriptionAttributesResponse.hasAttributes());
-    System.out.println(getSubscriptionAttributesResponse.attributes().size());
     if (getSubscriptionAttributesResponse.hasAttributes() && 
     getSubscriptionAttributesResponse.attributes().get("Protocol") != null)
         return true;
@@ -157,7 +166,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected boolean checkSubscriptionNotPending(final String subscriptionArn, final ProxyClient<SnsClient> proxyClient, final Logger logger) {
 
-    logger.log("Checking topic exists");
+    logger.log("Checking if a subscription is pending.");
     final GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
                                                                 .subscriptionArn(subscriptionArn)
                                                                 .build();
@@ -165,11 +174,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
     getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
   
-    
-    System.out.println(getSubscriptionAttributesResponse.hasAttributes());
-    System.out.println(getSubscriptionAttributesResponse.attributes().size());
     if (getSubscriptionAttributesResponse.hasAttributes() && 
-       getSubscriptionAttributesResponse.attributes().get("PendingConfirmation").equals("false"))
+       getSubscriptionAttributesResponse.attributes().get(Definitions.pendingConfirmation).equals(Definitions.subscriptionNotPending))
         return true;
 
     return false;

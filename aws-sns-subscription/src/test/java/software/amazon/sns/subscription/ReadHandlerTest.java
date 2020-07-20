@@ -19,9 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// import com.fasterxml.jackson.databind.ObjectMapper;
-// import java.util.Map;
-// import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,7 +77,7 @@ public class ReadHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess() throws JsonProcessingException {
 
-        Map<String, String> topicAttributes = new HashMap<>();
+        final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn","topicarn");
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
@@ -90,32 +87,28 @@ public class ReadHandlerTest extends AbstractTestBase {
         // when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
 
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        final ObjectMapper objectMapper = new ObjectMapper();
         //   Object ob1 = new String("[\"example_corp\"]");
     
-        Map<String, Object> filterPolicy = new HashMap<>();
+        final Map<String, Object> filterPolicy = new HashMap<>();
         filterPolicy.put("store", "[\"example_corp\"]");
         filterPolicy.put("event", "[\"order_placed\"]");
 
-        String filterPolicyString = objectMapper.writeValueAsString(filterPolicy);
+        final String filterPolicyString = objectMapper.writeValueAsString(filterPolicy);
 
-        Map<String, Object> redrivePolicy = new HashMap<>();
+        final Map<String, Object> redrivePolicy = new HashMap<>();
         redrivePolicy.put("deadLetterTargetArn", "arn");
         redrivePolicy.put("maxReceiveCount", "1");
 
-        String redrivePolicyString = objectMapper.writeValueAsString(redrivePolicy);
+        final String redrivePolicyString = objectMapper.writeValueAsString(redrivePolicy);
 
-        System.out.println(filterPolicyString);
-
-        Map<String, Object> deliveryPolicy = new HashMap<>();
+        final Map<String, Object> deliveryPolicy = new HashMap<>();
         deliveryPolicy.put("minDelayTarget", 1);
         deliveryPolicy.put("maxDelayTarget", 2);
-        String deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
+        final String deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
 
+        final Map<String, String> attributes = new HashMap<>();
 
-
-        Map<String, String> attributes = new HashMap<>();
-        // dont want to hard code these
         attributes.put("SubscriptionArn", model.getSubscriptionArn());
         attributes.put("TopicArn", "topicArn");
         attributes.put("Protocol", "email");
@@ -153,14 +146,18 @@ public class ReadHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+ 
     }
 
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
-        Map<String, String> topicAttributes = new HashMap<>();
+        final Map<String, String> topicAttributes = new HashMap<>();
 
-        GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
@@ -178,5 +175,6 @@ public class ReadHandlerTest extends AbstractTestBase {
         }
 
         assertThat(exceptionThrown).isTrue();
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
 }
