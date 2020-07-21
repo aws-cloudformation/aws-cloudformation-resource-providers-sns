@@ -24,6 +24,7 @@
             "description": "The SNS subscriptions (endpoints) for this topic.",
             "type": "array",
             "uniqueItems": true,
+            "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/Subscription"
             }
@@ -72,7 +73,17 @@
                     "type": "string"
                 },
                 "Protocol": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "http",
+                        "https",
+                        "email",
+                        "email-json",
+                        "sms",
+                        "sqs",
+                        "application",
+                        "lambda"
+                    ]
                 }
             },
             "required": [

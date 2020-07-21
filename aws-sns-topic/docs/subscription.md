@@ -36,5 +36,7 @@ _Required_: Yes
 
 _Type_: String
 
+_Allowed Values_: <code>http</code> | <code>https</code> | <code>email</code> | <code>email-json</code> | <code>sms</code> | <code>sqs</code> | <code>application</code> | <code>lambda</code>
+
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
