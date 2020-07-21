@@ -32,11 +32,11 @@ public class ListHandler extends BaseHandlerStd {
                                                     .build();
 
         final ResourceModel model = request.getDesiredResourceState();
-        
+
         if (!checkTopicExists(listSubscriptionsByTopicRequest.topicArn(), proxyClient, logger))
             throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", listSubscriptionsByTopicRequest.topicArn())));
         
-        if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient, logger))
+        if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient))
             throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
 
         final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, proxyClient.client()::listSubscriptionsByTopic);

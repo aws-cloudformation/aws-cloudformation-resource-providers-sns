@@ -35,25 +35,21 @@ public class UpdateHandler extends BaseHandlerStd {
         final ResourceModel previousModel = request.getPreviousResourceState();
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-            // move this as shared!!
             .then(process -> proxy.initiate("AWS-SNS-Subscription::Check-Subscription-Exists", proxyClient, currentModel, callbackContext)
                 .translateToServiceRequest(Translator::translateToReadRequest)
                 .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
                     GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = null;
+                 
+                    if (!checkTopicExists(currentModel.getTopicArn(), proxyClient, logger))
+                        throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", currentModel.getTopicArn())));
+                    
+                    getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
+                    if (!getSubscriptionAttributesResponse.hasAttributes())
+                        throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", currentModel.getSubscriptionArn())));
 
-                    // note handle subscription pending
-                    try {
-                        if (checkTopicExists(currentModel.getTopicArn(), proxyClient, logger))
-                            getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
-                
-                    } catch (final NotFoundException e) {
-                        throw new CfnNotFoundException(e);
-                    }
-            
                     return getSubscriptionAttributesResponse;
                 })
                 .progress())
-          //      .then(progress -> modifyAttributes(proxy, proxyClient, currentModel, previousModel, progress, logger))
              .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getFilterPolicy(), currentModel, SubscriptionAttribute.FilterPolicy, previousModel.getFilterPolicy(), progress, logger))
              .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getDeliveryPolicy(), currentModel, SubscriptionAttribute.DeliveryPolicy,previousModel.getDeliveryPolicy(), progress, logger))
              .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getRedrivePolicy(), currentModel, SubscriptionAttribute.RedrivePolicy,previousModel.getRedrivePolicy(), progress, logger))

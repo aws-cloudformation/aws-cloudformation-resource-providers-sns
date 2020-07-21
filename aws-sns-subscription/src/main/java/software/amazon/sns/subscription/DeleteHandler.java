@@ -37,7 +37,7 @@ public class DeleteHandler extends BaseHandlerStd {
                                 if (!checkTopicExists(model.getTopicArn(), proxyClient, logger))
                                     throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", model.getTopicArn())));
 
-                                if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient, logger))
+                                if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient))
                                     throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
 
                                 if (!checkSubscriptionNotPending(model.getSubscriptionArn(), proxyClient, logger))

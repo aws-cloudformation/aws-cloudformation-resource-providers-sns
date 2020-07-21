@@ -107,7 +107,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
-     @Test
+    @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();

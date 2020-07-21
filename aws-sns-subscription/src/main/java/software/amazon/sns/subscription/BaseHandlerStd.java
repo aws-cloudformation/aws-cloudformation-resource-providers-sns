@@ -105,9 +105,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return false;
   }
 
-  protected boolean checkSubscriptionExists(final String subscriptionArn, final ProxyClient<SnsClient> proxyClient, final Logger logger) {
-
-    logger.log("Checking subscription exists");
+  protected boolean checkSubscriptionExists(final String subscriptionArn, final ProxyClient<SnsClient> proxyClient) {
     final GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
                                                                 .subscriptionArn(subscriptionArn)
                                                                 .build();
@@ -145,13 +143,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final ProxyClient<SnsClient> proxyClient,
     final ResourceModel model,
     final CallbackContext callbackContext) {
-
-  // TODO!!!!
   
-    GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = 
-         proxyClient.injectCredentialsAndInvokeV2(Translator.translateToReadRequest(model), proxyClient.client()::getSubscriptionAttributes);
-
-    return true;
+    return checkSubscriptionExists(model.getSubscriptionArn(), proxyClient);
   }
 
     private SetSubscriptionAttributesResponse updateSubscription(

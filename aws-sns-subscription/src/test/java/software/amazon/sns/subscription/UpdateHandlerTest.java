@@ -7,6 +7,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.awssdk.services.sns.*;
 import software.amazon.awssdk.services.sns.model.*;
 import org.junit.jupiter.api.AfterEach;
@@ -161,13 +162,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                             .desiredResourceState(desiredModel)
                                                             .previousResourceState(currentModel)
                                                             .build();
-
-        // final SetSubscriptionAttributesRequest setSubscriptionAttributesRequest = SetSubscriptionAttributesRequest.builder()
-        //                         .attributeName("FilterPolicy").attributeValue("{\"store\": [\"example_corp\"]}")
-        //                         .attributeName("RedrivePolicy").attributeValue("{\"rname\": \"value\"}")
-        //                         .attributeName("DeliveryPolicy").attributeValue("{\"dname\": \"value\"}")
-        //                         .attributeName("rawMessageDeliver").attributeValue("false")
-        //                         .build();
                                                                             
         final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenReturn(setSubscriptionAttributesResponse);
@@ -213,14 +207,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                             .desiredResourceState(desiredModel)
                                                             .previousResourceState(currentModel)
                                                             .build();
-
-        // final SetSubscriptionAttributesRequest setSubscriptionAttributesRequest = SetSubscriptionAttributesRequest.builder()
-        //                         .attributeName("FilterPolicy").attributeValue("{\"store\": [\"example_corp\"]}")
-        //                         .attributeName("RedrivePolicy").attributeValue("{\"rname\": \"value\"}")
-        //                         .attributeName("DeliveryPolicy").attributeValue("{\"dname\": \"value\"}")
-        //                         .attributeName("rawMessageDeliver").attributeValue("false")
-        //                         .build();
-                                                                            
+                                                               
         final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenReturn(setSubscriptionAttributesResponse);
                                         
@@ -237,5 +224,34 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(3)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
         verify(proxyClient.client(), times(5)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+    }
+
+    @Test
+    public void handleRequest_TopicArnDoesNotExist()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .build();
+        boolean exceptionThrown = false;
+        try {
+            final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(CfnNotFoundException.class);
+            assertThat(e).hasMessage("topic topicArn1 not found!");
+            exceptionThrown = true;
+        }
+
+        assertThat(exceptionThrown).isTrue();
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
+        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
+        verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+ 
     }
 }
