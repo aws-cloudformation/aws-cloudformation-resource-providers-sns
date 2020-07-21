@@ -1,12 +1,8 @@
 package software.amazon.sns.topic;
 
-// TODO: replace all usage of SdkClient with your service client type, e.g; YourServiceAsyncClient
-// import software.amazon.awssdk.services.yourservice.YourServiceAsyncClient;
-
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.SdkClient;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -20,46 +16,27 @@ public class ReadHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final ProxyClient<SdkClient> proxyClient,
+        final ProxyClient<SnsClient> proxyClient,
         final Logger logger) {
 
         this.logger = logger;
 
-        // TODO: Adjust Progress Chain according to your implementation
-        // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
+        ResourceModel model = request.getDesiredResourceState();
 
-        // STEP 1 [initialize a proxy context]
-        return proxy.initiate("AWS-SNS-Topic::Read", proxyClient, request.getDesiredResourceState(), callbackContext)
-
-            // STEP 2 [TODO: construct a body of a request]
-            .translateToServiceRequest(Translator::translateToReadRequest)
-
-            // STEP 3 [TODO: make an api call]
-            // Implement client invocation of the read request through the proxyClient, which is already initialised with
-            // caller credentials, correct region and retry settings
-            .makeServiceCall((awsRequest, client) -> {
-                AwsResponse awsResponse = null;
-                try {
-
-                    // TODO: add custom read resource logic
-
-                } catch (final AwsServiceException e) { // ResourceNotFoundException
-                    /*
-                    * While the handler contract states that the handler must always return a progress event,
-                    * you may throw any instance of BaseHandlerException, as the wrapper map it to a progress event.
-                    * Each BaseHandlerException maps to a specific error code, and you should map service exceptions as closely as possible
-                    * to more specific error codes
-                    */
-                    throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e); // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/commit/2077c92299aeb9a68ae8f4418b5e932b12a8b186#diff-5761e3a9f732dc1ef84103dc4bc93399R56-R63
-                }
-
-                logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
-                return awsResponse;
-            })
-
-            // STEP 4 [TODO: gather all properties of the resource]
-            // Implement client invocation of the read request through the proxyClient, which is already initialised with
-            // caller credentials, correct region and retry settings
-            .done(awsResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse)));
+        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+            .then(progress ->
+                proxy.initiate("AWS-SNS-Topic::Read", proxyClient, model, callbackContext)
+                    .translateToServiceRequest(Translator::translateToGetTopicAttributes)
+                    .makeServiceCall((getTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(getTopicAttributesRequest, client.client()::getTopicAttributes))
+                    .handleError((awsRequest, exception, client, resourceModel, context) -> {
+                        if (exception instanceof NotFoundException)
+                            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getId(), exception);
+                        throw exception;
+                    })
+                    .done((getTopicAttributesRequest, getTopicAttributesResponse, sdkProxyClient, resourceModel, context) -> {
+                        final ListTagsForResourceResponse listTagsForResourceResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.listTagsForResourceRequest(resourceModel.getId()), sdkProxyClient.client()::listTagsForResource);
+                        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(resourceModel), sdkProxyClient.client()::listSubscriptionsByTopic);
+                        return ProgressEvent.success(Translator.translateFromGetTopicAttributes(getTopicAttributesResponse, listSubscriptionsByTopicResponse, listTagsForResourceResponse), callbackContext);
+                    }));
     }
 }

@@ -1,17 +1,19 @@
 package software.amazon.sns.topic;
 
-// TODO: replace all usage of SdkClient with your service client type, e.g; YourServiceAsyncClient
-// import software.amazon.awssdk.services.yourservice.YourServiceAsyncClient;
-
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.SdkClient;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import com.google.common.collect.Sets;
+import org.codehaus.plexus.util.StringUtils;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
+import software.amazon.awssdk.services.sns.model.NotFoundException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -20,93 +22,74 @@ public class UpdateHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final ProxyClient<SdkClient> proxyClient,
+        final ProxyClient<SnsClient> proxyClient,
         final Logger logger) {
 
         this.logger = logger;
 
-        // TODO: Adjust Progress Chain according to your implementation
-        // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
+        ResourceModel model = request.getDesiredResourceState();
+        ResourceModel previousModel = request.getPreviousResourceState();
+
+        Set<Subscription> desiredSubscription = new HashSet<>(Optional.ofNullable(model.getSubscription()).orElse(Collections.emptySet()));
+        Set<Subscription> previousSubscription = new HashSet<>(Optional.ofNullable(previousModel.getSubscription()).orElse(Collections.emptySet()));
+        Set<Subscription> toSubscribe = Sets.difference(desiredSubscription, previousSubscription);
+        Set<Subscription> toUnsubscribe = Sets.difference(previousSubscription, desiredSubscription);
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-            // STEP 1 [first update/stabilize progress chain - required for resource update]
             .then(progress ->
-                // STEP 1.0 [initialize a proxy context]
-                // Implement client invocation of the update request through the proxyClient, which is already initialised with
-                // caller credentials, correct region and retry settings
-                proxy.initiate("AWS-SNS-Topic::Update::first", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-
-                    // STEP 1.1 [TODO: construct a body of a request]
-                    .translateToServiceRequest(Translator::translateToFirstUpdateRequest)
-
-                    // STEP 1.2 [TODO: make an api call]
-                    .makeServiceCall((awsRequest, client) -> {
-                        AwsResponse awsResponse = null;
-                        try {
-
-                            // TODO: put your update resource code here
-
-                        } catch (final AwsServiceException e) {
-                            /*
-                            * While the handler contract states that the handler must always return a progress event,
-                            * you may throw any instance of BaseHandlerException, as the wrapper map it to a progress event.
-                            * Each BaseHandlerException maps to a specific error code, and you should map service exceptions as closely as possible
-                            * to more specific error codes
-                            */
-                            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
-                        }
-
-                        logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
-                        return awsResponse;
+                proxy.initiate("AWS-SNS-Topic::Update::PreExistanceCheck", proxyClient, model, callbackContext)
+                    .translateToServiceRequest(Translator::translateToGetTopicAttributes)
+                    .makeServiceCall((getTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(getTopicAttributesRequest, client.client()::getTopicAttributes))
+                    .handleError((awsRequest, exception, client, resourceModel, context) -> {
+                         if (exception instanceof NotFoundException)
+                             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getId(), exception);
+                         throw exception;
                     })
-
-                    // STEP 1.3 [TODO: stabilize step is not necessarily required but typically involves describing the resource until it is in a certain status, though it can take many forms]
-                    // stabilization step may or may not be needed after each API call
-                    // for more information -> https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test-contract.html
-                    .stabilize((awsRequest, awsResponse, client, model, context) -> {
-                        // TODO: put your stabilization code here
-
-                        final boolean stabilized = true;
-
-                        logger.log(String.format("%s [%s] update has stabilized: %s", ResourceModel.TYPE_NAME, model.getPrimaryIdentifier(), stabilized));
-                        return stabilized;
-                    })
-                    .progress())
-
-            // If your resource is provisioned through multiple API calls, then the following pattern is required (and might take as many postUpdate callbacks as necessary)
-            // STEP 2 [second update/stabilize progress chain]
+                    .progress()
+            )
+            .then(progress -> {
+                if(!StringUtils.equals(model.getDisplayName(), previousModel.getDisplayName())) {
+                    return proxy.initiate("AWS-SNS-Topic::Update::DisplayName", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributes.DISPLAY_NAME, m.getDisplayName()))
+                            .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
+                            .progress();
+                }
+                return progress;
+            })
+            .then(progress -> {
+                if(!StringUtils.equals(model.getKmsMasterKeyId(), previousModel.getKmsMasterKeyId())) {
+                    return proxy.initiate("AWS-SNS-Topic::Update::KMSKeyId", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributes.KMS_MASTER_KEY_ID, m.getKmsMasterKeyId()))
+                            .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
+                            .progress();
+                }
+                return progress;
+            })
+            .then(progress -> addSubscription(proxy, proxyClient, progress, toSubscribe, logger))
             .then(progress ->
-                    // STEP 2.0 [initialize a proxy context]
-                    // If your resource is provisioned through multiple API calls, you will need to apply each subsequent update
-                    // step in a discrete call/stabilize chain to ensure the entire resource is provisioned as intended.
-                    proxy.initiate("AWS-SNS-Topic::Update::second", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-
-                    // STEP 2.1 [TODO: construct a body of a request]
-                    .translateToServiceRequest(Translator::translateToSecondUpdateRequest)
-
-                    // STEP 2.2 [TODO: make an api call]
-                    .makeServiceCall((awsRequest, client) -> {
-                        AwsResponse awsResponse = null;
-                        try {
-
-                            // TODO: put your post update resource code here
-
-                        } catch (final AwsServiceException e) {
-                            /*
-                            * While the handler contract states that the handler must always return a progress event,
-                            * you may throw any instance of BaseHandlerException, as the wrapper map it to a progress event.
-                            * Each BaseHandlerException maps to a specific error code, and you should map service exceptions as closely as possible
-                            * to more specific error codes
-                            */
-                            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
-                        }
-
-                        logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
-                        return awsResponse;
+                proxy.initiate("AWS-SNS-Topic::Update::ListSubscriptionArn", proxyClient, model, callbackContext)
+                    .translateToServiceRequest(Translator::translateToListSubscriptionByTopic)
+                    .makeServiceCall((listSubscriptionsByTopicRequest, client) -> {
+                        ListSubscriptionsByTopicResponse response = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, client.client()::listSubscriptionsByTopic);
+                        List<String> unsubscriptionArnList = getUnsubscriptionArnList(response.subscriptions(), toUnsubscribe);
+                        callbackContext.setSubscriptionArnToUnsubscribe(unsubscriptionArnList);
+                        return response;
                     })
-                    .progress())
+                    .progress()
+            )
+            .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
+            .then(progress -> modifyTags(proxy, proxyClient, model, previousModel.getTags(), progress, logger))
+                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    }
 
-            // STEP 3 [TODO: describe call/chain to return the resource model]
-            .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    private List<String> getUnsubscriptionArnList(List<software.amazon.awssdk.services.sns.model.Subscription> subscriptions, Set<Subscription> unsubscribes) {
+        Map<String, String> subscriptionArnMap = Translator.streamOfOrEmpty(subscriptions)
+                .collect(Collectors.toMap(subscription -> getEndpointProtocolString(subscription.endpoint(), subscription.protocol()), subscription -> subscription.subscriptionArn()));
+
+        return Translator.streamOfOrEmpty(unsubscribes).map(u -> subscriptionArnMap.get(getEndpointProtocolString(u.getEndpoint(), u.getProtocol()))).collect(Collectors.toList());
+    }
+
+    private String getEndpointProtocolString(String endpoint, String protocol) {
+        return String.format("[%s][%s]", endpoint, protocol);
     }
 }
