@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -87,7 +89,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final UnsubscribeResponse unsubscribeResponse = UnsubscribeResponse.builder().build();
         when(proxyClient.client().unsubscribe(any(UnsubscribeRequest.class))).thenReturn(unsubscribeResponse);
         
-     
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
 
@@ -103,7 +104,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).unsubscribe(any(UnsubscribeRequest.class));
-        verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
      @Test
@@ -130,5 +131,8 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         assertThat(exceptionThrown).isTrue();
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
+        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
+        verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+ 
     }
 }

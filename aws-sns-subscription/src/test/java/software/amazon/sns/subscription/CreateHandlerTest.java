@@ -24,6 +24,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -140,7 +141,9 @@ public class CreateHandlerTest extends AbstractTestBase {
 
 
         verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+
+        // create and read invocations
+        verify(proxyClient.client(),times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
 
     }
 

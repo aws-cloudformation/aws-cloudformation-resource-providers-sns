@@ -1,6 +1,5 @@
 package software.amazon.sns.subscription;
 
-//import com.google.common.collect.Lists;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.services.sns.*;
@@ -54,8 +53,20 @@ public class Translator {
         .build();
   }
 
-  static SetSubscriptionAttributesRequest translateToUpdateRequest(final ResourceModel previousModel, final ResourceModel currentModel) {
-    Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(previousModel, currentModel);
+  static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Map<String, Object> previousPolicy, final Map<String, Object> desiredPolicy) {
+    Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousPolicy, desiredPolicy);
+    SetSubscriptionAttributesRequest setSubscriptionAttributesRequest;
+    SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
+
+    mapAttributes.forEach((name, value) -> {
+      builder.attributeName(name).attributeValue(value);
+    });
+
+    return builder.build();
+  }
+
+  static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Boolean previousValue, final Boolean desiredValue) {
+    Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousValue, desiredValue);
     SetSubscriptionAttributesRequest setSubscriptionAttributesRequest;
     SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
 

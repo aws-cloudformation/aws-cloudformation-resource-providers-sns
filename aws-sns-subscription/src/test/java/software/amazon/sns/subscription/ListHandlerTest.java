@@ -40,6 +40,8 @@ public class ListHandlerTest extends AbstractTestBase {
     SnsClient snsClient;
 
     private ListHandler handler;
+    private Map<String, String> attributes;
+    private ResourceModel model;
 
     @BeforeEach
     public void setup() {
@@ -47,6 +49,19 @@ public class ListHandlerTest extends AbstractTestBase {
         proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
         snsClient = mock(SnsClient.class);
         proxyClient = MOCK_PROXY(proxy, snsClient);
+        buildObjects();
+    }
+
+    private void buildObjects() {
+       
+        model = ResourceModel.builder().subscriptionArn("testArn").topicArn("topicArn").build();
+        attributes = new HashMap<>();
+        attributes.put("SubscriptionArn", model.getSubscriptionArn());
+        attributes.put("TopicArn", "topicArn");
+        attributes.put("Protocol", "email");
+        attributes.put("Endpoint", "end1");
+        attributes.put("RawMessageDelivery", "false");
+        attributes.put("PendingConfirmation", "false"); 
     }
 
     @Test
@@ -71,9 +86,12 @@ public class ListHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
 
-        final ResourceModel model = ResourceModel.builder()
-                                    .topicArn("topicArn")
-                                    .build();
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
+
+        // final ResourceModel model = ResourceModel.builder()
+        //                             .topicArn("topicArn")
+        //                             .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
@@ -91,9 +109,9 @@ public class ListHandlerTest extends AbstractTestBase {
         assertThat(response.getNextToken()).isNull();
         assertThat(response.getErrorCode()).isNull();
 
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client(), times(1)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(1)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(1)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
     }
 
     @Test
@@ -127,6 +145,9 @@ public class ListHandlerTest extends AbstractTestBase {
                                         .build();
 
         when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse).thenReturn(listSubscriptionsByTopicResponse2);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
         final ResourceModel model = ResourceModel.builder()
                                     .topicArn("topicArn")
@@ -178,6 +199,8 @@ public class ListHandlerTest extends AbstractTestBase {
         assertThat(response2.getErrorCode()).isNull();
         assertThat(response2.getNextToken()).isEqualTo("");
 
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
     }
 }

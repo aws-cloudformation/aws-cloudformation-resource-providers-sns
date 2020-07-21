@@ -19,10 +19,6 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.regions.Region;
 
 import java.util.Map;
-import java.util.function.Supplier;
-import com.amazonaws.regions.Regions;
-
-// Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   @Override
@@ -43,87 +39,49 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     );
   }
 
-  // protected ProgressEvent<ResourceModel, CallbackContext> modifyFilterPolicy(
-  //   AmazonWebServicesClientProxy proxy,
-  //   ProxyClient<SnsClient> proxyClient,
-  //   ResourceModel model,
-  //   Map<String, String> previousFilterPolicy,
-  //   ProgressEvent<ResourceModel, CallbackContext> progress,
-  //   Logger logger) {
-
-  //   Map<String, Object> desiredFilterPolicy = model.getFilterPolicy();
-    
-  //   if (previousFilterPolicy == null || desiredFilterPolicy.equals(previousFilterPolicy)) {
-  //       return progress;
-  //   }
-
-  //   return proxy.initiate("AWS-Kinesis-Stream::UpdateFilterPolicy", proxyClient, model, progress.getCallbackContext())
-  //           .translateToServiceRequest(Translator::translateToUpdateFilterPolicyRequest)
-  //           .makeServiceCall(this::updateSubscription)
-  //           .stabilize(this::stabilizeSnsSubscriptionUpdate)
-  //           .progress();
-    
-  // }
-
-  protected ProgressEvent<ResourceModel, CallbackContext> modifyAttributes(
+  protected ProgressEvent<ResourceModel, CallbackContext> modifyPolicy(
     AmazonWebServicesClientProxy proxy,
     ProxyClient<SnsClient> proxyClient,
-    ResourceModel currentModel,
-    ResourceModel previousModel,
+    Map<String, Object> desiredPolicy,
+    ResourceModel model,
+    SubscriptionAttribute subscriptionAttribute,
+    Map<String, Object> previousPolicy,
     ProgressEvent<ResourceModel, CallbackContext> progress,
     Logger logger) {
 
-    return proxy.initiate("AWS-Kinesis-Stream::Update", proxyClient, currentModel, progress.getCallbackContext())
-            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(previousModel, currentModel))
+    if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
+        return progress;
+    }
+
+    return proxy.initiate("AWS-Kinesis-Stream::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
+            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousPolicy, desiredPolicy))
             .makeServiceCall(this::updateSubscription)
             .stabilize(this::stabilizeSnsSubscriptionUpdate)
             .progress();
     
   }
 
-  // protected ProgressEvent<ResourceModel, CallbackContext> modifyPolicy(
-  //   AmazonWebServicesClientProxy proxy,
-  //   ProxyClient<SnsClient> proxyClient,
-  //   Map<String, Object> desiredPolicy,
-  //   ResourceModel model,
-  //   SubscriptionAttribute subscriptionAttribute,
-  //   Map<String, Object> previousPolicy,
-  //   ProgressEvent<ResourceModel, CallbackContext> progress,
-  //   Logger logger) {
+  protected ProgressEvent<ResourceModel, CallbackContext> modifyRawMessageDelivery(
+    AmazonWebServicesClientProxy proxy,
+    ProxyClient<SnsClient> proxyClient,
+    Boolean rawMessageDelivery,
+    ResourceModel model,
+    SubscriptionAttribute subscriptionAttribute,
+    Boolean previousRawMessageDelivery,
+    ProgressEvent<ResourceModel, CallbackContext> progress,
+    Logger logger) {
 
-  //   if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
-  //       return progress;
-  //   }
+    if (previousRawMessageDelivery == null || rawMessageDelivery.equals(previousRawMessageDelivery)) {
+        return progress;
+    }
 
-  //   return proxy.initiate("AWS-Kinesis-Stream::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
-  //           .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, desiredPolicy))
-  //           .makeServiceCall(this::updateSubscription)
-  //           .stabilize(this::stabilizeSnsSubscriptionUpdate)
-  //           .progress();
+    return proxy.initiate("AWS-Kinesis-Stream::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
+            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousRawMessageDelivery, rawMessageDelivery))
+            .makeServiceCall(this::updateSubscription)
+            .stabilize(this::stabilizeSnsSubscriptionUpdate)
+            .progress();
     
-  // }
-
-  // protected ProgressEvent<ResourceModel, CallbackContext> modifyRawMessageDelivery(
-  //   AmazonWebServicesClientProxy proxy,
-  //   ProxyClient<SnsClient> proxyClient,
-  //   Boolean rawMessageDelivery,
-  //   ResourceModel model,
-  //   SubscriptionAttribute subscriptionAttribute,
-  //   Boolean previousRawMessageDelivery,
-  //   ProgressEvent<ResourceModel, CallbackContext> progress,
-  //   Logger logger) {
-
-  //   if (previousRawMessageDelivery == null || rawMessageDelivery.equals(previousRawMessageDelivery)) {
-  //       return progress;
-  //   }
-
-  //   return proxy.initiate("AWS-Kinesis-Stream::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
-  //           .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, rawMessageDelivery))
-  //           .makeServiceCall(this::updateSubscription)
-  //           .stabilize(this::stabilizeSnsSubscriptionUpdate)
-  //           .progress();
-    
-  // }
+  }
 
   protected abstract ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
@@ -141,7 +99,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     GetTopicAttributesResponse getTopicAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getTopicAttributesRequest, proxyClient.client()::getTopicAttributes);
     
     if (getTopicAttributesResponse.hasAttributes() && 
-        getTopicAttributesResponse.attributes().get("TopicArn") != null)
+        getTopicAttributesResponse.attributes().get(Definitions.topicArn) != null)
         return true;
 
     return false;
@@ -158,7 +116,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
   
     if (getSubscriptionAttributesResponse.hasAttributes() && 
-    getSubscriptionAttributesResponse.attributes().get("Protocol") != null)
+    getSubscriptionAttributesResponse.attributes().get(Definitions.protocol) != null)
         return true;
 
     return false;
@@ -219,7 +177,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
           throw new CfnAccessDeniedException(e);
       } catch (final InvalidSecurityException e) {
           throw new CfnInvalidCredentialsException(e);
-      } 
+      } catch (final Exception e) {
+        System.out.println(e);
+      }
 
 
       return setSubscriptionAttributesResponse;
