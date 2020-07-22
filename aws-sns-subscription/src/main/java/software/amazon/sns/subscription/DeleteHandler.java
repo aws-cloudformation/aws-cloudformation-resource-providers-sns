@@ -32,31 +32,24 @@ public class DeleteHandler extends BaseHandlerStd {
                         .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
                             GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = null;
 
-                            // note handle subscription pending
-                            try {
-                                if (!checkTopicExists(model.getTopicArn(), proxyClient, logger))
-                                    throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", model.getTopicArn())));
+                            if (!checkTopicExists(model.getTopicArn(), proxyClient, logger))
+                                throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", model.getTopicArn())));
 
-                                if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient))
-                                    throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
+                            if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient))
+                                throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
 
-                                if (!checkSubscriptionNotPending(model.getSubscriptionArn(), proxyClient, logger))
-                                    throw new CfnNotFoundException(new Exception(String.format("subscription %s cannot be deleted if pending confirmation", model.getSubscriptionArn())));
-                      
-                            } catch (final NotFoundException e) {
-                                throw new CfnNotFoundException(e);
-                            }
-                    
+                            if (!checkSubscriptionNotPending(model.getSubscriptionArn(), proxyClient, logger))
+                                throw new CfnInvalidRequestException(new Exception(String.format("subscription %s cannot be deleted if pending confirmation", model.getSubscriptionArn())));
+
                             return getSubscriptionAttributesResponse;
                         })
                         .progress())
                     .then(process -> proxy.initiate("AWS-SNS-Subscription::Unsubscribe", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToDeleteRequest)           
                         .makeServiceCall(this::deleteSubscription)
-                        .stabilize(this::stabilizeOnDelete)
-                        .done(awsResponse -> ProgressEvent.<ResourceModel, CallbackContext>builder()
+                        .done(awsResponse -> {logger.log("done"); return ProgressEvent.<ResourceModel, CallbackContext>builder()
                             .status(OperationStatus.SUCCESS)
-                            .build()));
+                            .build(); }));
     }
 
     private UnsubscribeResponse deleteSubscription(
@@ -74,24 +67,8 @@ public class DeleteHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(e);
         }
 
-        logger.log(String.format("%s successfully delete.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
+        logger.log(String.format("%s successfully deleted.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
         return unsubscribeResponse;
-    }
-
-    private boolean stabilizeOnDelete(
-        final UnsubscribeRequest unsbscribeRequest,
-        final UnsubscribeResponse unsubscribeResponse,
-        final ProxyClient<SnsClient> proxyClient,
-        final ResourceModel model,
-        final CallbackContext callbackContext) {
-
-        try {
-            proxyClient.injectCredentialsAndInvokeV2(Translator.translateToReadRequest(model), proxyClient.client()::getSubscriptionAttributes);
-        } catch (final ResourceNotFoundException e) {
-            return true;
-        }
-        return false;
-    }
-  
+    }  
 
 }

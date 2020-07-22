@@ -131,6 +131,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                             .rawMessageDelivery(false)
                             .build();
     }
+    
     @Test
     public void handleRequest_UpdateBooleandAttributes() throws JsonProcessingException {
         final UpdateHandler handler = new UpdateHandler();

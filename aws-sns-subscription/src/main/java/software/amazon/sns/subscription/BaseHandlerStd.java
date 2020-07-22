@@ -114,7 +114,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
   
     if (getSubscriptionAttributesResponse.hasAttributes() && 
-    getSubscriptionAttributesResponse.attributes().get(Definitions.protocol) != null)
+      getSubscriptionAttributesResponse.attributes().get(Definitions.protocol) != null)
         return true;
 
     return false;
@@ -147,7 +147,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return checkSubscriptionExists(model.getSubscriptionArn(), proxyClient);
   }
 
-    private SetSubscriptionAttributesResponse updateSubscription(
+  private SetSubscriptionAttributesResponse updateSubscription(
       final SetSubscriptionAttributesRequest setSubscriptionAttributesRequest,
       final ProxyClient<SnsClient> proxyClient)  {
 
