@@ -33,7 +33,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       request,
       callbackContext != null ? callbackContext : new CallbackContext(),
       proxy.newProxy(() -> {return request.getRegion() != null ? 
-                           ClientBuilder.getClient(Region.of(request.getRegion())) :  
+                           ClientBuilder.getClient(Region.of(request.getDesiredResourceState().getRegion())) :  
                            ClientBuilder.getClient();}),
       logger
     );
