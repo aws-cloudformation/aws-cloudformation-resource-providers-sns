@@ -1,6 +1,6 @@
 # AWS::SNS::Subscription
 
-An example resource schema demonstrating some basic constructs and validation rules.
+The AWS::SNS::Subscription resource subscribes an endpoint to an Amazon Simple Notification Service (Amazon SNS) topic. For a subscription to be created, the owner of the endpoint must confirm the subscription.
 
 ## Syntax
 
