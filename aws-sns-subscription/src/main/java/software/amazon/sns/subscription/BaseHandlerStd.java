@@ -32,7 +32,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       proxy,
       request,
       callbackContext != null ? callbackContext : new CallbackContext(),
-      proxy.newProxy(() -> {return request.getRegion() != null ? 
+      proxy.newProxy(() -> {return (request.getDesiredResourceState().getRegion() != null) ? 
                            ClientBuilder.getClient(Region.of(request.getDesiredResourceState().getRegion())) :  
                            ClientBuilder.getClient();}),
       logger
@@ -56,7 +56,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return proxy.initiate("AWS-Kinesis-Stream::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
             .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousPolicy, desiredPolicy))
             .makeServiceCall(this::updateSubscription)
-            .stabilize(this::stabilizeSnsSubscriptionUpdate)
+            .stabilize(this::stabilizeSnsSubscription)
             .progress();
     
   }
@@ -78,7 +78,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return proxy.initiate("AWS-Kinesis-Stream::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
             .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousRawMessageDelivery, rawMessageDelivery))
             .makeServiceCall(this::updateSubscription)
-            .stabilize(this::stabilizeSnsSubscriptionUpdate)
+            .stabilize(this::stabilizeSnsSubscription)
             .progress();
     
   }
@@ -112,9 +112,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
     getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
-  
-    if (getSubscriptionAttributesResponse.hasAttributes() && 
-      getSubscriptionAttributesResponse.attributes().get(Definitions.protocol) != null)
+ 
+    if (getSubscriptionAttributesResponse.hasAttributes())
         return true;
 
     return false;
@@ -137,13 +136,13 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return false;
   }
 
-  protected boolean stabilizeSnsSubscriptionUpdate(
+  protected boolean stabilizeSnsSubscription(
     final AwsRequest awsRequest,
     final AwsResponse awsResponse,
     final ProxyClient<SnsClient> proxyClient,
     final ResourceModel model,
     final CallbackContext callbackContext) {
-  
+ 
     return checkSubscriptionExists(model.getSubscriptionArn(), proxyClient);
   }
 
@@ -171,7 +170,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       } catch (final InvalidSecurityException e) {
           throw new CfnInvalidCredentialsException(e);
       } catch (final Exception e) {
-        System.out.println(e);
+          throw new CfnInternalFailureException(e);
       }
 
 

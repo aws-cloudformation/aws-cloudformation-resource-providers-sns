@@ -12,15 +12,15 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::SNS::Subscription",
     "Properties" : {
-        "<a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>" : <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>,
+        "<a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>" : <i>Map</i>,
         "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i>String</i>,
         "<a href="#owner" title="Owner">Owner</a>" : <i>String</i>,
         "<a href="#protocol" title="Protocol">Protocol</a>" : <i>String</i>,
         "<a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>" : <i>Boolean</i>,
         "<a href="#region" title="Region">Region</a>" : <i>String</i>,
         "<a href="#topicarn" title="TopicArn">TopicArn</a>" : <i>String</i>,
-        "<a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>" : <i><a href="filterpolicy.md">FilterPolicy</a></i>,
-        "<a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>" : <i><a href="redrivepolicy.md">RedrivePolicy</a></i>
+        "<a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>" : <i>Map</i>,
+        "<a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>" : <i>Map</i>
     }
 }
 </pre>
@@ -30,15 +30,15 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::SNS::Subscription
 Properties:
-    <a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>: <i><a href="deliverypolicy.md">DeliveryPolicy</a></i>
+    <a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>: <i>Map</i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i>String</i>
     <a href="#owner" title="Owner">Owner</a>: <i>String</i>
     <a href="#protocol" title="Protocol">Protocol</a>: <i>String</i>
     <a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>: <i>Boolean</i>
     <a href="#region" title="Region">Region</a>: <i>String</i>
     <a href="#topicarn" title="TopicArn">TopicArn</a>: <i>String</i>
-    <a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>: <i><a href="filterpolicy.md">FilterPolicy</a></i>
-    <a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>: <i><a href="redrivepolicy.md">RedrivePolicy</a></i>
+    <a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>: <i>Map</i>
+    <a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>: <i>Map</i>
 </pre>
 
 ## Properties
@@ -49,7 +49,7 @@ The delivery policy JSON assigned to the subscription. Enables the subscriber to
 
 _Required_: No
 
-_Type_: <a href="deliverypolicy.md">DeliveryPolicy</a>
+_Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -119,7 +119,7 @@ The filter policy JSON assigned to the subscription. Enables the subscriber to f
 
 _Required_: No
 
-_Type_: <a href="filterpolicy.md">FilterPolicy</a>
+_Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -129,7 +129,7 @@ When specified, sends undeliverable messages to the specified Amazon SQS dead-le
 
 _Required_: No
 
-_Type_: <a href="redrivepolicy.md">RedrivePolicy</a>
+_Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

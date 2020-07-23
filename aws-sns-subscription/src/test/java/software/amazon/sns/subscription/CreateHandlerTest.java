@@ -98,7 +98,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_TopicArnExists()  {
+    public void handleRequest_Success_TopicArnExists()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn","topicarn");
@@ -133,7 +133,6 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         assertThat(response).isNotNull();
  
-        // in progress waiting for the user confirm subscription.
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());

@@ -1,7 +1,5 @@
 package software.amazon.sns.subscription;
 
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -12,7 +10,6 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ListHandler extends BaseHandlerStd {
@@ -35,9 +32,6 @@ public class ListHandler extends BaseHandlerStd {
 
         if (!checkTopicExists(listSubscriptionsByTopicRequest.topicArn(), proxyClient, logger))
             throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", listSubscriptionsByTopicRequest.topicArn())));
-        
-        if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient))
-            throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
 
         final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, proxyClient.client()::listSubscriptionsByTopic);
 

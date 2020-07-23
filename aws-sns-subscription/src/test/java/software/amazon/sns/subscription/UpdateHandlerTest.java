@@ -144,7 +144,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("TopicArn", "topicArn1");
         subscriptionAttributes.put("Protocol", "email1");
         subscriptionAttributes.put("Endpoint", "end1");
-        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("RawMessageDelivery", "true");
         subscriptionAttributes.put("PendingConfirmation", "false");
    
 
@@ -172,10 +172,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        // assertThat(response.getResourceModel()).isNull();
-        // assertThat(response.getResourceModels()).isNull();
-        // assertThat(response.getMessage()).isNull();
-        // assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel()).isNotNull();
+        assertThat(response.getResourceModel().getRawMessageDelivery()).isEqualTo(true);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
 
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(1)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
@@ -217,10 +218,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        // assertThat(response.getResourceModel()).isNull();
-        // assertThat(response.getResourceModels()).isNull();
-        // assertThat(response.getMessage()).isNull();
-        // assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel()).isNotNull();
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
 
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(3)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
