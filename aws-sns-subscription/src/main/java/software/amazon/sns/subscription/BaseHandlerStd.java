@@ -137,6 +137,16 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean stabilizeSnsSubscription(
+          final AwsRequest awsRequest,
+          final Boolean awsResponse,
+          final ProxyClient<SnsClient> proxyClient,
+          final ResourceModel model,
+          final CallbackContext callbackContext) {
+       
+          return checkSubscriptionExists(model.getSubscriptionArn(), proxyClient);
+   }
+  
+  protected boolean stabilizeSnsSubscription(
     final AwsRequest awsRequest,
     final AwsResponse awsResponse,
     final ProxyClient<SnsClient> proxyClient,

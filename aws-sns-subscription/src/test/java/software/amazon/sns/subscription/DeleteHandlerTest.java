@@ -76,7 +76,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-
+        
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
             .build();
@@ -91,7 +91,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         when(proxyClient.client().unsubscribe(any(UnsubscribeRequest.class))).thenReturn(unsubscribeResponse);
         
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
-        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -105,7 +105,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).unsubscribe(any(UnsubscribeRequest.class));
-        verify(proxyClient.client(), times(2)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test

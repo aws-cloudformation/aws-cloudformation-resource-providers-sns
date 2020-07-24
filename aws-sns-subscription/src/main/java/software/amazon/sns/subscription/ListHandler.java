@@ -28,8 +28,6 @@ public class ListHandler extends BaseHandlerStd {
                                                     .topicArn(request.getDesiredResourceState().getTopicArn())
                                                     .build();
 
-        final ResourceModel model = request.getDesiredResourceState();
-
         if (!checkTopicExists(listSubscriptionsByTopicRequest.topicArn(), proxyClient, logger))
             throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", listSubscriptionsByTopicRequest.topicArn())));
 

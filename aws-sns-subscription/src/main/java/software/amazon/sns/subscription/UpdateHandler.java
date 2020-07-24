@@ -1,22 +1,14 @@
 package software.amazon.sns.subscription;
 
 
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
-import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
-import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
 
 
 public class UpdateHandler extends BaseHandlerStd {
