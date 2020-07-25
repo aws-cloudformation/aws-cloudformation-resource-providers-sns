@@ -208,9 +208,9 @@ public class ListHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
-        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -221,32 +221,9 @@ public class ListHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
-      //  verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
  
     }
-//
-//    @Test
-//    public void handleRequest_SubscriptionDoesNotExist()  {
-//
-//        final Map<String, String> topicAttributes = new HashMap<>();
-//        topicAttributes.put("TopicArn", "topicArn");
-//
-//        GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = GetSubscriptionAttributesResponse.builder().build();
-//        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionAttributesResponse);
-//
-//        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-//        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
-//
-//
-//        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-//                                                                .desiredResourceState(model)
-//                                                                .build();
-//
-//        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
-//
-//        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
-//        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
-//       // verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
-// 
-//    }
+
+   
 }

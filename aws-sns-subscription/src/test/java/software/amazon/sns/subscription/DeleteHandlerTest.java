@@ -113,9 +113,9 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
-        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -136,8 +136,8 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
 
-        GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = GetSubscriptionAttributesResponse.builder().build();
-        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionAttributesResponse);
+      //  GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = GetSubscriptionAttributesResponse.builder().build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);

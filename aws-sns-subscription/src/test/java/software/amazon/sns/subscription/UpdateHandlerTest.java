@@ -154,8 +154,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
-        //GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder().subscriptionArn("arn").bu
-        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);//.thenReturn(getSubscriptionResponse);
 
         // only raw message deivery should be different
         ResourceModel currentModel = buildCurrentObjects();
@@ -181,8 +180,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
 
-        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client(), times(1)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
         verify(proxyClient.client(), times(4)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
@@ -226,7 +225,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
 
-        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(3)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
         verify(proxyClient.client(), times(6)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
@@ -236,9 +235,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-
-        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -248,7 +246,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
  
@@ -260,8 +257,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
 
-        GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = GetSubscriptionAttributesResponse.builder().build();
-        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionAttributesResponse);
+      //  GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = GetSubscriptionAttributesResponse.builder().build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
@@ -272,12 +269,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
-        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
-        verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
- 
+        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class)); 
     }
 }

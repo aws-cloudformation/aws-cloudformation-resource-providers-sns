@@ -29,6 +29,7 @@ public class CreateHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
         
         return ProgressEvent.progress(model, callbackContext)
+                    .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
                     .then(progress -> 
                         proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToCreateRequest)
@@ -43,15 +44,10 @@ public class CreateHandler extends BaseHandlerStd {
         final ProxyClient<SnsClient> proxyClient,
         final ResourceModel model)  {
 
-        SubscribeResponse subscribeResponse = null;
+        final SubscribeResponse subscribeResponse;
         try {
-            if (checkTopicExists(subscribeRequest.topicArn(), proxyClient, logger)) {
-                subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
-                model.setSubscriptionArn(subscribeResponse.subscriptionArn());
-            }
-            else 
-                throw new CfnNotFoundException(ResourceModel.TYPE_NAME, String.format("topic %s not found!", subscribeRequest.topicArn()));
-                    
+            subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
+            model.setSubscriptionArn(subscribeResponse.subscriptionArn());   
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {

@@ -32,10 +32,10 @@ public class Translator {
         .build();
   }
 
+
   static ResourceModel translateFromReadResponse(final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse) {
     final Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
 
-    //anyway to prevent hard coding??
     return ResourceModel.builder().subscriptionArn(attributes.get(Definitions.subscriptionArn))
                             .topicArn(attributes.get(Definitions.topicArn))
                             .endpoint(attributes.get(Definitions.endpoint))
@@ -50,6 +50,12 @@ public class Translator {
   static UnsubscribeRequest translateToDeleteRequest(final ResourceModel model) {
     return UnsubscribeRequest.builder()
         .subscriptionArn(model.getSubscriptionArn())
+        .build();
+  }
+
+  static GetTopicAttributesRequest translateToCheckTopicRequest(final ResourceModel model) {
+    return GetTopicAttributesRequest.builder()
+        .topicArn(model.getTopicArn())
         .build();
   }
 

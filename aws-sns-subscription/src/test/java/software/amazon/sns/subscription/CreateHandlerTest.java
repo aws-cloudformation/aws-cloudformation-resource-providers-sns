@@ -144,7 +144,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
 
         // create and read invocations
-        verify(proxyClient.client(),times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
 
     }
 
@@ -153,9 +154,9 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
-        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()

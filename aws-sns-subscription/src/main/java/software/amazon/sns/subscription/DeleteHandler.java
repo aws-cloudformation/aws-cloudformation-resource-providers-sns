@@ -26,16 +26,11 @@ public class DeleteHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
 
         return ProgressEvent.progress(model, callbackContext)
-                    .then(process -> proxy.initiate("AWS-SNS-Subscription::Check-Subscription-Exists", proxyClient, model, callbackContext)
+                    .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
+                    .then(progress -> checkSubscriptionExists(proxy, proxyClient, model, progress, logger))
+                    .then(process -> proxy.initiate("AWS-SNS-Subscription::Check-Subscription-Not-Pending", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToReadRequest)
                         .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
- 
-                            if (!checkTopicExists(model.getTopicArn(), proxyClient, logger))
-                                throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", model.getTopicArn())));
-
-                            if (!checkSubscriptionExists(model.getSubscriptionArn(), proxyClient))
-                                throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
-
                             if (!checkSubscriptionNotPending(model.getSubscriptionArn(), proxyClient, logger))
                                 throw new CfnInvalidRequestException(new Exception(String.format("subscription %s cannot be deleted if pending confirmation", model.getSubscriptionArn())));
 

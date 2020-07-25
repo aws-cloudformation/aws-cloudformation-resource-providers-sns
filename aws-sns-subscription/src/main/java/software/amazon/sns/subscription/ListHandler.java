@@ -22,14 +22,12 @@ public class ListHandler extends BaseHandlerStd {
         final ProxyClient<SnsClient> proxyClient,
         final Logger logger) {
 
+        checkTopicExists(Translator.translateToCheckTopicRequest(request.getDesiredResourceState()), proxyClient);
         final ListSubscriptionsByTopicRequest listSubscriptionsByTopicRequest = 
                                                     ListSubscriptionsByTopicRequest.builder()
                                                     .nextToken(request.getNextToken())
                                                     .topicArn(request.getDesiredResourceState().getTopicArn())
                                                     .build();
-
-        if (!checkTopicExists(listSubscriptionsByTopicRequest.topicArn(), proxyClient, logger))
-            throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", listSubscriptionsByTopicRequest.topicArn())));
 
         final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, proxyClient.client()::listSubscriptionsByTopic);
 
