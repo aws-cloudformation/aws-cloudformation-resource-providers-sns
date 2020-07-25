@@ -41,6 +41,7 @@ public class DeleteHandler extends BaseHandlerStd {
 
                             return true;
                         })
+                        .stabilize(this::stabilizeSnsSubscription)
                         .progress())
                     .then(process -> proxy.initiate("AWS-SNS-Subscription::Unsubscribe", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToDeleteRequest)           

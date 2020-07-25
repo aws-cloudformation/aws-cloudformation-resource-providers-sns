@@ -76,7 +76,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        
+
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
             .build();
@@ -105,7 +105,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).unsubscribe(any(UnsubscribeRequest.class));
-        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(4)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test

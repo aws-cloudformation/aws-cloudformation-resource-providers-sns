@@ -50,7 +50,7 @@ public class CreateHandler extends BaseHandlerStd {
                 model.setSubscriptionArn(subscribeResponse.subscriptionArn());
             }
             else 
-                throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", subscribeRequest.topicArn())));
+                throw new CfnNotFoundException(ResourceModel.TYPE_NAME, String.format("topic %s not found!", subscribeRequest.topicArn()));
                     
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);

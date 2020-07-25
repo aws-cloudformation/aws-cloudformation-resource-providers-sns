@@ -25,13 +25,28 @@ public class ReadHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
         logger.log("subscription arn: " + model.getSubscriptionArn());
         
-        return proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, request.getDesiredResourceState(), callbackContext)
+        return proxy.initiate("AWS-SNS-Subscription::CheckTopicArn", proxyClient, request.getDesiredResourceState(), callbackContext)
             .translateToServiceRequest(Translator::translateToReadRequest)
             .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
                 
-                GetSubscriptionAttributesResponse getSubscriptionAttributesResponse= null;
+   //             GetSubscriptionAttributesResponse getSubscriptionAttributesResponse= null;
                 if (!checkTopicExists(model.getTopicArn(), proxyClient, logger))
                     throw new CfnNotFoundException(new Exception(String.format("topic %s not found!", model.getTopicArn())));
+
+                // getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
+                // if (!getSubscriptionAttributesResponse.hasAttributes()) {
+                //     throw new CfnNotFoundException(new Exception(String.format("subscription %s not found!", model.getSubscriptionArn())));
+                // }
+
+              //  return getSubscriptionAttributesResponse;
+                return true;
+            })
+            .progress()
+            .then(progress -> 
+            proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, model, callbackContext)
+            .translateToServiceRequest(Translator::translateToReadRequest)
+            .makeServiceCall((getSubscriptionAttributesRequest, client) -> {              
+                GetSubscriptionAttributesResponse getSubscriptionAttributesResponse= null;
 
                 getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
                 if (!getSubscriptionAttributesResponse.hasAttributes()) {
@@ -39,8 +54,8 @@ public class ReadHandler extends BaseHandlerStd {
                 }
 
                 return getSubscriptionAttributesResponse;
-            })
-            .done(getSubscriptionAttributesResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(getSubscriptionAttributesResponse)));
+            })            
+            .done(getSubscriptionAttributesResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(getSubscriptionAttributesResponse))));
     }
 
 }

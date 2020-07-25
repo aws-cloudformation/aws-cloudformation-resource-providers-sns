@@ -88,9 +88,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
         deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
 
         return ResourceModel.builder()
-                            .protocol("email1")
-                            .endpoint("end1")
-                            .topicArn("topicArn1")
+                            .protocol("email")
+                            .endpoint("end")
+                            .topicArn("topicArn")
+                            .subscriptionArn("subarn")
                             .filterPolicy(filterPolicy)
                             .redrivePolicy(redrivePolicy)
                             .deliveryPolicy(deliveryPolicy)
@@ -122,9 +123,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
         deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
 
         return ResourceModel.builder()
-                            .protocol("email1")
-                            .endpoint("end1")
-                            .topicArn("topicArn1")
+                            .protocol("email")
+                            .endpoint("end")
+                            .topicArn("topicArn")
+                            .subscriptionArn("subarn")
                             .filterPolicy(filterPolicy)
                             .redrivePolicy(redrivePolicy)
                             .deliveryPolicy(deliveryPolicy)
@@ -140,10 +142,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
         topicAttributes.put("TopicArn","topicarn");
 
         Map<String, String> subscriptionAttributes = new HashMap<>();
-        subscriptionAttributes.put("SubscriptionArn", "arn1");
-        subscriptionAttributes.put("TopicArn", "topicArn1");
-        subscriptionAttributes.put("Protocol", "email1");
-        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("SubscriptionArn", "arn");
+        subscriptionAttributes.put("TopicArn", "topicArn");
+        subscriptionAttributes.put("Protocol", "email");
+        subscriptionAttributes.put("Endpoint", "end");
         subscriptionAttributes.put("RawMessageDelivery", "true");
         subscriptionAttributes.put("PendingConfirmation", "false");
    
@@ -152,6 +154,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        //GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder().subscriptionArn("arn").bu
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
         // only raw message deivery should be different
@@ -180,7 +183,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(1)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(4)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test
@@ -209,8 +212,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                             .desiredResourceState(desiredModel)
                                                             .previousResourceState(currentModel)
                                                             .build();
-                                                               
-        final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();
+        
+        final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();                                          
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenReturn(setSubscriptionAttributesResponse);
                                         
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -225,7 +228,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(3)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(5)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(6)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test
@@ -240,6 +243,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
                                                                 .build();
 
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
@@ -265,7 +269,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
                                                                 .build();
+
 
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
