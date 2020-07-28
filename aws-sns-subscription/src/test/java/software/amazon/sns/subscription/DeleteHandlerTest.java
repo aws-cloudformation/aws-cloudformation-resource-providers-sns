@@ -113,8 +113,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
@@ -135,8 +133,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(SubscriptionLimitExceededException.class);
 
 
@@ -153,8 +149,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
     public void handleRequest_TopicArnFilterPolicyLimitExceededException()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
-
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(FilterPolicyLimitExceededException.class);
 
@@ -173,8 +167,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(InvalidParameterException.class);
 
 
@@ -191,8 +183,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
     public void handleRequest_TopicArnInternalErrorException()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
-
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(InternalErrorException.class);
 
@@ -211,8 +201,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
 
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(AuthorizationErrorException.class);
 
 
@@ -229,8 +217,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
     public void handleRequest_TopicArnInvalidSecurityException()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
-
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(InvalidSecurityException.class);
 
@@ -250,7 +236,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
 
-      //  GetSubscriptionAttributesResponse getSubscriptionAttributesResponse = GetSubscriptionAttributesResponse.builder().build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();

@@ -228,9 +228,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     public void handleRequest_TopicArnDoesNotExist()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
-
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-
+        
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 

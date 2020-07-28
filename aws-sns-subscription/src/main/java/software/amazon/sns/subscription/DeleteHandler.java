@@ -55,7 +55,7 @@ public class DeleteHandler extends BaseHandlerStd {
         final UnsubscribeRequest unsubscribeRequest,
         final ProxyClient<SnsClient> proxyClient) {
 
-        UnsubscribeResponse unsubscribeResponse = null;
+        final UnsubscribeResponse unsubscribeResponse;
         
         try {
             logger.log(String.format("Deleting subscription for subscription arn: %s", unsubscribeRequest.subscriptionArn()));

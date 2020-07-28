@@ -79,36 +79,16 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final ProxyClient<SnsClient> proxyClient,
     final Logger logger);
 
-  // protected boolean checkTopicExists(final String topicArn, final ProxyClient<SnsClient> proxyClient, final Logger logger) {
-
-  //   logger.log("Checking topic exists");
-  //   final GetTopicAttributesRequest getTopicAttributesRequest = GetTopicAttributesRequest.builder()
-  //                                                               .topicArn(topicArn)
-  //                                                               .build();
-  //   final GetTopicAttributesResponse getTopicAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getTopicAttributesRequest, proxyClient.client()::getTopicAttributes);
-    
-  //   if (getTopicAttributesResponse.hasAttributes() && 
-  //       getTopicAttributesResponse.attributes().get(Definitions.topicArn) != null)
-  //       return true;
-
-  //   return false;
-  // }
-
   protected GetSubscriptionAttributesResponse checkSubscriptionExists(GetSubscriptionAttributesRequest getSubscriptionAttributesRequest,
   final ProxyClient<SnsClient> proxyClient)  {
-   // logger.log("Checking topic exists");
-    // GetTopicAttributesRequest getTopicAttributesRequest = GetTopicAttributesRequest.builder()
-    //                                                             .topicArn(topicArn)
-    //                                                             .build();
+
     final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
-        
-    // if (getTopicAttributesResponse.hasAttributes() && 
-    //     getTopicAttributesResponse.attributes().get(Definitions.topicArn) != null)
-    //     return true;
 
     try {
       getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
-
+      if (!getSubscriptionAttributesResponse.hasAttributes()) {
+        throw new CfnNotFoundException(new Exception(String.format("Subscription %s does not exist.", getSubscriptionAttributesRequest.subscriptionArn())));
+      }
     } catch (final SubscriptionLimitExceededException e) {
         throw new CfnServiceLimitExceededException(e);
     } catch (final FilterPolicyLimitExceededException e) {
@@ -123,9 +103,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         throw new CfnAccessDeniedException(e);
     } catch (final InvalidSecurityException e) {
         throw new CfnInvalidCredentialsException(e);
-    } catch (final Exception e) {
-        throw new CfnInternalFailureException(e);
-    }
+    } 
+    
     return getSubscriptionAttributesResponse;
   }
   protected boolean subscriptionExists(final String subscriptionArn, final ProxyClient<SnsClient> proxyClient) {
@@ -144,15 +123,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected GetTopicAttributesResponse checkTopicExists(GetTopicAttributesRequest getTopicAttributesRequest,
   final ProxyClient<SnsClient> proxyClient)  {
-   // logger.log("Checking topic exists");
-    // GetTopicAttributesRequest getTopicAttributesRequest = GetTopicAttributesRequest.builder()
-    //                                                             .topicArn(topicArn)
-    //                                                             .build();
+
     final GetTopicAttributesResponse getTopicAttributesResponse;
-        
-    // if (getTopicAttributesResponse.hasAttributes() && 
-    //     getTopicAttributesResponse.attributes().get(Definitions.topicArn) != null)
-    //     return true;
 
     try {
       getTopicAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getTopicAttributesRequest, proxyClient.client()::getTopicAttributes);
