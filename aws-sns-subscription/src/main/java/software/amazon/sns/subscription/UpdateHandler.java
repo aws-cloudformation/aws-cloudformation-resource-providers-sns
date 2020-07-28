@@ -33,7 +33,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
             .then(progress -> checkTopicExists(proxy, proxyClient, currentModel, progress, logger))   
-            .then(progress -> checkSubscriptionExists(proxy, proxyClient, currentModel, progress, logger))
+            .then(progress -> checkSubscriptionExists(proxy, proxyClient, previousModel, progress, logger))
             .then(process -> proxy.initiate("AWS-SNS-Subscription::Check-Subscription-Exists", proxyClient, currentModel, callbackContext)
                 .translateToServiceRequest(Translator::translateToReadRequest)
                 .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
