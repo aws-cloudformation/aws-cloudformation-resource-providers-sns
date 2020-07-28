@@ -41,50 +41,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     );
   }
 
-  protected ProgressEvent<ResourceModel, CallbackContext> modifyPolicy(
-    AmazonWebServicesClientProxy proxy,
-    ProxyClient<SnsClient> proxyClient,
-    Map<String, Object> desiredPolicy,
-    ResourceModel model,
-    SubscriptionAttribute subscriptionAttribute,
-    Map<String, Object> previousPolicy,
-    ProgressEvent<ResourceModel, CallbackContext> progress,
-    Logger logger) {
 
-    if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
-        return progress;
-    }
 
-    return proxy.initiate("AWS-SNS-Subscription::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
-            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousPolicy, desiredPolicy))
-            .makeServiceCall(this::updateSubscription)
-            .stabilize(this::stabilizeSnsSubscription)
-            .progress();
-    
-  }
-
-  protected ProgressEvent<ResourceModel, CallbackContext> modifyRawMessageDelivery(
-    AmazonWebServicesClientProxy proxy,
-    ProxyClient<SnsClient> proxyClient,
-    Boolean rawMessageDelivery,
-    ResourceModel model,
-    SubscriptionAttribute subscriptionAttribute,
-    Boolean previousRawMessageDelivery,
-    ProgressEvent<ResourceModel, CallbackContext> progress,
-    Logger logger) {
-
-    if (previousRawMessageDelivery == null || rawMessageDelivery.equals(previousRawMessageDelivery)) {
-        return progress;
-    }
-
-    return proxy.initiate("AWS-SNS-Subscription::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
-            .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousRawMessageDelivery, rawMessageDelivery))
-            .makeServiceCall(this::updateSubscription)
-            .stabilize(this::stabilizeSnsSubscription)
-            .progress();
-    
-  }
-
+  
   protected ProgressEvent<ResourceModel, CallbackContext> checkTopicExists(
     AmazonWebServicesClientProxy proxy,
     ProxyClient<SnsClient> proxyClient,
@@ -255,34 +214,5 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return subscriptionExists(model.getSubscriptionArn(), proxyClient);
   }
 
-  private SetSubscriptionAttributesResponse updateSubscription(
-      final SetSubscriptionAttributesRequest setSubscriptionAttributesRequest,
-      final ProxyClient<SnsClient> proxyClient)  {
-
-
-      final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse;
-      try {
-          setSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(setSubscriptionAttributesRequest, proxyClient.client()::setSubscriptionAttributes);
-
-      } catch (final SubscriptionLimitExceededException e) {
-          throw new CfnServiceLimitExceededException(e);
-      } catch (final FilterPolicyLimitExceededException e) {
-          throw new CfnServiceLimitExceededException(e);
-      } catch (final InvalidParameterException e) {
-          throw new CfnInvalidRequestException(e);
-      } catch (final InternalErrorException e) {
-          throw new CfnInternalFailureException(e);
-      } catch (final NotFoundException e) {
-          throw new CfnNotFoundException(e);
-      } catch (final AuthorizationErrorException e) {
-          throw new CfnAccessDeniedException(e);
-      } catch (final InvalidSecurityException e) {
-          throw new CfnInvalidCredentialsException(e);
-      } catch (final Exception e) {
-          throw new CfnInternalFailureException(e);
-      }
-
-
-      return setSubscriptionAttributesResponse;
-  }
+ 
 }

@@ -10,6 +10,9 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -148,6 +151,78 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
 
     }
+
+
+    @Test
+    public void handleRequest_InvalidRequestExceptionThrown()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+        final SubscribeResponse subscribeResponse = SubscribeResponse.builder().subscriptionArn("testarn").build();;
+        when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenThrow(InvalidParameterException.class);
+
+        final Map<String, String> attributes = new HashMap<>();
+      
+        attributes.put("SubscriptionArn", subscribeResponse.subscriptionArn());
+        attributes.put("TopicArn", model.getTopicArn());
+        attributes.put("Protocol", model.getProtocol());
+        attributes.put("Endpoint", model.getEndpoint());
+        attributes.put("RawMessageDelivery", Boolean.toString(model.getRawMessageDelivery()));
+        attributes.put("FilterPolicy", filterPolicyString);
+        attributes.put("RedrivePolicy", redrivePolicyString);
+        attributes.put("DeliveryPolicy", deliveryPolicyString);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(model)
+                                                                .build();
+        
+        assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+
+        verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
+    }
+
+    @Test
+    public void handleRequest_InternalErrorExceptionThrown()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+        final SubscribeResponse subscribeResponse = SubscribeResponse.builder().subscriptionArn("testarn").build();;
+        when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenThrow(InternalErrorException.class);
+
+        final Map<String, String> attributes = new HashMap<>();
+      
+        attributes.put("SubscriptionArn", subscribeResponse.subscriptionArn());
+        attributes.put("TopicArn", model.getTopicArn());
+        attributes.put("Protocol", model.getProtocol());
+        attributes.put("Endpoint", model.getEndpoint());
+        attributes.put("RawMessageDelivery", Boolean.toString(model.getRawMessageDelivery()));
+        attributes.put("FilterPolicy", filterPolicyString);
+        attributes.put("RedrivePolicy", redrivePolicyString);
+        attributes.put("DeliveryPolicy", deliveryPolicyString);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(model)
+                                                                .build();
+        
+        assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+
+        verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
+    }
+
 
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {

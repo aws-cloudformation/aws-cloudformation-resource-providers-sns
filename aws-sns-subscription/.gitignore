@@ -18,3 +18,4 @@ target/
 
 # our logs
 rpdk.log
+/bin/

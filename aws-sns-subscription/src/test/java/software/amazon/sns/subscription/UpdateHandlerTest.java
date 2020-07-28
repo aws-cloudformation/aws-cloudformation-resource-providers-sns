@@ -7,7 +7,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.*;
 import software.amazon.awssdk.services.sns.*;
 import software.amazon.awssdk.services.sns.model.*;
 import org.junit.jupiter.api.AfterEach;
@@ -182,7 +182,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(4)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test
@@ -227,7 +227,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(3)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(6)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(5)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test
@@ -273,5 +273,442 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class)); 
+    }
+ 
+    @Test
+    public void handleRequest_InvalidParameterExceptionSetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(InvalidParameterException.class);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_SubscriptionLimitExceededExceptionSetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(SubscriptionLimitExceededException.class);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_FilterPolicyLimitExceededExceptionSetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(FilterPolicyLimitExceededException.class);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_AuthorizationErrorExceptionSetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(AuthorizationErrorException.class);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnAccessDeniedException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_InternalErrorExceptionSetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(InternalErrorException.class);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_NotFoundExceptionSetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_InvalidSecurityExceptionSetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(InvalidSecurityException.class);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnInvalidCredentialsException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_InvalidParameterExceptionGetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(InvalidParameterException.class);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_SubscriptionLimitExceededExceptionGetSubscription()  {
+    
+         final Map<String, String> topicAttributes = new HashMap<>();
+         topicAttributes.put("TopicArn", "topicArn");
+         
+         Map<String, String> subscriptionAttributes = new HashMap<>();
+         subscriptionAttributes.put("SubscriptionArn", "arn1");
+         subscriptionAttributes.put("TopicArn", "topicArn1");
+         subscriptionAttributes.put("Protocol", "email1");
+         subscriptionAttributes.put("Endpoint", "end1");
+         subscriptionAttributes.put("RawMessageDelivery", "false");
+         subscriptionAttributes.put("PendingConfirmation", "false");
+    
+ 
+         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(SubscriptionLimitExceededException.class);
+ 
+         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+ 
+ 
+         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                 .desiredResourceState(desiredModel)
+                                                                 .previousResourceState(currentModel)
+                                                                 .build();
+ 
+          assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+ 
+    }
+
+    @Test
+    public void handleRequest_FilterPolicyLimitExceededExceptionGetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(FilterPolicyLimitExceededException.class);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_AuthorizationErrorExceptionGetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(AuthorizationErrorException.class);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnAccessDeniedException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_InternalErrorExceptionGetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(InternalErrorException.class);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_NotFoundExceptionGetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+    }
+
+    @Test
+    public void handleRequest_InvalidSecurityExceptionGetSubscription()  {
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn", "topicArn");
+        
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn1");
+        subscriptionAttributes.put("TopicArn", "topicArn1");
+        subscriptionAttributes.put("Protocol", "email1");
+        subscriptionAttributes.put("Endpoint", "end1");
+        subscriptionAttributes.put("RawMessageDelivery", "false");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+   
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(InvalidSecurityException.class);
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(desiredModel)
+                                                                .previousResourceState(currentModel)
+                                                                .build();
+
+         assertThrows(CfnInvalidCredentialsException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
     }
 }

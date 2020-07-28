@@ -7,8 +7,12 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
+import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
 import software.amazon.cloudformation.proxy.*;
 
 public class DeleteHandler extends BaseHandlerStd {
@@ -57,9 +61,22 @@ public class DeleteHandler extends BaseHandlerStd {
             logger.log(String.format("Deleting subscription for subscription arn: %s", unsubscribeRequest.subscriptionArn()));
             unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
 
+        } catch (final SubscriptionLimitExceededException e) {
+            throw new CfnServiceLimitExceededException(e);
+        } catch (final FilterPolicyLimitExceededException e) {
+            throw new CfnServiceLimitExceededException(e);
+        } catch (final InvalidParameterException e) {
+            throw new CfnInvalidRequestException(e);
+        } catch (final InternalErrorException e) {
+            throw new CfnInternalFailureException(e);
         } catch (final NotFoundException e) {
             throw new CfnNotFoundException(e);
-        }
+        } catch (final AuthorizationErrorException e) {
+            throw new CfnAccessDeniedException(e);
+        } catch (final InvalidSecurityException e) {
+            throw new CfnInvalidCredentialsException(e);
+        } 
+
    
         logger.log(String.format("%s successfully deleted.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
         return true;
