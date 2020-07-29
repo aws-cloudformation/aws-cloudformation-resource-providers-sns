@@ -12,6 +12,7 @@ out.java
 out/
 .settings
 .project
+input/
 
 # auto-generated files
 target/
