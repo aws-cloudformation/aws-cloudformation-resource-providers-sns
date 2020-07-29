@@ -40,12 +40,11 @@ public class DeleteHandler extends BaseHandlerStd {
 
                             return true;
                         })
-                        .stabilize(this::stabilizeSnsSubscription)
                         .progress())
                     .then(process -> proxy.initiate("AWS-SNS-Subscription::Unsubscribe", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToDeleteRequest)           
+                        .translateToServiceRequest(Translator::translateToDeleteRequest)
                         .makeServiceCall(this::deleteSubscription)
-                        .stabilize(this::stabilizeSnsSubscription)
+                        .stabilize(this::stabilizeOnDelete)
                         .done(awsResponse -> {return ProgressEvent.<ResourceModel, CallbackContext>builder()
                             .status(OperationStatus.SUCCESS)
                             .build(); }));
@@ -56,7 +55,7 @@ public class DeleteHandler extends BaseHandlerStd {
         final ProxyClient<SnsClient> proxyClient) {
 
         final UnsubscribeResponse unsubscribeResponse;
-        
+
         try {
             logger.log(String.format("Deleting subscription for subscription arn: %s", unsubscribeRequest.subscriptionArn()));
             unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
@@ -75,11 +74,11 @@ public class DeleteHandler extends BaseHandlerStd {
             throw new CfnAccessDeniedException(e);
         } catch (final InvalidSecurityException e) {
             throw new CfnInvalidCredentialsException(e);
-        } 
+        }
 
-   
+
         logger.log(String.format("%s successfully deleted.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
         return true;
-    }  
+    }
 
 }

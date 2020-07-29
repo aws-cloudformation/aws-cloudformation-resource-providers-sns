@@ -4,6 +4,8 @@ import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.services.sns.*;
 import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -88,13 +90,21 @@ public class Translator {
             .map(Collection::stream)
             .orElseGet(Stream::empty);
   }
-        
-  // NOTE TODO: ListSubscriptionsByTopicResponse does not return attributes 
-  // should we copy them from the existing model??
+
+
   static List<ResourceModel>  translateFromListRequest(final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse) {
-    return streamOfOrEmpty(listSubscriptionsByTopicResponse.subscriptions()).map(subscription -> 
+    return streamOfOrEmpty(listSubscriptionsByTopicResponse.subscriptions()).map(subscription ->
       ResourceModel.builder().protocol(subscription.protocol()).topicArn(subscription.topicArn()).subscriptionArn(subscription.subscriptionArn()).build())
       .collect(Collectors.toList());
    }
+
+  static ListSubscriptionsByTopicRequest translateToListSubscriptionsByTopicRequest(final ResourceHandlerRequest<ResourceModel> request) {
+      return ListSubscriptionsByTopicRequest.builder()
+              .nextToken(request.getNextToken())
+              .topicArn(request.getDesiredResourceState().getTopicArn())
+              .build();
+  }
+
+
 
 }

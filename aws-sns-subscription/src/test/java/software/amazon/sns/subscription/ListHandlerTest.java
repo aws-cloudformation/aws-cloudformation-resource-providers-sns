@@ -55,7 +55,7 @@ public class ListHandlerTest extends AbstractTestBase {
     }
 
     private void buildObjects() {
-       
+
         model = ResourceModel.builder().subscriptionArn("testArn").topicArn("topicArn").build();
         attributes = new HashMap<>();
         attributes.put("SubscriptionArn", model.getSubscriptionArn());
@@ -63,7 +63,7 @@ public class ListHandlerTest extends AbstractTestBase {
         attributes.put("Protocol", "email");
         attributes.put("Endpoint", "end1");
         attributes.put("RawMessageDelivery", "false");
-        attributes.put("PendingConfirmation", "false"); 
+        attributes.put("PendingConfirmation", "false");
     }
 
     @Test
@@ -176,7 +176,7 @@ public class ListHandlerTest extends AbstractTestBase {
                                                                     .topicArn("topicArn")
                                                                     .nextToken("nextToken")
                                                                     .build();
-        
+
         // test 2nd iteration with token returned
         final ResourceHandlerRequest<ResourceModel> request2 = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
@@ -219,11 +219,11 @@ public class ListHandlerTest extends AbstractTestBase {
 
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
- 
+
     }
 
-   
+
 }

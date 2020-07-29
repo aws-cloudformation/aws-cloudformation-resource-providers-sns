@@ -115,7 +115,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenReturn(subscribeResponse);
 
         final Map<String, String> attributes = new HashMap<>();
-      
+
         attributes.put("SubscriptionArn", subscribeResponse.subscriptionArn());
         attributes.put("TopicArn", model.getTopicArn());
         attributes.put("Protocol", model.getProtocol());
@@ -131,11 +131,11 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
                                                                 .build();
-        
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
- 
+
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
@@ -167,7 +167,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenThrow(InvalidParameterException.class);
 
         final Map<String, String> attributes = new HashMap<>();
-      
+
         attributes.put("SubscriptionArn", subscribeResponse.subscriptionArn());
         attributes.put("TopicArn", model.getTopicArn());
         attributes.put("Protocol", model.getProtocol());
@@ -181,7 +181,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
                                                                 .build();
-        
+
         assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
 
@@ -202,7 +202,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenThrow(InternalErrorException.class);
 
         final Map<String, String> attributes = new HashMap<>();
-      
+
         attributes.put("SubscriptionArn", subscribeResponse.subscriptionArn());
         attributes.put("TopicArn", model.getTopicArn());
         attributes.put("Protocol", model.getProtocol());
@@ -216,7 +216,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
                                                                 .build();
-        
+
         assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
 
@@ -228,7 +228,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     public void handleRequest_TopicArnDoesNotExist()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
-        
+
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
@@ -238,9 +238,9 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
- 
+
     }
 }

@@ -4,6 +4,7 @@
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
     "properties": {
         "SubscriptionArn": {
+            "description": "This is the subscription amazon resource name generated at creation time.",
             "type": "string"
         },
         "DeliveryPolicy": {
@@ -21,8 +22,17 @@
         "Protocol": {
             "description": "The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
             "type": "string",
-            "examples": ["http","https","email","email-json","sms","sqs","Endpoint Arn for mobile app and device","lambda"]
-         },
+            "examples": [
+                "http",
+                "https",
+                "email",
+                "email-json",
+                "sms",
+                "sqs",
+                "Endpoint Arn for mobile app and device",
+                "lambda"
+            ]
+        },
         "RawMessageDelivery": {
             "description": "When set to true, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints.",
             "type": "boolean"

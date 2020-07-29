@@ -34,7 +34,7 @@ public class UpdateHandler extends BaseHandlerStd {
         final ResourceModel previousModel = request.getPreviousResourceState();
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-            .then(progress -> checkTopicExists(proxy, proxyClient, currentModel, progress, logger))   
+            .then(progress -> checkTopicExists(proxy, proxyClient, currentModel, progress, logger))
             .then(progress -> checkSubscriptionExists(proxy, proxyClient, previousModel, progress, logger))
             .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getFilterPolicy(), currentModel, SubscriptionAttribute.FilterPolicy, previousModel.getFilterPolicy(), progress, logger))
             .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getDeliveryPolicy(), currentModel, SubscriptionAttribute.DeliveryPolicy,previousModel.getDeliveryPolicy(), progress, logger))
@@ -62,7 +62,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 .makeServiceCall(this::updateSubscription)
                 .stabilize(this::stabilizeSnsSubscription)
                 .progress();
-        
+
     }
 
 
@@ -75,28 +75,28 @@ public class UpdateHandler extends BaseHandlerStd {
         Map<String, Object> previousPolicy,
         ProgressEvent<ResourceModel, CallbackContext> progress,
         Logger logger) {
-    
+
         if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
             return progress;
         }
-    
+
         return proxy.initiate("AWS-SNS-Subscription::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
                 .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousPolicy, desiredPolicy))
                 .makeServiceCall(this::updateSubscription)
                 .stabilize(this::stabilizeSnsSubscription)
                 .progress();
-        
+
       }
 
     private SetSubscriptionAttributesResponse updateSubscription(
         final SetSubscriptionAttributesRequest setSubscriptionAttributesRequest,
         final ProxyClient<SnsClient> proxyClient)  {
-  
-  
+
+
         final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse;
         try {
             setSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(setSubscriptionAttributesRequest, proxyClient.client()::setSubscriptionAttributes);
-  
+
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {
@@ -114,8 +114,8 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (final Exception e) {
             throw new CfnInternalFailureException(e);
         }
-  
-  
+
+
         return setSubscriptionAttributesResponse;
     }
 }

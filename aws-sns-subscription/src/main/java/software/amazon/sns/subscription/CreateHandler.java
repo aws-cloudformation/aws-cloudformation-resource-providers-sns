@@ -27,16 +27,16 @@ public class CreateHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
-        
+
         return ProgressEvent.progress(model, callbackContext)
                     .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
-                    .then(progress -> 
+                    .then(progress ->
                         proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToCreateRequest)
                         .makeServiceCall((subscribeRequest, client) -> createSubscription(subscribeRequest, client, model))
                         .progress())
                     .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-           
+
     }
 
     private SubscribeResponse createSubscription(
@@ -47,7 +47,7 @@ public class CreateHandler extends BaseHandlerStd {
         final SubscribeResponse subscribeResponse;
         try {
             subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
-            model.setSubscriptionArn(subscribeResponse.subscriptionArn());   
+            model.setSubscriptionArn(subscribeResponse.subscriptionArn());
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {
@@ -62,7 +62,7 @@ public class CreateHandler extends BaseHandlerStd {
             throw new CfnAccessDeniedException(e);
         } catch (final InvalidSecurityException e) {
             throw new CfnInvalidCredentialsException(e);
-        } 
+        }
 
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
         return subscribeResponse;

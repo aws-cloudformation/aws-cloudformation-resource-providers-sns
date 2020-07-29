@@ -26,13 +26,13 @@ public class ReadHandler extends BaseHandlerStd {
         logger.log("subscription arn: " + model.getSubscriptionArn());
 
         return ProgressEvent.progress(model, callbackContext)
-            .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))  
-             .then(progress -> 
+             .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
+             .then(progress ->
                  proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, model, callbackContext)
                  .translateToServiceRequest(Translator::translateToReadRequest)
                  .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
-                    return this.checkSubscriptionExists(getSubscriptionAttributesRequest, proxyClient);
-                })           
+                    return readSubscriptionAttributes(getSubscriptionAttributesRequest, proxyClient);
+                })
             .done(getSubscriptionAttributesResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(getSubscriptionAttributesResponse))));
     }
 

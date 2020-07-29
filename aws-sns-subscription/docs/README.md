@@ -147,5 +147,5 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 #### SubscriptionArn
 
-Returns the <code>SubscriptionArn</code> value.
+This is the subscription amazon resource name generated at creation time.
 

@@ -64,7 +64,7 @@ public class ReadHandlerTest extends AbstractTestBase {
     }
 
     private void buildObjects() {
-       
+
         model = ResourceModel.builder().subscriptionArn("testArn").topicArn("topicArn").build();
         attributes = new HashMap<>();
         attributes.put("SubscriptionArn", model.getSubscriptionArn());
@@ -91,7 +91,7 @@ public class ReadHandlerTest extends AbstractTestBase {
 
         final ObjectMapper objectMapper = new ObjectMapper();
         //   Object ob1 = new String("[\"example_corp\"]");
-    
+
         final Map<String, Object> filterPolicy = new HashMap<>();
         filterPolicy.put("store", "[\"example_corp\"]");
         filterPolicy.put("event", "[\"order_placed\"]");
@@ -151,7 +151,7 @@ public class ReadHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
- 
+
     }
 
     @Test
@@ -170,10 +170,10 @@ public class ReadHandlerTest extends AbstractTestBase {
 
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
- 
+
     }
 
 }

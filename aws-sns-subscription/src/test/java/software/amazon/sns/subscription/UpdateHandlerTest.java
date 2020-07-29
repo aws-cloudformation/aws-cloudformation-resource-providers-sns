@@ -133,7 +133,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                             .rawMessageDelivery(false)
                             .build();
     }
-    
+
     @Test
     public void handleRequest_UpdateBooleandAttributes() throws JsonProcessingException {
         final UpdateHandler handler = new UpdateHandler();
@@ -148,7 +148,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end");
         subscriptionAttributes.put("RawMessageDelivery", "true");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
@@ -165,10 +165,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                             .desiredResourceState(desiredModel)
                                                             .previousResourceState(currentModel)
                                                             .build();
-                                                                            
+
         final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenReturn(setSubscriptionAttributesResponse);
-                                        
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
@@ -199,7 +199,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
@@ -211,10 +211,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                             .desiredResourceState(desiredModel)
                                                             .previousResourceState(currentModel)
                                                             .build();
-        
-        final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();                                          
+
+        final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenReturn(setSubscriptionAttributesResponse);
-                                        
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
@@ -248,7 +248,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
- 
+
     }
 
     @Test
@@ -271,16 +271,16 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class)); 
-        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class)); 
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
     }
- 
+
     @Test
     public void handleRequest_InvalidParameterExceptionSetSubscription()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -288,7 +288,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(InvalidParameterException.class);
 
@@ -313,7 +313,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -321,7 +321,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(SubscriptionLimitExceededException.class);
 
@@ -346,7 +346,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -354,7 +354,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(FilterPolicyLimitExceededException.class);
 
@@ -379,7 +379,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -387,7 +387,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(AuthorizationErrorException.class);
 
@@ -412,7 +412,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -420,7 +420,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(InternalErrorException.class);
 
@@ -445,7 +445,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -453,7 +453,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
 
@@ -478,7 +478,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -486,7 +486,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenThrow(InvalidSecurityException.class);
 
@@ -511,7 +511,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -519,7 +519,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(InvalidParameterException.class);
 
@@ -538,10 +538,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SubscriptionLimitExceededExceptionGetSubscription()  {
-    
+
          final Map<String, String> topicAttributes = new HashMap<>();
          topicAttributes.put("TopicArn", "topicArn");
-         
+
          Map<String, String> subscriptionAttributes = new HashMap<>();
          subscriptionAttributes.put("SubscriptionArn", "arn1");
          subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -549,21 +549,21 @@ public class UpdateHandlerTest extends AbstractTestBase {
          subscriptionAttributes.put("Endpoint", "end1");
          subscriptionAttributes.put("RawMessageDelivery", "false");
          subscriptionAttributes.put("PendingConfirmation", "false");
-    
- 
+
+
          when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(SubscriptionLimitExceededException.class);
- 
+
          final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
          when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
- 
- 
+
+
          final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                  .desiredResourceState(desiredModel)
                                                                  .previousResourceState(currentModel)
                                                                  .build();
- 
+
           assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
- 
+
     }
 
     @Test
@@ -571,7 +571,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -579,7 +579,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(FilterPolicyLimitExceededException.class);
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
@@ -600,7 +600,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -608,7 +608,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
 
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(AuthorizationErrorException.class);
 
@@ -630,7 +630,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -638,7 +638,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(InternalErrorException.class);
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
@@ -659,7 +659,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -667,7 +667,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(NotFoundException.class);
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
@@ -688,7 +688,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn", "topicArn");
-        
+
         Map<String, String> subscriptionAttributes = new HashMap<>();
         subscriptionAttributes.put("SubscriptionArn", "arn1");
         subscriptionAttributes.put("TopicArn", "topicArn1");
@@ -696,7 +696,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("Endpoint", "end1");
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
-   
+
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenThrow(InvalidSecurityException.class);
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();

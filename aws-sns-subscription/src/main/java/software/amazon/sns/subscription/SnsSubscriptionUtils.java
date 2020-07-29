@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 public final class SnsSubscriptionUtils {
 
     public static Map<String,Object> convertToJson(String jsonString) {
-        final ObjectMapper objectMapper = new ObjectMapper(); 
+        final ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object> attribute = null;
 
         if (jsonString != null) {
@@ -23,15 +23,15 @@ public final class SnsSubscriptionUtils {
         }
 
         return attribute;
-    } 
+    }
 
     private static String convertJsonObjectToString(final Map<String,Object> objectMap) {
-        final ObjectMapper objectMapper = new ObjectMapper(); 
+        final ObjectMapper objectMapper = new ObjectMapper();
         String val = "";
         if (objectMap != null) {
             try {
                 val = objectMapper.writeValueAsString(objectMap);
-                
+
             } catch(JsonProcessingException e) {
                 throw new CfnInvalidRequestException(e);
             }
@@ -41,25 +41,25 @@ public final class SnsSubscriptionUtils {
 
     public static Map<String,String> getAttributesForUpdate(final SubscriptionAttribute subscriptionAttribute, final Map<String, Object> previousPolicy, final Map<String, Object> desiredPolicy) {
         final Map<String,String> attributeMap = Maps.newHashMap();
-     
-        final ObjectMapper objectMapper = new ObjectMapper(); 
- 
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+
         putIfChanged(attributeMap, subscriptionAttribute, convertJsonObjectToString(previousPolicy), convertJsonObjectToString(desiredPolicy));
-  
+
         return attributeMap;
     }
 
     public static Map<String,String> getAttributesForUpdate(final SubscriptionAttribute subscriptionAttribute, final Boolean previousValue, final Boolean desiredValue) {
         final Map<String,String> attributeMap = Maps.newHashMap();
-     
+
         putIfChanged(attributeMap, subscriptionAttribute, Boolean.toString(previousValue) != null ? Boolean.toString(previousValue) : "" , Boolean.toString(desiredValue) != null ? Boolean.toString(desiredValue) : "");
-  
+
         return attributeMap;
     }
 
     public static Map<String,String> getAttributesForCreate(final ResourceModel currentmodel) {
         final Map<String,String> attributeMap = Maps.newHashMap();
-     
+
         putIfNotEmpty(attributeMap, SubscriptionAttribute.DeliveryPolicy, convertJsonObjectToString(currentmodel.getDeliveryPolicy()));
         putIfNotEmpty(attributeMap, SubscriptionAttribute.FilterPolicy,  convertJsonObjectToString(currentmodel.getFilterPolicy()));
         putIfNotEmpty(attributeMap, SubscriptionAttribute.RawMessageDelivery, currentmodel.getRawMessageDelivery() != null ? Boolean.toString(currentmodel.getRawMessageDelivery()) : "");
@@ -69,7 +69,7 @@ public final class SnsSubscriptionUtils {
     }
 
     private static void putIfNotEmpty(final Map<String,String> attributeMap, final SubscriptionAttribute key, final String val) {
-        if (val.length()>0) 
+        if (val.length()>0)
             attributeMap.put(key.name(), val);
     }
 
@@ -78,5 +78,5 @@ public final class SnsSubscriptionUtils {
             map.put(key.name(), currentValue);
         }
     }
-    
+
 }

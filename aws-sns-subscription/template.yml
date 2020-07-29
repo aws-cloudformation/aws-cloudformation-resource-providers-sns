@@ -20,4 +20,3 @@ Resources:
       Handler: software.amazon.sns.subscription.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-sns-subscription-handler-1.0-SNAPSHOT.jar
-
