@@ -147,7 +147,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
 
         // create and read invocations
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
 
     }

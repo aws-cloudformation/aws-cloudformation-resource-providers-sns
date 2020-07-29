@@ -1,0 +1,13 @@
+{
+    "TopicArn": "arn:aws:sns:us-west-2:074885163309:mytesttopic2",
+    "Protocol": "sqs",
+    "Endpoint": "arn:aws:sqs:us-west-2:074885163309:my_test_queue",
+    "FilterPolicy": {
+        "store": [
+            "example_corp"
+        ],
+        "event": [
+            "order_placed"
+        ]
+    }
+}

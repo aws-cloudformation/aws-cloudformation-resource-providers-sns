@@ -48,6 +48,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     ProgressEvent<ResourceModel, CallbackContext> progress,
     Logger logger) {
 
+
+    logger.log("CHECK TOPIC EXISTS!!!!");
     return proxy.initiate("AWS-SNS-Subscription::CheckTopicExists", proxyClient, model, progress.getCallbackContext())
             .translateToServiceRequest(Translator::translateToCheckTopicRequest)
             .makeServiceCall(this::retrieveTopicAttributes)
@@ -130,6 +132,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     } catch (final Exception e) {
         throw new CfnInternalFailureException(e);
     }
+
     return getTopicAttributesResponse;
   }
 

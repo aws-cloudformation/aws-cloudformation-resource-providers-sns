@@ -29,7 +29,6 @@ public class CreateHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
 
         return ProgressEvent.progress(model, callbackContext)
-                    .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
                     .then(progress ->
                         proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToCreateRequest)
@@ -45,6 +44,10 @@ public class CreateHandler extends BaseHandlerStd {
         final ResourceModel model)  {
 
         final SubscribeResponse subscribeResponse;
+
+        // exception thrown if topic not found
+        retrieveTopicAttributes(Translator.translateToCheckTopicRequest(model), proxyClient);
+
         try {
             subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
             model.setSubscriptionArn(subscribeResponse.subscriptionArn());
