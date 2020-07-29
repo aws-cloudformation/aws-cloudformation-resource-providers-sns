@@ -49,7 +49,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     Logger logger) {
 
 
-    logger.log("CHECK TOPIC EXISTS!!!!");
+    logger.log("checking if topic exists");
     return proxy.initiate("AWS-SNS-Subscription::CheckTopicExists", proxyClient, model, progress.getCallbackContext())
             .translateToServiceRequest(Translator::translateToCheckTopicRequest)
             .makeServiceCall(this::retrieveTopicAttributes)
