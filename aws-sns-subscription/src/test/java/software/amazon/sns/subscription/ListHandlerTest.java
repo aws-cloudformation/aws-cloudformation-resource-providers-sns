@@ -87,10 +87,6 @@ public class ListHandlerTest extends AbstractTestBase {
                                         .build();
 
         when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
-//
-//        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
-//        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
-
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
@@ -145,9 +141,6 @@ public class ListHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse).thenReturn(listSubscriptionsByTopicResponse2);
 
-//        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
-//        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
-
         final ResourceModel model = ResourceModel.builder()
                                     .topicArn("topicArn")
                                     .build();
@@ -199,7 +192,6 @@ public class ListHandlerTest extends AbstractTestBase {
         assertThat(response2.getNextToken()).isEqualTo("");
 
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
-     //   verify(proxyClient.client(), times(2)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
     }
 
@@ -207,8 +199,6 @@ public class ListHandlerTest extends AbstractTestBase {
     public void handleRequest_TopicArnDoesNotExist()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
-
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 

@@ -85,12 +85,9 @@ public class ReadHandlerTest extends AbstractTestBase {
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
-        // final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
-        // when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse).thenThrow(ResourceNotFoundException.class);
-
 
         final ObjectMapper objectMapper = new ObjectMapper();
-        //   Object ob1 = new String("[\"example_corp\"]");
+
 
         final Map<String, Object> filterPolicy = new HashMap<>();
         filterPolicy.put("store", "[\"example_corp\"]");
@@ -158,8 +155,6 @@ public class ReadHandlerTest extends AbstractTestBase {
     public void handleRequest_TopicArnDoesNotExist()  {
 
         final Map<String, String> topicAttributes = new HashMap<>();
-
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
