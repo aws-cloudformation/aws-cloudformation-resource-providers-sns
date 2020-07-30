@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Configure SNS topics to subscribe to notifications and forward them to users
+Resources:
+  SNSTopicEmail:
+    Type: 'AWS::SNS::Topic'
+  SNSEmailSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SNSTopicEmail
+      Endpoint: name@xyz.com
+      Protocol: email
+  SNSAccessPolicy:
+    Type: 'AWS::SNS::TopicPolicy'
+    Properties:
+      PolicyDocument:
+        Id: SNSTopicEmail
+        Statement:
+          - Action:
+              - 'sns:Publish'
+              - 'SNS:GetTopicAttributes'
+              - 'SNS:SetTopicAttributes'
+              - 'SNS:DeleteTopic'
+              - 'SNS:Subscribe'
+              - 'SNS:ListSubscriptionsByTopic'
+              - 'SNS:Publish'
+              - 'SNS:Receive'
+            Effect: Allow
+            Principal:
+              AWS: '123456789'
+            Condition:
+              StringEquals:
+                'AWS:SourceOwner': '123456789'
+            Resource: !Ref SNSTopicEmail
+      Topics:
+        - !Ref SNSTopicEmail
+        - 'arn:aws:sns:us-east-1:123456789:my-topic1'
+

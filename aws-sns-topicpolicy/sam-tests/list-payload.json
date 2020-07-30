@@ -1,0 +1,20 @@
+{
+  "credentials": {
+        "AccessKeyId": "EnterValueHere",
+        "SecretAccessKey": "EnterValueHere",
+        "SessionToken": "EnterValueHere",
+        "Expiration": "EnterValueHere"
+  },
+  "action": "LIST",
+  "request": {
+    "clientRequestToken": "27436d20-c529-11ea-87d0-0242ac130003",
+    "desiredResourceState": {
+            "Topics":[
+	            "arn:aws:sns:us-east-1:123456789:my-topic10"  , 
+	            "arn:aws:sns:us-east-1:123456789:my-topic20"
+            ] 
+     },
+    "logicalResourceIdentifier": "EmailSNSTopicPolicy"
+  },
+  "callbackContext": null
+}
