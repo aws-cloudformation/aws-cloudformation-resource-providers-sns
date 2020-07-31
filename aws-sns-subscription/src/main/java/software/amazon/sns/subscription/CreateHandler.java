@@ -1,7 +1,15 @@
 package software.amazon.sns.subscription;
 
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.awssdk.services.sns.model.SubscribeResponse;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sns.model.SubscriptionLimitExceededException;
+import software.amazon.awssdk.services.sns.model.FilterPolicyLimitExceededException;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
+import software.amazon.awssdk.services.sns.model.InternalErrorException;
+import software.amazon.awssdk.services.sns.model.NotFoundException;
+import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
+import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
