@@ -5,6 +5,7 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
 public class ListHandler extends BaseHandler<CallbackContext> {
 
@@ -32,7 +33,9 @@ public class ListHandler extends BaseHandler<CallbackContext> {
         return ProgressEvent.<ResourceModel, CallbackContext> builder()
                 .resourceModels(Translator.translateFromListRequest())
                 .nextToken(null)
-                .status(OperationStatus.SUCCESS)
+                .status(OperationStatus.FAILED)
+                .errorCode(HandlerErrorCode.InvalidRequest)
+                .message("List operation is not supported.")
                 .build();
     }
 }

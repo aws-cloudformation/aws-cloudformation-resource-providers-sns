@@ -34,4 +34,3 @@ Resources:
       Topics:
         - !Ref SNSTopicEmail
         - 'arn:aws:sns:us-east-1:123456789:my-topic1'
-

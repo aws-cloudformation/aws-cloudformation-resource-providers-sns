@@ -1,21 +1,21 @@
 {
-  "credentials": {
+    "credentials": {
         "AccessKeyId": "EnterValueHere",
         "SecretAccessKey": "EnterValueHere",
         "SessionToken": "EnterValueHere",
         "Expiration": "EnterValueHere"
-  },
-  "action": "DELETE",
-  "request": {
-    "clientRequestToken": "27436d20-c529-11ea-87d0-0242ac130003",
-    "desiredResourceState": {
-    		"Id":"TempPId",
-            "Topics":[
-	            "arn:aws:sns:us-east-1:123456789:my-topic1"  , 
-	            "arn:aws:sns:us-east-1:123456789:my-topic2"
-            ] 
-     },
-    "logicalResourceIdentifier": "EmailSNSTopicPolicy"
-  },
-  "callbackContext": null
+    },
+    "action": "DELETE",
+    "request": {
+        "clientRequestToken": "27436d20-c529-11ea-87d0-0242ac130003",
+        "desiredResourceState": {
+            "Id": "TempPId",
+            "Topics": [
+                "arn:aws:sns:us-east-1:123456789:my-topic1",
+                "arn:aws:sns:us-east-1:123456789:my-topic2"
+            ]
+        },
+        "logicalResourceIdentifier": "EmailSNSTopicPolicy"
+    },
+    "callbackContext": null
 }

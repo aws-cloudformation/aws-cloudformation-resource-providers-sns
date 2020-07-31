@@ -1,10 +1,6 @@
 package software.amazon.sns.topicpolicy;
 
-import java.util.Random;
-
 import com.amazonaws.util.StringUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -18,8 +14,8 @@ import software.amazon.cloudformation.resource.IdentifierUtils;
 
 public class CreateHandler extends BaseHandlerStd {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final int MAX_LENGTH_SNS_TOPICPOLICY_ID = 256;
+    public static final String  CREATE_HANDLER = "AWS-SNS-TopicPolicy::Create";
 
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -30,21 +26,19 @@ public class CreateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         super.logger = logger;
-        super.handler = "AWS-SNS-TopicPolicy::Create";
         final ResourceModel model = request.getDesiredResourceState();
-        logger.log(String.format("In CreateHandler : handleRequest " + model.getPolicyDocument()));
-
         // Check if invalid request
         if (CollectionUtils.isNullOrEmpty(model.getPolicyDocument())
                 || CollectionUtils.isNullOrEmpty(model.getTopics()))
         {
-            throw new CfnInvalidRequestException("Invalid Create Request.");
+            throw new CfnInvalidRequestException(
+                    String.format("Invalid create request, policy document & topics cannot be null or empty : %s)" ,
+                    model.toString() ));
         }
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> initCallbackContextAndPrimaryIdentifier(proxy, proxyClient, request, callbackContext,
                         progress))
-                .then(progress -> doCreate(proxy, proxyClient, request, progress))
+                .then(progress -> doCreate(proxy, proxyClient, request, progress, CREATE_HANDLER))
                 .then(progress -> ProgressEvent.success(model, callbackContext));
     }
 
@@ -76,24 +70,14 @@ public class CreateHandler extends BaseHandlerStd {
                 .builder()
                 .build() : callbackContext;
         final ResourceModel model = request.getDesiredResourceState();
-        try {
-            final String policyDocument = MAPPER.writeValueAsString(model.getPolicyDocument());
-            // store policy document in the callback context
-            currentContext.setPolicyDocument(policyDocument);
-            // store topics in the callback context
-            currentContext.setTopics(model.getTopics());
-            // setting up primary id if not provided
-            if (StringUtils.isNullOrEmpty(model.getId())) {
-                String TOPICPOLICY_ID_PREFIX = String.valueOf(new Random().nextInt(Integer.MAX_VALUE));
-                final String Id = IdentifierUtils.generateResourceIdentifier(
-                        request.getLogicalResourceIdentifier() == null ? TOPICPOLICY_ID_PREFIX
-                                : request.getLogicalResourceIdentifier(),
-                        request.getClientRequestToken(),
-                        MAX_LENGTH_SNS_TOPICPOLICY_ID);
-                model.setId(Id.toLowerCase());
-            }
-        } catch (JsonProcessingException e) {
-            throw new CfnInvalidRequestException(e);
+        // setting up primary id if not provided
+        if (StringUtils.isNullOrEmpty(model.getId())) {
+            final String Id = IdentifierUtils.generateResourceIdentifier(
+                    request.getLogicalResourceIdentifier() == null ? "SnsTopicPolicy"
+                            : request.getLogicalResourceIdentifier(),
+                    request.getClientRequestToken(),
+                    MAX_LENGTH_SNS_TOPICPOLICY_ID);
+            model.setId(Id.toLowerCase());
         }
         logger.log(String.format("In initCallbackContextAndPrimaryIdentifier, PrimaryIdentifier : %s",
                 model.getPrimaryIdentifier()));

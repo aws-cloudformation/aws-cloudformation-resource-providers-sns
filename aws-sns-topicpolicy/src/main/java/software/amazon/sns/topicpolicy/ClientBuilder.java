@@ -8,7 +8,6 @@ import software.amazon.cloudformation.LambdaWrapper;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClientBuilder {
     public static SnsClient getClient() {
-
         return SnsClient.builder()
                 .httpClient(LambdaWrapper.HTTP_CLIENT)
                 .build();

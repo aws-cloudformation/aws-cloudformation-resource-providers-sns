@@ -2,6 +2,9 @@ package software.amazon.sns.topicpolicy;
 
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
 import software.amazon.awssdk.services.sns.model.InternalErrorException;
@@ -26,8 +29,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     protected Logger logger;
-    protected String handler = "";
-    public static final String SNS_TOPIC_TYPE_NAME = "AWS::SNS::Topic";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -61,18 +63,20 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      *            {@link ResourceHandlerRequest<ResourceModel>}
      * @param progress
      *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
+     * @param handler The handler invoking doCreate
      * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
      */
     protected ProgressEvent<ResourceModel, CallbackContext> doCreate(
             final AmazonWebServicesClientProxy proxy,
             final ProxyClient<SnsClient> proxyClient,
             final ResourceHandlerRequest<ResourceModel> request,
-            ProgressEvent<ResourceModel, CallbackContext> progress) {
+            ProgressEvent<ResourceModel, CallbackContext> progress,
+            final String handler) {
 
-        final ResourceModel model = progress.getResourceModel();
+        final ResourceModel model = request.getDesiredResourceState() ;
         final CallbackContext callbackContext = progress.getCallbackContext();
-        final String policy = callbackContext.getPolicyDocument();
-        List<String> topics = callbackContext.getTopics();
+        final String policy = getPolicyDocument(request);
+        List<String> topics = model.getTopics();
         for (final String topicArn : topics) {
             final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
                     .initiate(handler + topicArn.hashCode(), proxyClient, model, callbackContext)
@@ -121,7 +125,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
 
     /**
-     * Invocation of deleteResourceHandler calls setTopicAttributes to delete a topic-policy of a given topic ARN.
+     * Invocation of handleDelete calls setTopicAttributes to delete a topic-policy of a given topic ARN.
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
@@ -131,15 +135,17 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      *            {@link ResourceHandlerRequest<ResourceModel>}
      * @param progress
      *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
+     * @param handler The handler invoking handleDelete
      * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
      */
 
-    protected ProgressEvent<ResourceModel, CallbackContext> deleteResourceHandler(
+    protected ProgressEvent<ResourceModel, CallbackContext> handleDelete(
             final AmazonWebServicesClientProxy proxy,
             final ProxyClient<SnsClient> proxyClient,
             final ResourceHandlerRequest<ResourceModel> request,
             final ProgressEvent<ResourceModel, CallbackContext> progress,
-            final List<String> topics) {
+            final List<String> topics ,
+            final String handler) {
 
         final ResourceModel model = request.getDesiredResourceState();
         final CallbackContext callbackContext = progress.getCallbackContext();
@@ -188,4 +194,20 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         logger.log(String.format("%s successfully deleted.", ResourceModel.TYPE_NAME));
         return setTopicAttributesResponse;
     }
+
+    /**
+     * Invocation of getPolicyDocument returns the policy document .
+     *
+     * @param request
+     *            {@link ResourceHandlerRequest<ResourceModel>}
+     * @return Returns policy document
+     */
+    private String getPolicyDocument(final ResourceHandlerRequest<ResourceModel> request) {
+        try {
+            return MAPPER.writeValueAsString(request.getDesiredResourceState().getPolicyDocument());
+        } catch (JsonProcessingException e) {
+            throw new CfnInvalidRequestException(e);
+        }
+    }
+
 }

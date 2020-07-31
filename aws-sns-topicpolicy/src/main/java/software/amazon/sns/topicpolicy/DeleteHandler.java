@@ -16,6 +16,8 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class DeleteHandler extends BaseHandlerStd {
 
+    public static final String  DELETE_HANDLER = "AWS-SNS-TopicPolicy::Delete";
+
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -25,7 +27,6 @@ public class DeleteHandler extends BaseHandlerStd {
             final Logger logger) {
 
         super.logger = logger;
-        super.handler = "AWS-SNS-TopicPolicy::Delete";
 
         final ResourceModel model = request.getDesiredResourceState();
         logger.log(String.format("In DeleteHandler : handleRequest ") + model.getPrimaryIdentifier());
@@ -37,47 +38,21 @@ public class DeleteHandler extends BaseHandlerStd {
         }
 
         return ProgressEvent.progress(model, callbackContext)
-                .then(progress -> initCallbackContext(request, callbackContext, progress))
                 .then(progress -> doDelete(proxy, proxyClient, request, progress))
                 .then(progress -> ProgressEvent.<ResourceModel, CallbackContext> builder()
                         .status(OperationStatus.SUCCESS)
                         .build());
     }
 
-    /**
-     * Invocation of initCallbackContext initializes the context & stores topics in it.
-     *
-     * @param request
-     *            {@link ResourceHandlerRequest<ResourceModel>}
-     * @param callbackContext
-     *            {@link CallbackContext}
-     * @param progress
-     *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
-     * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
-     */
 
-    private ProgressEvent<ResourceModel, CallbackContext> initCallbackContext(
-            final ResourceHandlerRequest<ResourceModel> request,
-            final CallbackContext callbackContext,
-            final ProgressEvent<ResourceModel, CallbackContext> progress) {
-        final ResourceModel model = request.getDesiredResourceState();
-        final CallbackContext currentContext = callbackContext == null ? CallbackContext
-                .builder()
-                .build() : callbackContext;
-        // store topics in the callback context
-        currentContext.setTopics(model.getTopics());
-        return ProgressEvent.progress(model, currentContext);
-    }
 
     private ProgressEvent<ResourceModel, CallbackContext> doDelete(
             final AmazonWebServicesClientProxy proxy,
             final ProxyClient<SnsClient> proxyClient,
             final ResourceHandlerRequest<ResourceModel> request,
             final ProgressEvent<ResourceModel, CallbackContext> progress) {
-
-        final CallbackContext callbackContext = progress.getCallbackContext();
-        List<String> topics = callbackContext.getTopics();
-        return deleteResourceHandler(proxy, proxyClient, request, progress, topics);
+        List<String> topics = request.getDesiredResourceState().getTopics() ;
+        return handleDelete(proxy, proxyClient, request, progress, topics, DELETE_HANDLER);
     }
 
 }
