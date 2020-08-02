@@ -100,6 +100,34 @@ public class CreateHandlerTest extends AbstractTestBase {
                             .build();
     }
 
+    private ResourceModel buildObjectsSimpleAttributes() throws JsonProcessingException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+
+        final Map<String, Object> filterPolicy = null;
+
+
+        filterPolicyString = objectMapper.writeValueAsString(filterPolicy);
+
+        final Map<String, Object> redrivePolicy = null;
+
+        redrivePolicyString = objectMapper.writeValueAsString(redrivePolicy);
+
+        final Map<String, Object> deliveryPolicy = null;
+        deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
+
+        model = ResourceModel.builder()
+                            .protocol("email")
+                            .endpoint("end1")
+                            .topicArn("topicArn")
+                            .filterPolicy(filterPolicy)
+                            .redrivePolicy(redrivePolicy)
+                            .deliveryPolicy(deliveryPolicy)
+                            .rawMessageDelivery(null)
+                            .build();
+        
+        return model;
+    }
+
     @Test
     public void handleRequest_Success_TopicArnExists()  {
 
@@ -125,6 +153,60 @@ public class CreateHandlerTest extends AbstractTestBase {
         attributes.put("RedrivePolicy", redrivePolicyString);
         attributes.put("DeliveryPolicy", deliveryPolicyString);
 
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                                .desiredResourceState(model)
+                                                                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+
+        verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
+
+        // create and read invocations
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+
+    }
+
+    
+    @Test
+    public void handleRequest_Success_TopicArnExists_SimpleAttributes() throws JsonProcessingException  {
+
+        final ResourceModel model = buildObjectsSimpleAttributes();
+        
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+
+        final SubscribeResponse subscribeResponse = SubscribeResponse.builder().subscriptionArn("testarn").build();;
+        when(proxyClient.client().subscribe(any(SubscribeRequest.class))).thenReturn(subscribeResponse);
+
+        final Map<String, String> attributes = new HashMap<>();
+
+        attributes.put("SubscriptionArn", subscribeResponse.subscriptionArn());
+        attributes.put("TopicArn", model.getTopicArn());
+        attributes.put("Protocol", model.getProtocol());
+        attributes.put("Endpoint", model.getEndpoint());
+        attributes.put("RawMessageDelivery", null);
+        attributes.put("FilterPolicy", null);
+        attributes.put("RedrivePolicy", null);
+        attributes.put("DeliveryPolicy", null);
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);
 

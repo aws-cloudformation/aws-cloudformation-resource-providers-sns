@@ -38,6 +38,7 @@ public class Translator {
   static ResourceModel translateFromReadResponse(final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse) {
     final Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
 
+    Boolean rawMessageDelivery = attributes.get(Definitions.rawMessageDelivery) != null ? Boolean.valueOf(attributes.get(Definitions.rawMessageDelivery)) : null;
     return ResourceModel.builder().subscriptionArn(attributes.get(Definitions.subscriptionArn))
                             .topicArn(attributes.get(Definitions.topicArn))
                             .endpoint(attributes.get(Definitions.endpoint))
@@ -45,7 +46,7 @@ public class Translator {
                             .filterPolicy(attributes.get(Definitions.filterPolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.filterPolicy)) : null)
                             .redrivePolicy(attributes.get(Definitions.redrivePolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.redrivePolicy)) : null)
                             .deliveryPolicy(attributes.get(Definitions.deliveryPolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.deliveryPolicy)) : null)
-                            .rawMessageDelivery(attributes.get(Definitions.rawMessageDelivery) != null ? Boolean.valueOf(attributes.get(Definitions.rawMessageDelivery)) : null)
+                            .rawMessageDelivery(rawMessageDelivery)
                             .build();
   }
 

@@ -69,14 +69,11 @@ public final class SnsSubscriptionUtils {
     }
 
     private static void putIfNotEmpty(final Map<String,String> attributeMap, final SubscriptionAttribute key, final String val) {
-        if (val.length()>0)
-            attributeMap.put(key.name(), val);
+        attributeMap.put(key.name(), val);
     }
 
     private static void putIfChanged(final Map<String,String> map, final SubscriptionAttribute key, final String previousValue, final String currentValue) {
-        if (!StringUtils.equals(previousValue, currentValue)) {
-            map.put(key.name(), currentValue);
-        }
+        map.put(key.name(), currentValue);
     }
 
 }

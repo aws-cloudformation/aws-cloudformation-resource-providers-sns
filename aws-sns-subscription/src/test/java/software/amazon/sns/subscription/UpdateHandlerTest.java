@@ -95,7 +95,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                             .filterPolicy(filterPolicy)
                             .redrivePolicy(redrivePolicy)
                             .deliveryPolicy(deliveryPolicy)
-                            .rawMessageDelivery(false)
+                            .rawMessageDelivery(true)
                             .build();
     }
 
@@ -159,7 +159,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         // only raw message deivery should be different
         ResourceModel currentModel = buildCurrentObjects();
         ResourceModel desiredModel = buildCurrentObjects();
-        desiredModel.setRawMessageDelivery(true);
+        desiredModel.setRawMessageDelivery(false);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                             .desiredResourceState(desiredModel)
@@ -186,6 +186,55 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_UpdateBooleandAttributes_RawMessageNotChanged() throws JsonProcessingException {
+        final UpdateHandler handler = new UpdateHandler();
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
+
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn");
+        subscriptionAttributes.put("TopicArn", "topicArn");
+        subscriptionAttributes.put("Protocol", "email");
+        subscriptionAttributes.put("Endpoint", "end");
+        subscriptionAttributes.put("RawMessageDelivery", "true");
+        subscriptionAttributes.put("PendingConfirmation", "false");
+
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);//.thenReturn(getSubscriptionResponse);
+
+        // only raw message deivery should be different
+        ResourceModel currentModel = buildCurrentObjects();
+        ResourceModel desiredModel = buildCurrentObjects();
+        desiredModel.setRawMessageDelivery(currentModel.getRawMessageDelivery());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                                                            .desiredResourceState(desiredModel)
+                                                            .previousResourceState(currentModel)
+                                                            .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isNotNull();
+        assertThat(response.getResourceModel().getRawMessageDelivery()).isEqualTo(true);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), never()).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+    }
+
+    
+    @Test
     public void handleRequest_UpdateMapBasedAttributes() {
         final UpdateHandler handler = new UpdateHandler();
 
@@ -200,6 +249,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         subscriptionAttributes.put("RawMessageDelivery", "false");
         subscriptionAttributes.put("PendingConfirmation", "false");
 
+        desiredModel.setRawMessageDelivery(currentModel.getRawMessageDelivery());
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);

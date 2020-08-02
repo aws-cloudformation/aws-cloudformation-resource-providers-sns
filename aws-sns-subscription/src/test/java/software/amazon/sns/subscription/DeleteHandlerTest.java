@@ -71,7 +71,20 @@ public class DeleteHandlerTest extends AbstractTestBase {
         attributes.put("Endpoint", "end1");
         attributes.put("RawMessageDelivery", "false");
         attributes.put("PendingConfirmation", "false");
+    }
+    
+    private HashMap<String, String> buildObjects_PendingTrue() {
 
+        model = ResourceModel.builder().subscriptionArn("testArn").topicArn("topicArn").build();
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("SubscriptionArn", model.getSubscriptionArn());
+        attributes.put("TopicArn", "topicArn");
+        attributes.put("Protocol", "email");
+        attributes.put("Endpoint", "end1");
+        attributes.put("RawMessageDelivery", "false");
+        attributes.put("PendingConfirmation", "true");
+
+        return attributes;
     }
 
     @Test
@@ -108,6 +121,32 @@ public class DeleteHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
+    @Test
+    public void handleRequest_SubscriptionPending() {
+
+        final HashMap<String, String> attributes = buildObjects_PendingTrue();
+        
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+            .desiredResourceState(model)
+            .build();
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
+        
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);
+
+        assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
+    }
+
+    
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
