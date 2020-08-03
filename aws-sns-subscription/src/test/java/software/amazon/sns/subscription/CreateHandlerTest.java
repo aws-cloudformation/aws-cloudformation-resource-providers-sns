@@ -124,7 +124,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                             .deliveryPolicy(deliveryPolicy)
                             .rawMessageDelivery(null)
                             .build();
-        
+
         return model;
     }
 
@@ -180,12 +180,12 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     }
 
-    
+
     @Test
     public void handleRequest_Success_TopicArnExists_SimpleAttributes() throws JsonProcessingException  {
 
         final ResourceModel model = buildObjectsSimpleAttributes();
-        
+
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn","topicarn");
 

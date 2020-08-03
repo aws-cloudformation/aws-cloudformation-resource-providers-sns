@@ -218,7 +218,7 @@ public class ReadHandlerTest extends AbstractTestBase {
 
     }
 
-    
+
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 

@@ -233,7 +233,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(2)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
-    
+
     @Test
     public void handleRequest_UpdateMapBasedAttributes() {
         final UpdateHandler handler = new UpdateHandler();

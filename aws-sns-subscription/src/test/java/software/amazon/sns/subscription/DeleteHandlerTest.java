@@ -72,7 +72,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         attributes.put("RawMessageDelivery", "false");
         attributes.put("PendingConfirmation", "false");
     }
-    
+
     private HashMap<String, String> buildObjects_PendingTrue() {
 
         model = ResourceModel.builder().subscriptionArn("testArn").topicArn("topicArn").build();
@@ -125,14 +125,14 @@ public class DeleteHandlerTest extends AbstractTestBase {
     public void handleRequest_SubscriptionPending() {
 
         final HashMap<String, String> attributes = buildObjects_PendingTrue();
-        
+
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
             .build();
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn","topicarn");
-        
+
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
@@ -146,7 +146,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
     }
 
-    
+
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
