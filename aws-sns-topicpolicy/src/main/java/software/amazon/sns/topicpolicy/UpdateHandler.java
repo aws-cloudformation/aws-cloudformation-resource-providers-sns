@@ -70,9 +70,9 @@ public class UpdateHandler extends BaseHandlerStd {
             final ProgressEvent<ResourceModel, CallbackContext> progress) {
         final ResourceModel model = request.getDesiredResourceState();
         final ResourceModel previousState = request.getPreviousResourceState();
-        // store new topics in the callback context
+        // new topics 
         List<String> newTopics = model.getTopics();
-        // store previous topics in the callback context
+        // previous topics 
         List<String> previousTopics = previousState.getTopics();
         // extract the topics that needs to be deleted.
         previousTopics.removeAll(newTopics);

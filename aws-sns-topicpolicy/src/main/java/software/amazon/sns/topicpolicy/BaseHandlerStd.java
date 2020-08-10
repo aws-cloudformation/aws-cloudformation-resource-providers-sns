@@ -53,7 +53,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final Logger logger);
 
     /**
-     * Invocation of handleCreateResource calls setTopicAttributes to set topic-policy on a given topic ARN.
+     * Invocation of doCreate calls setTopicAttributes to set topic-policy on a given topic ARN.
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
