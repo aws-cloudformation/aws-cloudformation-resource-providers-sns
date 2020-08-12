@@ -1,7 +1,6 @@
 package software.amazon.sns.subscription;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;

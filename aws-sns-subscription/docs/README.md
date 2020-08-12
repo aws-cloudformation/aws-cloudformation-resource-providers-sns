@@ -148,3 +148,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### SubscriptionArn
 
 This is the subscription amazon resource name generated at creation time.
+
