@@ -1,13 +1,5 @@
 package software.amazon.sns.topicpolicy;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.google.common.collect.Lists;
-
 import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
@@ -18,59 +10,12 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class Translator {
 
-    static SetTopicAttributesRequest translateToCreateRequest(final String topicArn, String topicPolicy) {
+    static SetTopicAttributesRequest translateToRequest(final String topicArn, String topicPolicy) {
         return SetTopicAttributesRequest.builder()
                 .attributeName(TopicAttribute.Policy.name())
                 .attributeValue(topicPolicy)
                 .topicArn(topicArn)
                 .build();
-    }
-
-    /**
-     * Translates resource object from sdk into a resource model
-     *
-     * @return model resource model
-     */
-    static ResourceModel translateFromReadResponse() {
-        return ResourceModel.builder()
-                .build();
-    }
-
-    /**
-     * Request to delete a resource
-     *
-     * @param model
-     *            resource model
-     * @return awsRequest the aws service request to delete a resource
-     */
-    static SetTopicAttributesRequest translateToDeleteRequest(final ResourceHandlerRequest<ResourceModel> request,
-            final String topicArn) {
-        return SetTopicAttributesRequest.builder()
-                .attributeName(TopicAttribute.Policy.name())
-                .attributeValue(getDefaultPolicy(request, topicArn))
-                .topicArn(topicArn)
-                .build();
-    }
-
-    /**
-     * Translates resource objects from sdk into a resource model (primary identifier only)
-     *
-     * @param awsResponse
-     *            the aws service describe resource response
-     * @return list of resource models
-     */
-    static List<ResourceModel> translateFromListRequest() {
-        return streamOfOrEmpty(Lists.newArrayList())
-                .map(resource -> ResourceModel.builder()
-                        // include only primary identifier
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
-        return Optional.ofNullable(collection)
-                .map(Collection::stream)
-                .orElseGet(Stream::empty);
     }
 
     /*

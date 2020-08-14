@@ -18,7 +18,8 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class UpdateHandler extends BaseHandlerStd {
 
-    public static final String  UPDATE_HANDLER = "AWS-SNS-TopicPolicy::Update";
+    public static final String UPDATE_HANDLER = "AWS-SNS-TopicPolicy::Update";
+
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -29,7 +30,6 @@ public class UpdateHandler extends BaseHandlerStd {
 
         super.logger = logger;
         final ResourceModel model = request.getDesiredResourceState();
-        logger.log(String.format("In UpdateHandler : handleRequest ") + model.getPrimaryIdentifier());
         // primary id must be set up
         if (StringUtils.isNullOrEmpty(model.getId())) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, "Cannot update a resource which does not exist.");
@@ -39,12 +39,12 @@ public class UpdateHandler extends BaseHandlerStd {
                 || CollectionUtils.isNullOrEmpty(model.getTopics()))
         {
             throw new CfnInvalidRequestException(
-                    String.format("Invalid create request, policy document & topics cannot be null or empty : %s)" ,
-                    model.toString() ));
+                    String.format("Invalid create request, policy document & topics cannot be null or empty : %s)",
+                            model.toString()));
         }
 
         return ProgressEvent.progress(model, callbackContext)
-                .then(progress -> doCreate(proxy, proxyClient, request, progress, UPDATE_HANDLER))
+                .then(progress -> doCreate(proxy, proxyClient, request, progress, ACTION_CREATED, UPDATE_HANDLER))
                 .then(progress -> doDelete(proxy, proxyClient, request, progress))
                 .then(progress -> ProgressEvent.success(model, callbackContext));
     }
@@ -70,13 +70,13 @@ public class UpdateHandler extends BaseHandlerStd {
             final ProgressEvent<ResourceModel, CallbackContext> progress) {
         final ResourceModel model = request.getDesiredResourceState();
         final ResourceModel previousState = request.getPreviousResourceState();
-        // new topics 
+        // new topics
         List<String> newTopics = model.getTopics();
-        // previous topics 
+        // previous topics
         List<String> previousTopics = previousState.getTopics();
         // extract the topics that needs to be deleted.
         previousTopics.removeAll(newTopics);
-        return handleDelete(proxy, proxyClient, request, progress, previousTopics , UPDATE_HANDLER);
+        return handleDelete(proxy, proxyClient, request, progress, previousTopics, ACTION_DELETED, UPDATE_HANDLER);
     }
 
 }

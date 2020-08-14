@@ -15,7 +15,7 @@ import software.amazon.cloudformation.resource.IdentifierUtils;
 public class CreateHandler extends BaseHandlerStd {
 
     public static final int MAX_LENGTH_SNS_TOPICPOLICY_ID = 256;
-    public static final String  CREATE_HANDLER = "AWS-SNS-TopicPolicy::Create";
+    public static final String CREATE_HANDLER = "AWS-SNS-TopicPolicy::Create";
 
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -32,13 +32,13 @@ public class CreateHandler extends BaseHandlerStd {
                 || CollectionUtils.isNullOrEmpty(model.getTopics()))
         {
             throw new CfnInvalidRequestException(
-                    String.format("Invalid create request, policy document & topics cannot be null or empty : %s)" ,
-                    model.toString() ));
+                    String.format("Invalid create request, topics & policy document cannot be null or empty : %s)",
+                            model.toString()));
         }
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> initCallbackContextAndPrimaryIdentifier(proxy, proxyClient, request, callbackContext,
                         progress))
-                .then(progress -> doCreate(proxy, proxyClient, request, progress, CREATE_HANDLER))
+                .then(progress -> doCreate(proxy, proxyClient, request, progress, ACTION_CREATED, CREATE_HANDLER))
                 .then(progress -> ProgressEvent.success(model, callbackContext));
     }
 
@@ -79,8 +79,6 @@ public class CreateHandler extends BaseHandlerStd {
                     MAX_LENGTH_SNS_TOPICPOLICY_ID);
             model.setId(Id.toLowerCase());
         }
-        logger.log(String.format("In initCallbackContextAndPrimaryIdentifier, PrimaryIdentifier : %s",
-                model.getPrimaryIdentifier()));
         return ProgressEvent.progress(model, currentContext);
     }
 }

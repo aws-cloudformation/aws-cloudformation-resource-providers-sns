@@ -6,6 +6,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
+import java.util.ArrayList;
 
 public class ListHandler extends BaseHandler<CallbackContext> {
 
@@ -31,7 +32,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
             final Logger logger) {
 
         return ProgressEvent.<ResourceModel, CallbackContext> builder()
-                .resourceModels(Translator.translateFromListRequest())
+                .resourceModels(new ArrayList<>())
                 .nextToken(null)
                 .status(OperationStatus.FAILED)
                 .errorCode(HandlerErrorCode.InvalidRequest)

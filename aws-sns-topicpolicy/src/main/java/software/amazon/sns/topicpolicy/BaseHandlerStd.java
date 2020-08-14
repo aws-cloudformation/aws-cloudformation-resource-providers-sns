@@ -30,6 +30,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     protected Logger logger;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    protected static final String ACTION_CREATED = "created";
+    protected static final String ACTION_DELETED = "deleted";
 
     @Override
     public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -63,7 +65,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      *            {@link ResourceHandlerRequest<ResourceModel>}
      * @param progress
      *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
-     * @param handler The handler invoking doCreate
+     * @param handler
+     *            The handler invoking doCreate
      * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
      */
     protected ProgressEvent<ResourceModel, CallbackContext> doCreate(
@@ -71,57 +74,24 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final ProxyClient<SnsClient> proxyClient,
             final ResourceHandlerRequest<ResourceModel> request,
             ProgressEvent<ResourceModel, CallbackContext> progress,
+            final String action,
             final String handler) {
-
-        final ResourceModel model = request.getDesiredResourceState() ;
+        final ResourceModel model = request.getDesiredResourceState();
         final CallbackContext callbackContext = progress.getCallbackContext();
         final String policy = getPolicyDocument(request);
         List<String> topics = model.getTopics();
         for (final String topicArn : topics) {
             final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
                     .initiate(handler + topicArn.hashCode(), proxyClient, model, callbackContext)
-                    .translateToServiceRequest((resourceModel) -> Translator.translateToCreateRequest(topicArn, policy))
-                    .makeServiceCall(this::createResource)
+                    .translateToServiceRequest((resourceModel) -> Translator.translateToRequest(topicArn, policy))
+                    .makeServiceCall(
+                            (topicRequest, snsClient) -> invokeSetTopicAttributes(topicRequest, snsClient, action))
                     .success();
             if (!progressEvent.isSuccess()) {
                 return progressEvent;
             }
         }
         return ProgressEvent.progress(model, callbackContext);
-    }
-
-    /**
-     * Invocation of createResource sets topic-policy on a given topic ARN.
-     *
-     * @param setTopicAttributesRequest
-     *            {@link SetTopicAttributesRequest}
-     * @param client
-     *            the aws service client {@link ProxyClient<SnsClient>} to make the call
-     * @return {@link SetTopicAttributesResponse}
-     */
-
-    protected SetTopicAttributesResponse createResource(
-            final SetTopicAttributesRequest setTopicAttributesRequest,
-            final ProxyClient<SnsClient> proxyClient) {
-
-        SetTopicAttributesResponse setTopicAttributesResponse = null;
-        try {
-            setTopicAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(setTopicAttributesRequest,
-                    proxyClient.client()::setTopicAttributes);
-        } catch (NotFoundException e) {
-            throw new CfnNotFoundException(e);
-        } catch (final InvalidParameterException e) {
-            throw new CfnInvalidRequestException(e);
-        } catch (final InternalErrorException ex) {
-            throw new CfnServiceInternalErrorException(ex);
-        } catch (final AuthorizationErrorException ex) {
-            throw new CfnAccessDeniedException(ex);
-        } catch (final InvalidSecurityException e) {
-            throw new CfnInvalidCredentialsException(e);
-        }
-
-        logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
-        return setTopicAttributesResponse;
     }
 
     /**
@@ -135,7 +105,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      *            {@link ResourceHandlerRequest<ResourceModel>}
      * @param progress
      *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
-     * @param handler The handler invoking handleDelete
+     * @param handler
+     *            The handler invoking handleDelete
      * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
      */
 
@@ -144,16 +115,19 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final ProxyClient<SnsClient> proxyClient,
             final ResourceHandlerRequest<ResourceModel> request,
             final ProgressEvent<ResourceModel, CallbackContext> progress,
-            final List<String> topics ,
+            final List<String> topics,
+            final String action,
             final String handler) {
 
         final ResourceModel model = request.getDesiredResourceState();
         final CallbackContext callbackContext = progress.getCallbackContext();
         for (final String topicArn : topics) {
+            final String defaultPolicy = Translator.getDefaultPolicy(request, topicArn);
             final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
                     .initiate(handler + topicArn.hashCode(), proxyClient, model, callbackContext)
-                    .translateToServiceRequest((resouceModel) -> Translator.translateToDeleteRequest(request, topicArn))
-                    .makeServiceCall(this::deleteResource)
+                    .translateToServiceRequest((resouceModel) -> Translator.translateToRequest(topicArn, defaultPolicy))
+                    .makeServiceCall(
+                            (topicRequest, snsClient) -> invokeSetTopicAttributes(topicRequest, snsClient, action))
                     .success();
             if (!progressEvent.isSuccess()) {
                 return progressEvent;
@@ -163,7 +137,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
 
     /**
-     * Invocation of deleteResource delete's the topic-policy of a given topic ARN.
+     * Invocation of invokeSetTopicAttributes set's the topic-policy of a given topic ARN.
      *
      * @param setTopicAttributesRequest
      *            {@link SetTopicAttributesRequest}
@@ -172,9 +146,10 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      * @return {@link SetTopicAttributesResponse}
      */
 
-    protected SetTopicAttributesResponse deleteResource(
+    protected SetTopicAttributesResponse invokeSetTopicAttributes(
             final SetTopicAttributesRequest setTopicAttributesRequest,
-            final ProxyClient<SnsClient> proxyClient) {
+            final ProxyClient<SnsClient> proxyClient,
+            final String action) {
 
         SetTopicAttributesResponse setTopicAttributesResponse = null;
         try {
@@ -191,7 +166,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         } catch (final InvalidSecurityException e) {
             throw new CfnInvalidCredentialsException(e);
         }
-        logger.log(String.format("%s successfully deleted.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s successfully %s.", ResourceModel.TYPE_NAME, action));
         return setTopicAttributesResponse;
     }
 

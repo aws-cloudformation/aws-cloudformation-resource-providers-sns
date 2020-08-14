@@ -16,7 +16,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class DeleteHandler extends BaseHandlerStd {
 
-    public static final String  DELETE_HANDLER = "AWS-SNS-TopicPolicy::Delete";
+    public static final String DELETE_HANDLER = "AWS-SNS-TopicPolicy::Delete";
 
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -29,7 +29,6 @@ public class DeleteHandler extends BaseHandlerStd {
         super.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
-        logger.log(String.format("In DeleteHandler : handleRequest ") + model.getPrimaryIdentifier());
         // primary id must be set up
         if (StringUtils.isNullOrEmpty(model.getId())
                 || CollectionUtils.isNullOrEmpty(model.getTopics()))
@@ -44,15 +43,13 @@ public class DeleteHandler extends BaseHandlerStd {
                         .build());
     }
 
-
-
     private ProgressEvent<ResourceModel, CallbackContext> doDelete(
             final AmazonWebServicesClientProxy proxy,
             final ProxyClient<SnsClient> proxyClient,
             final ResourceHandlerRequest<ResourceModel> request,
             final ProgressEvent<ResourceModel, CallbackContext> progress) {
-        List<String> topics = request.getDesiredResourceState().getTopics() ;
-        return handleDelete(proxy, proxyClient, request, progress, topics, DELETE_HANDLER);
+        List<String> topics = request.getDesiredResourceState().getTopics();
+        return handleDelete(proxy, proxyClient, request, progress, topics, ACTION_DELETED, DELETE_HANDLER);
     }
 
 }
