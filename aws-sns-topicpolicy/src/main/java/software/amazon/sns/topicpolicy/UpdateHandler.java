@@ -18,7 +18,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
-    public final String UPDATE_HANDLER = "AWS-SNS-TopicPolicy::Update";
+    private final String UPDATE_HANDLER = "AWS-SNS-TopicPolicy::Update";
 
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
