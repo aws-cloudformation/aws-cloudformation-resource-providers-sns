@@ -17,7 +17,7 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class UpdateHandler extends BaseHandlerStd {
-
+    private Logger logger;
     public final String UPDATE_HANDLER = "AWS-SNS-TopicPolicy::Update";
 
     @Override
@@ -28,7 +28,7 @@ public class UpdateHandler extends BaseHandlerStd {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
 
-        super.logger = logger;
+        this.logger = logger;
         final ResourceModel model = request.getDesiredResourceState();
         // primary id must be set up
         if (StringUtils.isNullOrEmpty(model.getId())) {
@@ -44,7 +44,7 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         return ProgressEvent.progress(model, callbackContext)
-                .then(progress -> doCreate(proxy, proxyClient, request, progress, ACTION_CREATED, UPDATE_HANDLER))
+                .then(progress -> doCreate(proxy, proxyClient, request, progress, ACTION_CREATED, UPDATE_HANDLER, logger))
                 .then(progress -> doDelete(proxy, proxyClient, request, progress))
                 .then(progress -> ProgressEvent.success(model, callbackContext));
     }
@@ -76,7 +76,7 @@ public class UpdateHandler extends BaseHandlerStd {
         List<String> previousTopics = previousState.getTopics();
         // extract the topics that needs to be deleted.
         previousTopics.removeAll(newTopics);
-        return handleDelete(proxy, proxyClient, request, progress, previousTopics, ACTION_DELETED, UPDATE_HANDLER);
+        return handleDelete(proxy, proxyClient, request, progress, previousTopics, ACTION_DELETED, UPDATE_HANDLER, logger);
     }
 
 }

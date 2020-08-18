@@ -25,7 +25,6 @@ public class CreateHandler extends BaseHandlerStd {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
 
-        super.logger = logger;
         final ResourceModel model = request.getDesiredResourceState();
         // Check if invalid request
         if (CollectionUtils.isNullOrEmpty(model.getPolicyDocument())
@@ -38,7 +37,7 @@ public class CreateHandler extends BaseHandlerStd {
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> initCallbackContextAndPrimaryIdentifier(proxy, proxyClient, request, callbackContext,
                         progress))
-                .then(progress -> doCreate(proxy, proxyClient, request, progress, ACTION_CREATED, CREATE_HANDLER))
+                .then(progress -> doCreate(proxy, proxyClient, request, progress, ACTION_CREATED, CREATE_HANDLER, logger ))
                 .then(progress -> ProgressEvent.success(model, callbackContext));
     }
 

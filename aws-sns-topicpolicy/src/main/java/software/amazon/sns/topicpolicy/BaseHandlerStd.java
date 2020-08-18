@@ -28,8 +28,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
-    protected Logger logger;
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private  final ObjectMapper MAPPER = new ObjectMapper();
     protected static final String ACTION_CREATED = "created";
     protected static final String ACTION_DELETED = "deleted";
 
@@ -75,7 +74,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final ResourceHandlerRequest<ResourceModel> request,
             ProgressEvent<ResourceModel, CallbackContext> progress,
             final String action,
-            final String handler) {
+            final String handler,
+            final Logger logger) {
         final ResourceModel model = request.getDesiredResourceState();
         final CallbackContext callbackContext = progress.getCallbackContext();
         final String policy = getPolicyDocument(request);
@@ -85,7 +85,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                     .initiate(handler + topicArn.hashCode(), proxyClient, model, callbackContext)
                     .translateToServiceRequest((resourceModel) -> Translator.translateToRequest(topicArn, policy))
                     .makeServiceCall(
-                            (topicRequest, snsClient) -> invokeSetTopicAttributes(topicRequest, snsClient, action))
+                            (topicRequest, snsClient) -> invokeSetTopicAttributes(topicRequest, snsClient, action, logger))
                     .success();
             if (!progressEvent.isSuccess()) {
                 return progressEvent;
@@ -117,7 +117,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final ProgressEvent<ResourceModel, CallbackContext> progress,
             final List<String> topics,
             final String action,
-            final String handler) {
+            final String handler,
+            final Logger logger) {
 
         final ResourceModel model = request.getDesiredResourceState();
         final CallbackContext callbackContext = progress.getCallbackContext();
@@ -127,7 +128,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                     .initiate(handler + topicArn.hashCode(), proxyClient, model, callbackContext)
                     .translateToServiceRequest((resouceModel) -> Translator.translateToRequest(topicArn, defaultPolicy))
                     .makeServiceCall(
-                            (topicRequest, snsClient) -> invokeSetTopicAttributes(topicRequest, snsClient, action))
+                            (topicRequest, snsClient) -> invokeSetTopicAttributes(topicRequest, snsClient, action, logger))
                     .success();
             if (!progressEvent.isSuccess()) {
                 return progressEvent;
@@ -149,7 +150,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     protected SetTopicAttributesResponse invokeSetTopicAttributes(
             final SetTopicAttributesRequest setTopicAttributesRequest,
             final ProxyClient<SnsClient> proxyClient,
-            final String action) {
+            final String action,
+            final Logger logger) {
 
         SetTopicAttributesResponse setTopicAttributesResponse = null;
         try {
