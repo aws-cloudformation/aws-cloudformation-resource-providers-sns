@@ -16,7 +16,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class DeleteHandler extends BaseHandlerStd {
 
-    public static final String DELETE_HANDLER = "AWS-SNS-TopicPolicy::Delete";
+    public final String DELETE_HANDLER = "AWS-SNS-TopicPolicy::Delete";
 
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(

@@ -33,8 +33,8 @@ public class ReadHandler extends BaseHandlerStd {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
 
-        return ProgressEvent.failed(request.getDesiredResourceState(),
-                        callbackContext,
+        return ProgressEvent.failed(null,
+                        null,
                         HandlerErrorCode.InvalidRequest,
                         "Read operation is not supported.") ;
     }

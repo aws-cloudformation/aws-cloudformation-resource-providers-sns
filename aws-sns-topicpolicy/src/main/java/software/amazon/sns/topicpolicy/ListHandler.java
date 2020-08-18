@@ -33,7 +33,6 @@ public class ListHandler extends BaseHandler<CallbackContext> {
 
         return ProgressEvent.<ResourceModel, CallbackContext> builder()
                 .resourceModels(new ArrayList<>())
-                .nextToken(null)
                 .status(OperationStatus.FAILED)
                 .errorCode(HandlerErrorCode.InvalidRequest)
                 .message("List operation is not supported.")

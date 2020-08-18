@@ -14,8 +14,8 @@ import software.amazon.cloudformation.resource.IdentifierUtils;
 
 public class CreateHandler extends BaseHandlerStd {
 
-    public static final int MAX_LENGTH_SNS_TOPICPOLICY_ID = 256;
-    public static final String CREATE_HANDLER = "AWS-SNS-TopicPolicy::Create";
+    public final int MAX_LENGTH_SNS_TOPICPOLICY_ID = 256;
+    public final String CREATE_HANDLER = "AWS-SNS-TopicPolicy::Create";
 
     @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(

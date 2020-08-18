@@ -56,7 +56,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModel()).isNull();
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isEqualTo("Read operation is not supported.") ;
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest) ;
