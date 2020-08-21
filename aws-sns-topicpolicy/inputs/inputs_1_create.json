@@ -1,0 +1,36 @@
+{
+    "PolicyDocument": {
+        "Version": "2008-10-17",
+        "Id": "__default_policy_ID",
+        "Statement": [
+            {
+                "Sid": "__default_statement_ID",
+                "Effect": "Allow",
+                "Principal": {
+                    "AWS": "*"
+                },
+                "Action": [
+                    "SNS:GetTopicAttributes",
+                    "SNS:SetTopicAttributes",
+                    "SNS:AddPermission",
+                    "SNS:RemovePermission",
+                    "SNS:DeleteTopic",
+                    "SNS:Subscribe",
+                    "SNS:ListSubscriptionsByTopic",
+                    "SNS:Publish",
+                    "SNS:Receive"
+                ],
+                "Resource": "arn:aws:sns:us-east-1:2746447777:my-topic108181881",
+                "Condition": {
+                    "StringEquals": {
+                        "AWS:SourceOwner": "9876543210"
+                    }
+                }
+            }
+        ]
+    },
+    "Topics": [
+        "arn:aws:sns:us-east-1:123456789:my-topic1",
+        "arn:aws:sns:us-east-1:123456789:my-topic2"
+    ]
+}

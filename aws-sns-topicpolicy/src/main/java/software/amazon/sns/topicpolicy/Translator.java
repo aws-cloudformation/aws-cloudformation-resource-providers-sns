@@ -1,114 +1,63 @@
 package software.amazon.sns.topicpolicy;
 
-import com.google.common.collect.Lists;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 /**
- * This class is a centralized placeholder for
- *  - api request construction
- *  - object translation to/from aws sdk
- *  - resource model construction for read/list handlers
+ * This class is a centralized placeholder for - api request construction - object translation to/from aws sdk -
+ * resource model construction for read/list handlers
  */
 
 public class Translator {
 
-  /**
-   * Request to create a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to create a resource
-   */
-  static AwsRequest translateToCreateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L39
-    return awsRequest;
-  }
+    static SetTopicAttributesRequest translateToRequest(final String topicArn, String topicPolicy) {
+        return SetTopicAttributesRequest.builder()
+                .attributeName(TopicAttribute.Policy.name())
+                .attributeValue(topicPolicy)
+                .topicArn(topicArn)
+                .build();
+    }
 
-  /**
-   * Request to read a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to describe a resource
-   */
-  static AwsRequest translateToReadRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L20
-    return awsRequest;
-  }
+    /*
+     * Unfortunately, SNS requires a policy for a topic, so we must reset to the default policy for now. The original
+     * default policy, created by the SNS service (not CloudFormation) when the topic was created, specified an
+     * uppercase SNS: asin spite of the public AWS documentation always using a lowercase sns:. So this method uses SNS:
+     * as the service does. The Ruby integration tests will fail if the code below uses sns: instead.
+     */
+    static String getDefaultPolicy(final ResourceHandlerRequest<ResourceModel> request, String topicArn) {
+        String accountId = request.getAwsAccountId();
+        StringBuilder sb = new StringBuilder()
+                .append("{")
+                .append("    \"Version\": \"2008-10-17\",")
+                .append("    \"Id\": \"__default_policy_ID\",")
+                .append("    \"Statement\": [")
+                .append("      {")
+                .append("        \"Effect\": \"Allow\",")
+                .append("        \"Sid\": \"__default_statement_ID\",")
+                .append("        \"Principal\": {")
+                .append("          \"AWS\": \"*\"")
+                .append("        },")
+                .append("        \"Action\": [")
+                .append("          \"SNS:GetTopicAttributes\",")
+                .append("          \"SNS:SetTopicAttributes\",")
+                .append("          \"SNS:AddPermission\",")
+                .append("          \"SNS:RemovePermission\",")
+                .append("          \"SNS:DeleteTopic\",")
+                .append("          \"SNS:Subscribe\",")
+                .append("          \"SNS:ListSubscriptionsByTopic\",")
+                .append("          \"SNS:Publish\",")
+                .append("          \"SNS:Receive\"")
+                .append("        ],")
+                .append("        \"Resource\": \"").append(topicArn).append("\",")
+                .append("        \"Condition\": {")
+                .append("          \"StringEquals\": {")
+                .append("            \"AWS:SourceOwner\": \"").append(accountId).append("\"")
+                .append("          }")
+                .append("        }")
+                .append("      }")
+                .append("    ]")
+                .append("}");
+        return sb.toString();
+    }
 
-  /**
-   * Translates resource object from sdk into a resource model
-   * @param awsResponse the aws service describe resource response
-   * @return model resource model
-   */
-  static ResourceModel translateFromReadResponse(final AwsResponse awsResponse) {
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L58
-    return ResourceModel.builder()
-        //.primaryIdentifier(response.primaryIdentifier())
-        //.someProperty(response.property())
-        .build();
-  }
-
-  /**
-   * Request to delete a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to delete a resource
-   */
-  static AwsRequest translateToDeleteRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L33
-    return awsRequest;
-  }
-
-  /**
-   * Request to update properties of a previously created resource
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static AwsRequest translateToUpdateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L45
-    return awsRequest;
-  }
-
-  /**
-   * Request to update properties of a previously created resource
-   * @param nextToken token passed to the aws service describe resource request
-   * @return awsRequest the aws service request to describe resources within aws account
-   */
-  static AwsRequest translateToListRequest(final String nextToken) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L26
-    return awsRequest;
-  }
-
-  /**
-   * Translates resource objects from sdk into a resource model (primary identifier only)
-   * @param awsResponse the aws service describe resource response
-   * @return list of resource models
-   */
-  static List<ResourceModel> translateFromListRequest(final AwsResponse awsResponse) {
-    // e.g. e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L81
-    return streamOfOrEmpty(Lists.newArrayList())
-        .map(resource -> ResourceModel.builder()
-            //.primaryIdentifier(resource.primaryIdentifier())
-            .build())
-        .collect(Collectors.toList());
-  }
-
-  private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
-    return Optional.ofNullable(collection)
-        .map(Collection::stream)
-        .orElseGet(Stream::empty);
-  }
 }
