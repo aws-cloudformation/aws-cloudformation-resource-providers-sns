@@ -12,9 +12,11 @@ out.java
 out/
 .settings
 .project
+inputs/
 
 # auto-generated files
 target/
 
 # our logs
 rpdk.log
+/bin/

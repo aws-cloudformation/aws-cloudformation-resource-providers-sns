@@ -1,18 +1,30 @@
 package software.amazon.sns.subscription;
 
-// TODO: replace all usage of SdkClient with your service client type, e.g; YourServiceAsyncClient
-// import software.amazon.awssdk.services.yourservice.YourServiceAsyncClient;
 
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.SdkClient;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
+import software.amazon.awssdk.services.sns.model.FilterPolicyLimitExceededException;
+import software.amazon.awssdk.services.sns.model.InternalErrorException;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
+import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
+import software.amazon.awssdk.services.sns.model.NotFoundException;
+import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesResponse;
+import software.amazon.awssdk.services.sns.model.SubscriptionLimitExceededException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
+import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
+
+
+import java.util.Map;
 
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -21,109 +33,96 @@ public class UpdateHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final ProxyClient<SdkClient> proxyClient,
+        final ProxyClient<SnsClient> proxyClient,
         final Logger logger) {
 
         this.logger = logger;
 
-        final ResourceModel model = request.getDesiredResourceState();
+        final ResourceModel currentModel = request.getDesiredResourceState();
+        final ResourceModel previousModel = request.getPreviousResourceState();
 
-        // TODO: Adjust Progress Chain according to your implementation
-
-        // STEP 1 [initialize a proxy context]
-        return proxy.initiate("AWS-SNS-Subscription::Update", proxyClient, model, callbackContext)
-
-            // STEP 2 [TODO: construct a body of a request]
-            .request(Translator::translateToUpdateRequest)
-
-            // STEP 3 [TODO: make an api call]
-            .call(this::updateResource)
-
-            // STEP 4 [TODO: stabilize is describing the resource until it is in a certain status]
-            .stabilize(this::stabilizedOnUpdate)
-            .progress()
-
-            // STEP 5 [TODO: post stabilization update]
-            .then(progress -> postUpdate(progress, proxyClient))
-
-            // STEP 6 [TODO: describe call/chain to return the resource model]
+        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+            .then(progress -> checkTopicExists(proxy, proxyClient, currentModel, progress, logger))
+            .then(progress -> checkSubscriptionExists(proxy, proxyClient, previousModel, progress, logger))
+            .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getFilterPolicy(), currentModel, SubscriptionAttribute.FilterPolicy, previousModel.getFilterPolicy(), progress, logger))
+            .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getDeliveryPolicy(), currentModel, SubscriptionAttribute.DeliveryPolicy,previousModel.getDeliveryPolicy(), progress, logger))
+            .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getRedrivePolicy(), currentModel, SubscriptionAttribute.RedrivePolicy,previousModel.getRedrivePolicy(), progress, logger))
+            .then(progress -> modifyRawMessageDelivery(proxy, proxyClient, currentModel.getRawMessageDelivery(), currentModel, SubscriptionAttribute.RawMessageDelivery,previousModel.getRawMessageDelivery(), progress, logger))
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
-    /**
-     * Implement client invocation of the update request through the proxyClient, which is already initialised with
-     * caller credentials, correct region and retry settings
-     * @param awsRequest the aws service request to update a resource
-     * @param proxyClient the aws service client to make the call
-     * @return update resource response
-     */
-    private AwsResponse updateResource(
-        final AwsRequest awsRequest,
-        final ProxyClient<SdkClient> proxyClient) {
-        AwsResponse awsResponse = null;
-        try {
-            // TODO: add custom create resource logic
-            // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/UpdateHandler.java#L69-L74
+    protected ProgressEvent<ResourceModel, CallbackContext> modifyRawMessageDelivery(
+        AmazonWebServicesClientProxy proxy,
+        ProxyClient<SnsClient> proxyClient,
+        Boolean rawMessageDelivery,
+        ResourceModel model,
+        SubscriptionAttribute subscriptionAttribute,
+        Boolean previousRawMessageDelivery,
+        ProgressEvent<ResourceModel, CallbackContext> progress,
+        Logger logger) {
 
-        // Framework handles the majority of standardized aws exceptions
-        // Example of error handling in case of a non-standardized exception
-        } catch (final AwsServiceException e) {
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        if (previousRawMessageDelivery == null || rawMessageDelivery.equals(previousRawMessageDelivery)) {
+            return progress;
         }
 
-        logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
-        return awsResponse;
+        return proxy.initiate("AWS-SNS-Subscription::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
+                .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousRawMessageDelivery, rawMessageDelivery))
+                .makeServiceCall(this::updateSubscription)
+                .stabilize(this::stabilizeSnsSubscription)
+                .progress();
+
     }
 
-    /**
-     * To account for eventual consistency, ensure you stabilize your update request so that a
-     * subsequent Read will successfully describe the resource state that was provisioned
-     * @param awsRequest the aws service request to update a resource
-     * @param awsResponse the aws service  update resource response
-     * @param proxyClient the aws service client to make the call
-     * @param model resource model
-     * @param callbackContext callback context
-     * @return boolean state of stabilized or not
-     */
-    private boolean stabilizedOnUpdate(
-        final AwsRequest awsRequest,
-        final AwsResponse awsResponse,
-        final ProxyClient<SdkClient> proxyClient,
-        final ResourceModel model,
-        final CallbackContext callbackContext) {
 
-        // TODO: add custom stabilization logic
+    protected ProgressEvent<ResourceModel, CallbackContext> modifyPolicy(
+        AmazonWebServicesClientProxy proxy,
+        ProxyClient<SnsClient> proxyClient,
+        Map<String, Object> desiredPolicy,
+        ResourceModel model,
+        SubscriptionAttribute subscriptionAttribute,
+        Map<String, Object> previousPolicy,
+        ProgressEvent<ResourceModel, CallbackContext> progress,
+        Logger logger) {
 
-        final boolean stabilized = true;
-
-        logger.log(String.format("%s [%s] has been successfully stabilized.", ResourceModel.TYPE_NAME, model.getPrimaryIdentifier()));
-        return stabilized;
-    }
-
-    /**
-     * If your resource is provisioned through multiple API calls, you will need to apply each subsequent update
-     * step in a discrete call/stabilize chain to ensure the entire resource is provisioned as intended.
-     * @param progressEvent of the previous state indicating success, in progress with delay callback or failed state
-     * @param proxyClient the aws service client to make the call
-     * @return progressEvent indicating success, in progress with delay callback or failed state
-     */
-    private ProgressEvent<ResourceModel, CallbackContext> postUpdate(
-        final ProgressEvent<ResourceModel, CallbackContext> progressEvent,
-        final ProxyClient<SdkClient> proxyClient) {
-
-        final ResourceModel model = progressEvent.getResourceModel();
-        final CallbackContext callbackContext = progressEvent.getCallbackContext();
-        try {
-            // TODO: add custom create resource logic
-            // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/UpdateHandler.java#L69-L74
-
-        // Framework handles the majority of standardized aws exceptions
-        // Example of error handling in case of a non-standardized exception
-        } catch (final AwsServiceException e) {
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
+            return progress;
         }
 
-        logger.log(String.format("%s [%s] has successfully been updated.", ResourceModel.TYPE_NAME, model.getPrimaryIdentifier()));
-        return ProgressEvent.progress(model, callbackContext);
+        return proxy.initiate("AWS-SNS-Subscription::"+subscriptionAttribute.name(), proxyClient, model, progress.getCallbackContext())
+                .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousPolicy, desiredPolicy))
+                .makeServiceCall(this::updateSubscription)
+                .stabilize(this::stabilizeSnsSubscription)
+                .progress();
+
+      }
+
+    private SetSubscriptionAttributesResponse updateSubscription(
+        final SetSubscriptionAttributesRequest setSubscriptionAttributesRequest,
+        final ProxyClient<SnsClient> proxyClient)  {
+
+
+        final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse;
+        try {
+            setSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(setSubscriptionAttributesRequest, proxyClient.client()::setSubscriptionAttributes);
+
+        } catch (final SubscriptionLimitExceededException e) {
+            throw new CfnServiceLimitExceededException(e);
+        } catch (final FilterPolicyLimitExceededException e) {
+            throw new CfnServiceLimitExceededException(e);
+        } catch (final InvalidParameterException e) {
+            throw new CfnInvalidRequestException(e);
+        } catch (final InternalErrorException e) {
+            throw new CfnInternalFailureException(e);
+        } catch (final NotFoundException e) {
+            throw new CfnNotFoundException(e);
+        } catch (final AuthorizationErrorException e) {
+            throw new CfnAccessDeniedException(e);
+        } catch (final InvalidSecurityException e) {
+            throw new CfnInvalidCredentialsException(e);
+        } catch (final Exception e) {
+            throw new CfnInternalFailureException(e);
+        }
+
+        return setSubscriptionAttributesResponse;
     }
 }

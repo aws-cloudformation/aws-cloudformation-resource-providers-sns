@@ -1,114 +1,113 @@
 package software.amazon.sns.subscription;
 
-import com.google.common.collect.Lists;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesRequest;
+import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesResponse;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicRequest;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
+import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * This class is a centralized placeholder for
- *  - api request construction
- *  - object translation to/from aws sdk
- *  - resource model construction for read/list handlers
- */
 
 public class Translator {
 
-  /**
-   * Request to create a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to create a resource
-   */
-  static AwsRequest translateToCreateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L39
-    return awsRequest;
-  }
-
-  /**
-   * Request to read a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to describe a resource
-   */
-  static AwsRequest translateToReadRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L20
-    return awsRequest;
-  }
-
-  /**
-   * Translates resource object from sdk into a resource model
-   * @param awsResponse the aws service describe resource response
-   * @return model resource model
-   */
-  static ResourceModel translateFromReadResponse(final AwsResponse awsResponse) {
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L58
-    return ResourceModel.builder()
-        //.primaryIdentifier(response.primaryIdentifier())
-        //.someProperty(response.property())
+  static SubscribeRequest translateToCreateRequest(final ResourceModel model) {
+    return SubscribeRequest.builder()
+        .attributes(SnsSubscriptionUtils.getAttributesForCreate(model))
+        .protocol(model.getProtocol())
+        .topicArn(model.getTopicArn())
+        .endpoint(model.getEndpoint())
+        .returnSubscriptionArn(true)
         .build();
   }
 
-  /**
-   * Request to delete a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to delete a resource
-   */
-  static AwsRequest translateToDeleteRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L33
-    return awsRequest;
+  static GetSubscriptionAttributesRequest translateToReadRequest(final ResourceModel model) {
+    return GetSubscriptionAttributesRequest.builder()
+        .subscriptionArn(model.getSubscriptionArn())
+        .build();
   }
 
-  /**
-   * Request to update properties of a previously created resource
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static AwsRequest translateToUpdateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L45
-    return awsRequest;
+
+  static ResourceModel translateFromReadResponse(final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse) {
+    final Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
+
+    Boolean rawMessageDelivery = attributes.get(Definitions.rawMessageDelivery) != null ? Boolean.valueOf(attributes.get(Definitions.rawMessageDelivery)) : null;
+    return ResourceModel.builder().subscriptionArn(attributes.get(Definitions.subscriptionArn))
+                            .topicArn(attributes.get(Definitions.topicArn))
+                            .endpoint(attributes.get(Definitions.endpoint))
+                            .protocol(attributes.get(Definitions.protocol))
+                            .filterPolicy(attributes.get(Definitions.filterPolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.filterPolicy)) : null)
+                            .redrivePolicy(attributes.get(Definitions.redrivePolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.redrivePolicy)) : null)
+                            .deliveryPolicy(attributes.get(Definitions.deliveryPolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.deliveryPolicy)) : null)
+                            .rawMessageDelivery(rawMessageDelivery)
+                            .build();
   }
 
-  /**
-   * Request to update properties of a previously created resource
-   * @param nextToken token passed to the aws service describe resource request
-   * @return awsRequest the aws service request to describe resources within aws account
-   */
-  static AwsRequest translateToListRequest(final String nextToken) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L26
-    return awsRequest;
+  static UnsubscribeRequest translateToDeleteRequest(final ResourceModel model) {
+    return UnsubscribeRequest.builder()
+        .subscriptionArn(model.getSubscriptionArn())
+        .build();
   }
 
-  /**
-   * Translates resource objects from sdk into a resource model (primary identifier only)
-   * @param awsResponse the aws service describe resource response
-   * @return list of resource models
-   */
-  static List<ResourceModel> translateFromListRequest(final AwsResponse awsResponse) {
-    // e.g. e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L81
-    return streamOfOrEmpty(Lists.newArrayList())
-        .map(resource -> ResourceModel.builder()
-            //.primaryIdentifier(resource.primaryIdentifier())
-            .build())
-        .collect(Collectors.toList());
+  static GetTopicAttributesRequest translateToCheckTopicRequest(final ResourceModel model) {
+    return GetTopicAttributesRequest.builder()
+        .topicArn(model.getTopicArn())
+        .build();
+  }
+
+  static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Map<String, Object> previousPolicy, final Map<String, Object> desiredPolicy) {
+    Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousPolicy, desiredPolicy);
+    SetSubscriptionAttributesRequest setSubscriptionAttributesRequest;
+    SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
+
+    mapAttributes.forEach((name, value) -> {
+      builder.attributeName(name).attributeValue(value);
+    });
+
+    return builder.build();
+  }
+
+  static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Boolean previousValue, final Boolean desiredValue) {
+    Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousValue, desiredValue);
+    SetSubscriptionAttributesRequest setSubscriptionAttributesRequest;
+    SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
+
+    mapAttributes.forEach((name, value) -> {
+      builder.attributeName(name).attributeValue(value);
+    });
+
+    return builder.build();
   }
 
   private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
     return Optional.ofNullable(collection)
-        .map(Collection::stream)
-        .orElseGet(Stream::empty);
+            .map(Collection::stream)
+            .orElseGet(Stream::empty);
   }
+
+
+  static List<ResourceModel>  translateFromListRequest(final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse) {
+    return streamOfOrEmpty(listSubscriptionsByTopicResponse.subscriptions()).map(subscription ->
+      ResourceModel.builder().protocol(subscription.protocol()).topicArn(subscription.topicArn()).subscriptionArn(subscription.subscriptionArn()).build())
+      .collect(Collectors.toList());
+   }
+
+  static ListSubscriptionsByTopicRequest translateToListSubscriptionsByTopicRequest(final ResourceHandlerRequest<ResourceModel> request) {
+      return ListSubscriptionsByTopicRequest.builder()
+              .nextToken(request.getNextToken())
+              .topicArn(request.getDesiredResourceState().getTopicArn())
+              .build();
+  }
+
+
+
 }

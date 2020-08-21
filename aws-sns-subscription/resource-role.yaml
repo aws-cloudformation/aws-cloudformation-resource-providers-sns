@@ -23,11 +23,12 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "initech:CreateReport"
-                - "initech:DeleteReport"
-                - "initech:DescribeReport"
-                - "initech:ListReports"
-                - "initech:UpdateReport"
+                - "sns:GetSubscriptionAttributes"
+                - "sns:GetTopicAttributes"
+                - "sns:ListSubscriptionsByTopic"
+                - "sns:SetSubscriptionAttributes"
+                - "sns:Subscribe"
+                - "sns:Unsubscribe"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
