@@ -1,5 +1,6 @@
 package software.amazon.sns.topic;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
 
 public class Translator {
 
-  static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model) {
+  static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model, Map<String, String> desiredResourceTags) {
     Map<String, String> attributes = new HashMap<>();
 
     if(model.getDisplayName() != null)
@@ -36,10 +37,11 @@ public class Translator {
     if(model.getKmsMasterKeyId() != null)
       attributes.put(TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
 
+    final Set<Tag> tags = convertResourceTagsToSet(desiredResourceTags);
     return CreateTopicRequest.builder()
             .name(model.getTopicName())
             .attributes(attributes)
-            .tags(translateTagsToSdk(model.getTags()))
+            .tags(translateTagsToSdk(tags))
             .build();
   }
 
@@ -169,5 +171,13 @@ public class Translator {
 
   static String nullIfEmpty(String s) {
     return StringUtils.isEmpty(s) ? null : s;
+  }
+
+  static Set<Tag> convertResourceTagsToSet(Map<String, String> resourceTags) {
+    Set<Tag> tags = Sets.newHashSet();
+    if (resourceTags != null) {
+      resourceTags.forEach((key, value) -> tags.add(Tag.builder().key(key).value(value).build()));
+    }
+    return tags;
   }
 }

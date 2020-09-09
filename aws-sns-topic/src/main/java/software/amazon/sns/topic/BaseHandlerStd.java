@@ -21,6 +21,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -96,8 +97,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return ProgressEvent.progress(model, callbackContext);
   }
 
-  protected ProgressEvent<ResourceModel, CallbackContext> modifyTags(AmazonWebServicesClientProxy proxy, ProxyClient<SnsClient> proxyClient, ResourceModel model, Set<Tag> existingTags, ProgressEvent<ResourceModel, CallbackContext> progress, Logger logger) {
-    final Set<Tag> currentTags = new HashSet<>(Optional.ofNullable(model.getTags()).orElse(Collections.emptySet()));
+  protected ProgressEvent<ResourceModel, CallbackContext> modifyTags(AmazonWebServicesClientProxy proxy, ProxyClient<SnsClient> proxyClient, ResourceModel model, Map<String, String> desiredResourceTags, Set<Tag> existingTags, ProgressEvent<ResourceModel, CallbackContext> progress, Logger logger) {
+    final Set<Tag> currentTags = Translator.convertResourceTagsToSet(desiredResourceTags);
     final Set<Tag> previousTags = new HashSet<>(Optional.ofNullable(existingTags).orElse(Collections.emptySet()));
     final Set<Tag> tagsToRemove = Sets.difference(previousTags, currentTags);
     final Set<Tag> tagsToAdd = Sets.difference(currentTags, previousTags);

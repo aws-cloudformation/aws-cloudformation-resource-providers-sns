@@ -2,8 +2,11 @@ package software.amazon.sns.topic;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import com.google.common.collect.Maps;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -144,5 +147,58 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_tags() {
+        final Map<String, String> tags = Maps.newHashMap();
+        tags.put("key1", "value1");
+        tags.put("key3", "value3");
+
+        final Set<Tag> oldTags = new HashSet<>();
+        oldTags.add(Tag.builder().key("key1").value("value1").build());
+        oldTags.add(Tag.builder().key("key2").value("value2").build());
+
+        final ResourceModel model = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .tags(oldTags)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        final TagResourceResponse tagResourceResponse = TagResourceResponse.builder().build();
+        when(proxyClient.client().tagResource(any(TagResourceRequest.class))).thenReturn(tagResourceResponse);
+        final UntagResourceResponse untagResourceResponse = UntagResourceResponse.builder().build();
+        when(proxyClient.client().untagResource(any(UntagResourceRequest.class))).thenReturn(untagResourceResponse);
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .desiredResourceTags(tags)
+                .previousResourceState(previousModel)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).tagResource(any(TagResourceRequest.class));
+        verify(proxyClient.client()).untagResource(any(UntagResourceRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
     }
 }

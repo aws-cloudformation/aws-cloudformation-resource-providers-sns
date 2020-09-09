@@ -12,6 +12,8 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
+import java.util.Map;
+
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
 
@@ -24,7 +26,8 @@ public class CreateHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
-        ResourceModel model = request.getDesiredResourceState();
+        final ResourceModel model = request.getDesiredResourceState();
+        final Map<String, String> desiredResourceTags = request.getDesiredResourceTags();
         String nextToken = request.getNextToken();
 
         if (StringUtils.isNotEmpty(model.getId())) {
@@ -60,7 +63,7 @@ public class CreateHandler extends BaseHandlerStd {
             )
             .then(progress ->
                 proxy.initiate("AWS-SNS-Topic::Create", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToCreateTopicRequest)
+                    .translateToServiceRequest(model1 -> Translator.translateToCreateTopicRequest(model1, desiredResourceTags))
                     .makeServiceCall((createTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(createTopicRequest, client.client()::createTopic))
                     .done((createTopicRequest, createTopicResponse, client, resourceModel, context) -> {
                         model.setId(createTopicResponse.topicArn());
