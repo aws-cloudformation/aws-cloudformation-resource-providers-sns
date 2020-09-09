@@ -64,8 +64,8 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributes.DISPLAY_NAME, "topic-display-name");
-        attributes.put(TopicAttributes.TOPIC_ARN, "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();

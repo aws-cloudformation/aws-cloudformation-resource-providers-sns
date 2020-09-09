@@ -29,8 +29,11 @@ public class Translator {
 
   static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model) {
     Map<String, String> attributes = new HashMap<>();
-    attributes.put(TopicAttributes.DISPLAY_NAME, model.getDisplayName());
-    attributes.put(TopicAttributes.KMS_MASTER_KEY_ID, model.getKmsMasterKeyId());
+
+    if(model.getDisplayName() != null)
+      attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), model.getDisplayName());
+    if(model.getKmsMasterKeyId() != null)
+      attributes.put(TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
 
     return CreateTopicRequest.builder()
             .name(model.getTopicName())
@@ -89,10 +92,10 @@ public class Translator {
 
 
     return ResourceModel.builder()
-            .id(attributes.get(TopicAttributes.TOPIC_ARN))
-            .topicName(getTopicNameFromArn(attributes.get(TopicAttributes.TOPIC_ARN)))
-            .displayName(attributes.get(TopicAttributes.DISPLAY_NAME))
-            .kmsMasterKeyId(attributes.get(TopicAttributes.KMS_MASTER_KEY_ID))
+            .id(attributes.get(TopicAttributeName.TOPIC_ARN.toString()))
+            .topicName(getTopicNameFromArn(attributes.get(TopicAttributeName.TOPIC_ARN.toString())))
+            .displayName(attributes.get(TopicAttributeName.DISPLAY_NAME.toString()))
+            .kmsMasterKeyId(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString()))
             .subscription(subscriptions)
             .tags(translateTagsFromSdk(listTagsForResourceResponse.tags()))
             .build();
@@ -135,10 +138,10 @@ public class Translator {
             .build();
   }
 
-  static SetTopicAttributesRequest translateToSetAttributesRequest(String id, String attributName, String attributeValue) {
+  static SetTopicAttributesRequest translateToSetAttributesRequest(String id, TopicAttributeName attributName, String attributeValue) {
     return SetTopicAttributesRequest.builder()
             .topicArn(id)
-            .attributeName(attributName)
+            .attributeName(attributName.toString())
             .attributeValue(attributeValue)
             .build();
   }

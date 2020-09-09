@@ -48,7 +48,7 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress -> {
                 if(!StringUtils.equals(model.getDisplayName(), previousModel.getDisplayName())) {
                     return proxy.initiate("AWS-SNS-Topic::Update::DisplayName", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributes.DISPLAY_NAME, m.getDisplayName()))
+                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.DISPLAY_NAME, m.getDisplayName()))
                             .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
                             .progress();
                 }
@@ -57,13 +57,12 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress -> {
                 if(!StringUtils.equals(model.getKmsMasterKeyId(), previousModel.getKmsMasterKeyId())) {
                     return proxy.initiate("AWS-SNS-Topic::Update::KMSKeyId", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributes.KMS_MASTER_KEY_ID, m.getKmsMasterKeyId()))
+                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.KMS_MASTER_KEY_ID, m.getKmsMasterKeyId()))
                             .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
                             .progress();
                 }
                 return progress;
             })
-            .then(progress -> addSubscription(proxy, proxyClient, progress, toSubscribe, logger))
             .then(progress ->
                 proxy.initiate("AWS-SNS-Topic::Update::ListSubscriptionArn", proxyClient, model, callbackContext)
                     .translateToServiceRequest(Translator::translateToListSubscriptionByTopic)
@@ -76,6 +75,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     .progress()
             )
             .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
+            .then(progress -> addSubscription(proxy, proxyClient, progress, toSubscribe, logger))
             .then(progress -> modifyTags(proxy, proxyClient, model, previousModel.getTags(), progress, logger))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }

@@ -55,7 +55,9 @@ public class CreateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess() {
         final ResourceModel model = ResourceModel.builder()
-//                .topicName("sns-topic-name")
+                .topicName("sns-topic-name")
+                .displayName("sns-topic-name")
+                .kmsMasterKeyId("dummy-kms-key")
                 .build();
 
         final ListTopicsResponse listTopicsResponse = ListTopicsResponse.builder().build();
@@ -65,7 +67,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .build();
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributes.TOPIC_ARN, "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();

@@ -63,8 +63,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributes.DISPLAY_NAME, "topic-display-name");
-        attributes.put(TopicAttributes.TOPIC_ARN, "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
@@ -103,8 +103,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributes.KMS_MASTER_KEY_ID, "dummy-key-id-2");
-        attributes.put(TopicAttributes.TOPIC_ARN, "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        attributes.put(TopicAttributeName.KMS_MASTER_KEY_ID.toString(), "dummy-key-id-2");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
