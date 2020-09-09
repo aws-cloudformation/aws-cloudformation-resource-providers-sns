@@ -1,8 +1,8 @@
 package software.amazon.sns.topic;
 
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
+import software.amazon.awssdk.services.sns.model.ListTagsForResourceResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -27,12 +27,7 @@ public class ReadHandler extends BaseHandlerStd {
             .then(progress ->
                 proxy.initiate("AWS-SNS-Topic::Read", proxyClient, model, callbackContext)
                     .translateToServiceRequest(Translator::translateToGetTopicAttributes)
-                    .makeServiceCall((getTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(getTopicAttributesRequest, client.client()::getTopicAttributes))
-                    .handleError((awsRequest, exception, client, resourceModel, context) -> {
-                        if (exception instanceof NotFoundException)
-                            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getId(), exception);
-                        throw exception;
-                    })
+                    .makeServiceCall(this::getTopicAttributes)
                     .done((getTopicAttributesRequest, getTopicAttributesResponse, sdkProxyClient, resourceModel, context) -> {
                         final ListTagsForResourceResponse listTagsForResourceResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.listTagsForResourceRequest(resourceModel.getId()), sdkProxyClient.client()::listTagsForResource);
                         final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(resourceModel), sdkProxyClient.client()::listSubscriptionsByTopic);

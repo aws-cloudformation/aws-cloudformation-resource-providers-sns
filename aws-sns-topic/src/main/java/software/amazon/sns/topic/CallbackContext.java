@@ -3,7 +3,6 @@ package software.amazon.sns.topic;
 import software.amazon.cloudformation.proxy.StdCallbackContext;
 
 import java.util.List;
-import java.util.Map;
 
 @lombok.Getter
 @lombok.Setter

@@ -1,10 +1,27 @@
 package software.amazon.sns.topic;
 
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesResponse;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicRequest;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
+import software.amazon.awssdk.services.sns.model.ListTagsForResourceRequest;
+import software.amazon.awssdk.services.sns.model.ListTagsForResourceResponse;
+import software.amazon.awssdk.services.sns.model.ListTopicsRequest;
+import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sns.model.TagResourceRequest;
+import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
+import software.amazon.awssdk.services.sns.model.UntagResourceRequest;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,57 +45,10 @@ public class Translator {
             .collect(Collectors.toSet());
   }
 
-  /**
-   * Request to read a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to describe a resource
-   */
-  static AwsRequest translateToReadRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L20-L24
-    return awsRequest;
-  }
-
-  /**
-   * Translates resource object from sdk into a resource model
-   * @param awsResponse the aws service describe resource response
-   * @return model resource model
-   */
-  static ResourceModel translateFromReadResponse(final AwsResponse awsResponse) {
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L58-L73
-    return ResourceModel.builder()
-        //.someProperty(response.property())
-        .build();
-  }
-
   static DeleteTopicRequest translateToDeleteTopic(final ResourceModel model) {
     return DeleteTopicRequest.builder()
             .topicArn(model.getId())
             .build();
-  }
-
-  /**
-   * Request to update properties of a previously created resource
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static AwsRequest translateToFirstUpdateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L45-L50
-    return awsRequest;
-  }
-
-  /**
-   * Request to update some other properties that could not be provisioned through first update request
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static AwsRequest translateToSecondUpdateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    return awsRequest;
   }
 
   static GetTopicAttributesRequest translateToGetTopicAttributes(final ResourceModel model) {

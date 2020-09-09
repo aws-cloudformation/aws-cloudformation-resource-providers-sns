@@ -4,15 +4,18 @@ import com.google.common.collect.Sets;
 import org.codehaus.plexus.util.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
-import software.amazon.awssdk.services.sns.model.NotFoundException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class UpdateHandler extends BaseHandlerStd {
@@ -39,12 +42,7 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress ->
                 proxy.initiate("AWS-SNS-Topic::Update::PreExistanceCheck", proxyClient, model, callbackContext)
                     .translateToServiceRequest(Translator::translateToGetTopicAttributes)
-                    .makeServiceCall((getTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(getTopicAttributesRequest, client.client()::getTopicAttributes))
-                    .handleError((awsRequest, exception, client, resourceModel, context) -> {
-                         if (exception instanceof NotFoundException)
-                             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getId(), exception);
-                         throw exception;
-                    })
+                    .makeServiceCall(this::getTopicAttributes)
                     .progress()
             )
             .then(progress -> {

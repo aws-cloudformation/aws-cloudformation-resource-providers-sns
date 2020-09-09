@@ -55,7 +55,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess() {
         final ResourceModel model = ResourceModel.builder()
-                .topicName("sns-topic-name")
+//                .topicName("sns-topic-name")
                 .build();
 
         final ListTopicsResponse listTopicsResponse = ListTopicsResponse.builder().build();
@@ -75,7 +75,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
         when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).logicalResourceIdentifier("SnsTopic").clientRequestToken("dummy-token").build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();

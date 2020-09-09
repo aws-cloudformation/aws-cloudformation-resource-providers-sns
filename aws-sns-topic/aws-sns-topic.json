@@ -42,7 +42,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 256,
-            "pattern": "[a-zA-Z0-9_-]+"
+            "pattern": "^[a-zA-Z0-9_-]{1,256}$"
         },
         "Id": {
             "type": "string"
@@ -54,10 +54,16 @@
             "additionalProperties": false,
             "properties": {
                 "Key": {
-                    "type": "string"
+                    "type": "string",
+                    "minimum": 1,
+                    "maximum": 128,
+                    "pattern": "^[a-zA-Z0-9_./=+-]{1,128}$"
                 },
                 "Value": {
-                    "type": "string"
+                    "type": "string",
+                    "minimum": 0,
+                    "maximum": 256,
+                    "pattern": "^[a-zA-Z0-9_./=+-]{0,256}$"
                 }
             },
             "required": [

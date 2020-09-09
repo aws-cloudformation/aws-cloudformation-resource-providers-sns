@@ -1,10 +1,14 @@
 package software.amazon.sns.topic;
 
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
 import software.amazon.awssdk.services.sns.model.Subscription;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.proxy.*;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,12 +31,7 @@ public class DeleteHandler extends BaseHandlerStd {
             .then(progress ->
                 proxy.initiate("AWS-SNS-Topic::Delete::PreDeletionCheck", proxyClient, model, callbackContext)
                     .translateToServiceRequest(Translator::translateToGetTopicAttributes)
-                    .makeServiceCall((getTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(getTopicAttributesRequest, client.client()::getTopicAttributes))
-                    .handleError((awsRequest, exception, client, resourceModel, context) -> {
-                        if (exception instanceof NotFoundException)
-                            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getId(), exception);
-                        throw exception;
-                    })
+                    .makeServiceCall(this::getTopicAttributes)
                     .progress()
             )
             .then(progress ->

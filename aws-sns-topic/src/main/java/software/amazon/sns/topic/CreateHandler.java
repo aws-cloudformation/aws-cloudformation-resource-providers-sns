@@ -3,8 +3,13 @@ package software.amazon.sns.topic;
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.Topic;
-import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
-import software.amazon.cloudformation.proxy.*;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
 public class CreateHandler extends BaseHandlerStd {
@@ -28,13 +33,17 @@ public class CreateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
             .then(progress ->
-                proxy.initiate("AWS-SNS-Topic::Create::PreExistanceCheck", proxyClient, model, callbackContext)
+                proxy.initiate("AWS-SNS-Topic::Create::PreExistanceCheck" + (nextToken == null ? "" : nextToken), proxyClient, model, callbackContext)
                     .translateToServiceRequest(model1 -> Translator.translateToListTopicRequest(nextToken))
                     .makeServiceCall((listTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(listTopicRequest, client.client()::listTopics))
                     .done((listTopicsRequest, listTopicsResponse, sdkProxyClient, resourceModel, context) -> {
                         for(Topic t : listTopicsResponse.topics()) {
                             if(checkIfTopicNameWithArn(model.getTopicName(), t.topicArn())) {
-                                return ProgressEvent.defaultFailureHandler(null, HandlerErrorCode.AlreadyExists);
+                                return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                                        .status(OperationStatus.FAILED)
+                                        .errorCode(HandlerErrorCode.AlreadyExists)
+                                        .message(model.getTopicName() + " already exists")
+                                        .build();
                             }
                         }
                         return ProgressEvent.<ResourceModel, CallbackContext>builder()

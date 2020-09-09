@@ -17,7 +17,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#fifotopic" title="FifoTopic">FifoTopic</a>" : <i>Boolean</i>,
         "<a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>" : <i>String</i>,
         "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ <a href="subscription.md">Subscription</a>, ... ]</i>,
-        "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tags.md">Tags</a>, ... ]</i>,
+        "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#topicname" title="TopicName">TopicName</a>" : <i>String</i>,
     }
 }
@@ -35,7 +35,7 @@ Properties:
     <a href="#subscription" title="Subscription">Subscription</a>: <i>
       - <a href="subscription.md">Subscription</a></i>
     <a href="#tags" title="Tags">Tags</a>: <i>
-      - <a href="tags.md">Tags</a></i>
+      - <a href="tag.md">Tag</a></i>
     <a href="#topicname" title="TopicName">TopicName</a>: <i>String</i>
 </pre>
 
@@ -95,7 +95,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 _Required_: No
 
-_Type_: List of <a href="tags.md">Tags</a>
+_Type_: List of <a href="tag.md">Tag</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -111,7 +111,7 @@ _Minimum_: <code>1</code>
 
 _Maximum_: <code>256</code>
 
-_Pattern_: <code>[a-zA-Z0-9_-]+</code>
+_Pattern_: <code>^[a-zA-Z0-9_-]{1,256}$</code>
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
@@ -130,4 +130,3 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### Id
 
 Returns the <code>Id</code> value.
-

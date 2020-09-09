@@ -1,15 +1,28 @@
 package software.amazon.sns.topic;
 
 import com.google.common.collect.Sets;
-import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesResponse;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
+import software.amazon.awssdk.services.sns.model.NotFoundException;
+import software.amazon.awssdk.services.sns.model.SnsException;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
@@ -96,5 +109,23 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       proxyClient.injectCredentialsAndInvokeV2(Translator.translateToTagRequest(model.getId(), tagsToAdd), proxyClient.client()::tagResource);
     }
     return progress;
+  }
+
+  protected GetTopicAttributesResponse getTopicAttributes(
+          final GetTopicAttributesRequest getTopicAttributesRequest,
+          final ProxyClient<SnsClient> proxyClient) {
+    GetTopicAttributesResponse getTopicAttributesResponse;
+    try {
+      getTopicAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getTopicAttributesRequest, proxyClient.client()::getTopicAttributes);
+    } catch (final NotFoundException e) {
+      throw new CfnNotFoundException(ResourceModel.TYPE_NAME, getTopicAttributesRequest.topicArn(), e);
+    } catch (final InvalidParameterException e) {
+      throw new CfnInvalidRequestException(e);
+    } catch (final SnsException e) {
+      throw new CfnGeneralServiceException(e);
+    } catch (final SdkException e) {
+      throw new CfnInternalFailureException(e);
+    }
+    return getTopicAttributesResponse;
   }
 }
