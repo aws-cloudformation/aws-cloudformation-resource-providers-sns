@@ -27,6 +27,10 @@ public class CreateHandler extends BaseHandlerStd {
         ResourceModel model = request.getDesiredResourceState();
         String nextToken = request.getNextToken();
 
+        if (StringUtils.isNotEmpty(model.getId())) {
+            return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.InvalidRequest, "Id is a read-only property.");
+        }
+
         if (StringUtils.isBlank(model.getTopicName())) {
             model.setTopicName(IdentifierUtils.generateResourceIdentifier(request.getLogicalResourceIdentifier(), request.getClientRequestToken(), TOPIC_NAME_MAX_LENGTH).toLowerCase());
         }

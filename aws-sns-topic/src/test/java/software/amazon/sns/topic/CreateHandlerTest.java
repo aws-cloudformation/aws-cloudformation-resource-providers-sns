@@ -4,10 +4,12 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Tag;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -46,18 +48,17 @@ public class CreateHandlerTest extends AbstractTestBase {
         proxyClient = MOCK_PROXY(proxy, client);
     }
 
-    @AfterEach
-    public void postExecute() {
-        verify(client, atLeastOnce()).serviceName();
-        verifyNoMoreInteractions(client);
+    @AfterEach()
+    public void postExecute(org.junit.jupiter.api.TestInfo testInfo) {
+        if(!testInfo.getTags().contains("skipSdkInteraction")) {
+            verify(client, atLeastOnce()).serviceName();
+            verifyNoMoreInteractions(client);
+        }
     }
 
     @Test
     public void handleRequest_SimpleSuccess() {
         final ResourceModel model = ResourceModel.builder()
-                .topicName("sns-topic-name")
-                .displayName("sns-topic-name")
-                .kmsMasterKeyId("dummy-kms-key")
                 .build();
 
         final ListTopicsResponse listTopicsResponse = ListTopicsResponse.builder().build();
@@ -115,5 +116,23 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNotNull();
 
         verify(proxyClient.client()).listTopics(any(ListTopicsRequest.class));
+    }
+
+    @Test
+    @org.junit.jupiter.api.Tag("skipSdkInteraction")
+    public void handleRequest_Failure_InvalidRequest_Id() {
+        final ResourceModel model = ResourceModel.builder()
+            .topicName("sns-topic-name")
+            .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+            .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNotNull();
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
     }
 }

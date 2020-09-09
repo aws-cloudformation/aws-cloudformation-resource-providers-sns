@@ -12,9 +12,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::SNS::Topic",
     "Properties" : {
-        "<a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>" : <i>Boolean</i>,
         "<a href="#displayname" title="DisplayName">DisplayName</a>" : <i>String</i>,
-        "<a href="#fifotopic" title="FifoTopic">FifoTopic</a>" : <i>Boolean</i>,
         "<a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>" : <i>String</i>,
         "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ <a href="subscription.md">Subscription</a>, ... ]</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
@@ -28,9 +26,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::SNS::Topic
 Properties:
-    <a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>: <i>Boolean</i>
     <a href="#displayname" title="DisplayName">DisplayName</a>: <i>String</i>
-    <a href="#fifotopic" title="FifoTopic">FifoTopic</a>: <i>Boolean</i>
     <a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>: <i>String</i>
     <a href="#subscription" title="Subscription">Subscription</a>: <i>
       - <a href="subscription.md">Subscription</a></i>
@@ -41,16 +37,6 @@ Properties:
 
 ## Properties
 
-#### ContentBasedDeduplication
-
-Not currently supported by AWS CloudFormation.
-
-_Required_: No
-
-_Type_: Boolean
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
 #### DisplayName
 
 The display name to use for an Amazon SNS topic with SNS subscriptions.
@@ -58,16 +44,6 @@ The display name to use for an Amazon SNS topic with SNS subscriptions.
 _Required_: No
 
 _Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### FifoTopic
-
-Not currently supported by AWS CloudFormation.
-
-_Required_: No
-
-_Type_: Boolean
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

@@ -1,5 +1,6 @@
 package software.amazon.sns.topic;
 
+import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;
 import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
@@ -94,10 +95,10 @@ public class Translator {
     return ResourceModel.builder()
             .id(attributes.get(TopicAttributeName.TOPIC_ARN.toString()))
             .topicName(getTopicNameFromArn(attributes.get(TopicAttributeName.TOPIC_ARN.toString())))
-            .displayName(attributes.get(TopicAttributeName.DISPLAY_NAME.toString()))
-            .kmsMasterKeyId(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString()))
-            .subscription(subscriptions)
-            .tags(translateTagsFromSdk(listTagsForResourceResponse.tags()))
+            .displayName(nullIfEmpty(attributes.get(TopicAttributeName.DISPLAY_NAME.toString())))
+            .kmsMasterKeyId(nullIfEmpty(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString())))
+            .subscription(nullIfEmpty(subscriptions))
+            .tags(nullIfEmpty(translateTagsFromSdk(listTagsForResourceResponse.tags())))
             .build();
   }
 
@@ -160,5 +161,13 @@ public class Translator {
             .resourceArn(topicArn)
             .tagKeys(tagKeys)
             .build();
+  }
+
+  static <T> Set<T> nullIfEmpty(Set<T> set) {
+    return set != null && set.isEmpty() ? null : set;
+  }
+
+  static String nullIfEmpty(String s) {
+    return StringUtils.isEmpty(s) ? null : s;
   }
 }

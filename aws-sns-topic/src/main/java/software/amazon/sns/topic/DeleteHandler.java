@@ -56,8 +56,6 @@ public class DeleteHandler extends BaseHandlerStd {
                     .done(awsResponse -> {
                         return ProgressEvent.<ResourceModel, CallbackContext>builder()
                                 .status(OperationStatus.SUCCESS)
-                                .resourceModel(model)
-                                .callbackContext(callbackContext)
                                 .build();
                     })
             );
