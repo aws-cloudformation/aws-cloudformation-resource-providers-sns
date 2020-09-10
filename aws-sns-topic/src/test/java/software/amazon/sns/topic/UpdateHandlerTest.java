@@ -1,12 +1,21 @@
 package software.amazon.sns.topic;
 
 import java.time.Duration;
-import software.amazon.awssdk.core.SdkClient;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Maps;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +23,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateHandlerTest extends AbstractTestBase {
@@ -23,36 +34,171 @@ public class UpdateHandlerTest extends AbstractTestBase {
     private AmazonWebServicesClientProxy proxy;
 
     @Mock
-    private ProxyClient<SdkClient> proxyClient;
+    private ProxyClient<SnsClient> proxyClient;
 
     @Mock
-    SdkClient sdkClient;
+    SnsClient client;
+
+    private UpdateHandler handler;
 
     @BeforeEach
     public void setup() {
+        handler = new UpdateHandler();
         proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
-        sdkClient = mock(SdkClient.class);
-        proxyClient = MOCK_PROXY(proxy, sdkClient);
+        client = mock(SnsClient.class);
+        proxyClient = MOCK_PROXY(proxy, client);
+    }
+
+    @AfterEach
+    public void postExecute() {
+        verify(client, atLeastOnce()).serviceName();
+        verifyNoMoreInteractions(client);
     }
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final UpdateHandler handler = new UpdateHandler();
+        final ResourceModel model = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .displayName("topic-display-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
 
-        final ResourceModel model = ResourceModel.builder().build();
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        final SetTopicAttributesResponse setTopicAttributesResponse = SetTopicAttributesResponse.builder().build();
+        when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class))).thenReturn(setTopicAttributesResponse);
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-            .desiredResourceState(model)
-            .build();
-
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_UpdateKmsKeyId() {
+        final ResourceModel model = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .kmsMasterKeyId("dummy-key-id-2")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .kmsMasterKeyId("dummy-key-id-1")
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.KMS_MASTER_KEY_ID.toString(), "dummy-key-id-2");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        final SetTopicAttributesResponse setTopicAttributesResponse = SetTopicAttributesResponse.builder().build();
+        when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class))).thenReturn(setTopicAttributesResponse);
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+    }
+
+    @Test
+    public void handleRequest_NotFound() {
+        final ResourceModel model = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder().build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
+        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_tags() {
+        final Map<String, String> tags = Maps.newHashMap();
+        tags.put("key1", "value1");
+        tags.put("key3", "value3");
+
+        final Set<Tag> oldTags = new HashSet<>();
+        oldTags.add(Tag.builder().key("key1").value("value1").build());
+        oldTags.add(Tag.builder().key("key2").value("value2").build());
+
+        final ResourceModel model = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .tags(oldTags)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        final TagResourceResponse tagResourceResponse = TagResourceResponse.builder().build();
+        when(proxyClient.client().tagResource(any(TagResourceRequest.class))).thenReturn(tagResourceResponse);
+        final UntagResourceResponse untagResourceResponse = UntagResourceResponse.builder().build();
+        when(proxyClient.client().untagResource(any(UntagResourceRequest.class))).thenReturn(untagResourceResponse);
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .desiredResourceTags(tags)
+                .previousResourceState(previousModel)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).tagResource(any(TagResourceRequest.class));
+        verify(proxyClient.client()).untagResource(any(UntagResourceRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
     }
 }

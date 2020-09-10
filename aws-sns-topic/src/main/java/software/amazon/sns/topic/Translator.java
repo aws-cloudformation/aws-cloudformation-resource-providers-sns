@@ -1,114 +1,183 @@
 package software.amazon.sns.topic;
 
-import com.google.common.collect.Lists;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.GetTopicAttributesResponse;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicRequest;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
+import software.amazon.awssdk.services.sns.model.ListTagsForResourceRequest;
+import software.amazon.awssdk.services.sns.model.ListTagsForResourceResponse;
+import software.amazon.awssdk.services.sns.model.ListTopicsRequest;
+import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sns.model.TagResourceRequest;
+import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
+import software.amazon.awssdk.services.sns.model.UntagResourceRequest;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * This class is a centralized placeholder for
- *  - api request construction
- *  - object translation to/from aws sdk
- *  - resource model construction for read/list handlers
- */
-
 public class Translator {
 
-  /**
-   * Request to create a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to create a resource
-   */
-  static AwsRequest translateToCreateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L39
-    return awsRequest;
+  static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model, Map<String, String> desiredResourceTags) {
+    Map<String, String> attributes = new HashMap<>();
+
+    if(model.getDisplayName() != null)
+      attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), model.getDisplayName());
+    if(model.getKmsMasterKeyId() != null)
+      attributes.put(TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
+
+    final Set<Tag> tags = convertResourceTagsToSet(desiredResourceTags);
+    return CreateTopicRequest.builder()
+            .name(model.getTopicName())
+            .attributes(attributes)
+            .tags(translateTagsToSdk(tags))
+            .build();
   }
 
-  /**
-   * Request to read a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to describe a resource
-   */
-  static AwsRequest translateToReadRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L20
-    return awsRequest;
+  static Set<software.amazon.awssdk.services.sns.model.Tag> translateTagsToSdk(Set<Tag> tags) {
+    return streamOfOrEmpty(tags)
+            .map(tag -> software.amazon.awssdk.services.sns.model.Tag.builder().key(tag.getKey()).value(tag.getValue()).build())
+            .collect(Collectors.toSet());
   }
 
-  /**
-   * Translates resource object from sdk into a resource model
-   * @param awsResponse the aws service describe resource response
-   * @return model resource model
-   */
-  static ResourceModel translateFromReadResponse(final AwsResponse awsResponse) {
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L58
-    return ResourceModel.builder()
-        //.primaryIdentifier(response.primaryIdentifier())
-        //.someProperty(response.property())
-        .build();
+  static DeleteTopicRequest translateToDeleteTopic(final ResourceModel model) {
+    return DeleteTopicRequest.builder()
+            .topicArn(model.getId())
+            .build();
   }
 
-  /**
-   * Request to delete a resource
-   * @param model resource model
-   * @return awsRequest the aws service request to delete a resource
-   */
-  static AwsRequest translateToDeleteRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L33
-    return awsRequest;
+  static GetTopicAttributesRequest translateToGetTopicAttributes(final ResourceModel model) {
+    return GetTopicAttributesRequest.builder()
+            .topicArn(model.getId())
+            .build();
   }
 
-  /**
-   * Request to update properties of a previously created resource
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static AwsRequest translateToUpdateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L45
-    return awsRequest;
+  static ListTopicsRequest translateToListTopicRequest(final String nextToken) {
+    return ListTopicsRequest.builder()
+            .nextToken(nextToken)
+            .build();
   }
 
-  /**
-   * Request to update properties of a previously created resource
-   * @param nextToken token passed to the aws service describe resource request
-   * @return awsRequest the aws service request to describe resources within aws account
-   */
-  static AwsRequest translateToListRequest(final String nextToken) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L26
-    return awsRequest;
-  }
-
-  /**
-   * Translates resource objects from sdk into a resource model (primary identifier only)
-   * @param awsResponse the aws service describe resource response
-   * @return list of resource models
-   */
-  static List<ResourceModel> translateFromListRequest(final AwsResponse awsResponse) {
-    // e.g. e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/Translator.java#L81
-    return streamOfOrEmpty(Lists.newArrayList())
-        .map(resource -> ResourceModel.builder()
-            //.primaryIdentifier(resource.primaryIdentifier())
+  static List<ResourceModel> translateFromListTopicRequest(final ListTopicsResponse listTopicsResponse) {
+    return streamOfOrEmpty(listTopicsResponse.topics())
+        .map(topic -> ResourceModel.builder()
+            .id(topic.topicArn())
             .build())
         .collect(Collectors.toList());
   }
 
-  private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
+  static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
     return Optional.ofNullable(collection)
         .map(Collection::stream)
         .orElseGet(Stream::empty);
+  }
+
+  static ResourceModel translateFromGetTopicAttributes(GetTopicAttributesResponse getTopicAttributesResponse, ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse, ListTagsForResourceResponse listTagsForResourceResponse) {
+    Map<String, String> attributes = getTopicAttributesResponse.attributes();
+
+    Set<Subscription> subscriptions = streamOfOrEmpty(listSubscriptionsByTopicResponse.subscriptions())
+            .map(subscription -> Subscription.builder()
+                    .endpoint(subscription.endpoint())
+                    .protocol(subscription.protocol())
+                    .build())
+            .collect(Collectors.toSet());
+
+
+    return ResourceModel.builder()
+            .id(attributes.get(TopicAttributeName.TOPIC_ARN.toString()))
+            .topicName(getTopicNameFromArn(attributes.get(TopicAttributeName.TOPIC_ARN.toString())))
+            .displayName(nullIfEmpty(attributes.get(TopicAttributeName.DISPLAY_NAME.toString())))
+            .kmsMasterKeyId(nullIfEmpty(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString())))
+            .subscription(nullIfEmpty(subscriptions))
+            .tags(nullIfEmpty(translateTagsFromSdk(listTagsForResourceResponse.tags())))
+            .build();
+  }
+
+  static Set<Tag> translateTagsFromSdk(List<software.amazon.awssdk.services.sns.model.Tag> tags) {
+    return streamOfOrEmpty(tags)
+            .map(tag -> Tag.builder().key(tag.key()).value(tag.value()).build())
+            .collect(Collectors.toSet());
+  }
+
+  private static String getTopicNameFromArn(String arn) {
+    String[] splitWords = arn.split(":");
+    return splitWords[splitWords.length - 1];
+  }
+
+  static ListTagsForResourceRequest listTagsForResourceRequest(String id) {
+    return ListTagsForResourceRequest.builder()
+            .resourceArn(id)
+            .build();
+  }
+
+  static ListSubscriptionsByTopicRequest translateToListSubscriptionByTopic(ResourceModel model) {
+    return ListSubscriptionsByTopicRequest.builder()
+            .topicArn(model.getId())
+            .build();
+  }
+
+  public static UnsubscribeRequest translateToUnsubscribe(String subscriptionArn) {
+    return UnsubscribeRequest.builder()
+            .subscriptionArn(subscriptionArn)
+            .build();
+  }
+
+  static SubscribeRequest traslateToSubscribeRequest(ResourceModel model, Subscription subscription) {
+    return SubscribeRequest.builder()
+            .topicArn(model.getId())
+            .protocol(subscription.getProtocol())
+            .endpoint(subscription.getEndpoint())
+            .build();
+  }
+
+  static SetTopicAttributesRequest translateToSetAttributesRequest(String id, TopicAttributeName attributName, String attributeValue) {
+    return SetTopicAttributesRequest.builder()
+            .topicArn(id)
+            .attributeName(attributName.toString())
+            .attributeValue(attributeValue)
+            .build();
+  }
+
+  static TagResourceRequest translateToTagRequest(String topicArn, Set<Tag> tags) {
+    return TagResourceRequest.builder()
+            .resourceArn(topicArn)
+            .tags(translateTagsToSdk(tags))
+            .build();
+  }
+
+  static UntagResourceRequest translateToUntagRequest(String topicArn, Set<Tag> tags) {
+    Set<String> tagKeys = streamOfOrEmpty(tags).map(Tag::getKey).collect(Collectors.toSet());
+
+    return UntagResourceRequest.builder()
+            .resourceArn(topicArn)
+            .tagKeys(tagKeys)
+            .build();
+  }
+
+  static <T> Set<T> nullIfEmpty(Set<T> set) {
+    return set != null && set.isEmpty() ? null : set;
+  }
+
+  static String nullIfEmpty(String s) {
+    return StringUtils.isEmpty(s) ? null : s;
+  }
+
+  static Set<Tag> convertResourceTagsToSet(Map<String, String> resourceTags) {
+    Set<Tag> tags = Sets.newHashSet();
+    if (resourceTags != null) {
+      resourceTags.forEach((key, value) -> tags.add(Tag.builder().key(key).value(value).build()));
+    }
+    return tags;
   }
 }

@@ -1,33 +1,43 @@
 {
     "typeName": "AWS::SNS::Topic",
     "description": "Resource Type definition for AWS::SNS::Topic",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-sns",
     "additionalProperties": false,
     "properties": {
-        "Id": {
-            "type": "string"
-        },
-        "TopicName": {
-            "type": "string"
-        },
         "DisplayName": {
+            "description": "The display name to use for an Amazon SNS topic with SNS subscriptions.",
             "type": "string"
         },
         "KmsMasterKeyId": {
+            "description": "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK",
             "type": "string"
         },
         "Subscription": {
+            "description": "The SNS subscriptions (endpoints) for this topic.",
             "type": "array",
-            "uniqueItems": false,
+            "uniqueItems": true,
+            "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/Subscription"
             }
         },
         "Tags": {
             "type": "array",
-            "uniqueItems": false,
+            "uniqueItems": true,
+            "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/Tag"
             }
+        },
+        "TopicName": {
+            "description": "The name of the topic",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[a-zA-Z0-9_-]{1,256}$"
+        },
+        "Id": {
+            "type": "string"
         }
     },
     "definitions": {
@@ -36,10 +46,16 @@
             "additionalProperties": false,
             "properties": {
                 "Key": {
-                    "type": "string"
+                    "type": "string",
+                    "minimum": 1,
+                    "maximum": 128,
+                    "pattern": "^[a-zA-Z0-9_./=+-]{1,128}$"
                 },
                 "Value": {
-                    "type": "string"
+                    "type": "string",
+                    "minimum": 0,
+                    "maximum": 256,
+                    "pattern": "^[a-zA-Z0-9_./=+-]{0,256}$"
                 }
             },
             "required": [
@@ -55,7 +71,17 @@
                     "type": "string"
                 },
                 "Protocol": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "http",
+                        "https",
+                        "email",
+                        "email-json",
+                        "sms",
+                        "sqs",
+                        "application",
+                        "lambda"
+                    ]
                 }
             },
             "required": [
@@ -72,5 +98,48 @@
     ],
     "readOnlyProperties": [
         "/properties/Id"
-    ]
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "sns:CreateTopic",
+                "sns:TagResource",
+                "sns:Subscribe",
+                "sns:GetTopicAttributes",
+                "sns:ListTagsForResource",
+                "sns:ListSubscriptionsByTopic"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "sns:GetTopicAttributes",
+                "sns:ListTagsForResource",
+                "sns:ListSubscriptionsByTopic"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "sns:SetTopicAttributes",
+                "sns:TagResource",
+                "sns:UntagResource",
+                "sns:Subscribe",
+                "sns:Unsubscribe",
+                "sns:GetTopicAttributes",
+                "sns:ListTagsForResource",
+                "sns:ListSubscriptionsByTopic"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "sns:DeleteTopic",
+                "sns:ListSubscriptionsByTopic",
+                "sns:Unsubscribe"
+            ]
+        },
+        "list": {
+            "permissions": [
+                "sns:ListTopics"
+            ]
+        }
+    }
 }

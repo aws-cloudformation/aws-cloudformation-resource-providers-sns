@@ -1,8 +1,20 @@
 package software.amazon.sns.topic;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 class Configuration extends BaseConfiguration {
 
     public Configuration() {
         super("aws-sns-topic.json");
+    }
+
+    @Override
+    public Map<String, String> resourceDefinedTags(ResourceModel resourceModel) {
+        return Optional.ofNullable(resourceModel.getTags()).orElse(Collections.emptySet())
+            .stream()
+            .collect(Collectors.toMap(tag -> tag.getKey(), tag -> tag.getValue()));
     }
 }
