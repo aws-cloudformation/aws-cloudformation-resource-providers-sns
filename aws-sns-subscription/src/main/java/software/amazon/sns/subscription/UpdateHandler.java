@@ -1,30 +1,15 @@
+
 package software.amazon.sns.subscription;
 
 
+import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
-import software.amazon.awssdk.services.sns.model.FilterPolicyLimitExceededException;
-import software.amazon.awssdk.services.sns.model.InternalErrorException;
-import software.amazon.awssdk.services.sns.model.InvalidParameterException;
-import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
-import software.amazon.awssdk.services.sns.model.NotFoundException;
-import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesRequest;
-import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesResponse;
-import software.amazon.awssdk.services.sns.model.SubscriptionLimitExceededException;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
-import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
-import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
-
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.*;
+import software.amazon.cloudformation.proxy.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -44,11 +29,38 @@ public class UpdateHandler extends BaseHandlerStd {
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
             .then(progress -> checkTopicExists(proxy, proxyClient, currentModel, progress, logger))
             .then(progress -> checkSubscriptionExists(proxy, proxyClient, previousModel, progress, logger))
+            .then(progress -> validateCreateOnlyProperties(previousModel, currentModel, progress))
             .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getFilterPolicy(), currentModel, SubscriptionAttribute.FilterPolicy, previousModel.getFilterPolicy(), progress, logger))
             .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getDeliveryPolicy(), currentModel, SubscriptionAttribute.DeliveryPolicy,previousModel.getDeliveryPolicy(), progress, logger))
             .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getRedrivePolicy(), currentModel, SubscriptionAttribute.RedrivePolicy,previousModel.getRedrivePolicy(), progress, logger))
             .then(progress -> modifyRawMessageDelivery(proxy, proxyClient, currentModel.getRawMessageDelivery(), currentModel, SubscriptionAttribute.RawMessageDelivery,previousModel.getRawMessageDelivery(), progress, logger))
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> validateCreateOnlyProperties(ResourceModel previousModel, ResourceModel currentModel, ProgressEvent<ResourceModel, CallbackContext> progress) {
+
+        String prevEndpoint = previousModel.getEndpoint();
+        String curEndpoint = currentModel.getEndpoint();
+
+        String prevProtocol = previousModel.getProtocol();
+        String curProtocol = currentModel.getProtocol();
+
+        String prevTopicArn = previousModel.getTopicArn();
+        String curTopicArn = currentModel.getTopicArn();
+
+        if (!arePropertiesEqual(prevEndpoint, curEndpoint)) {
+            throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, currentModel.getEndpoint());
+        } else if (!arePropertiesEqual(prevProtocol, curProtocol)) {
+            throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, currentModel.getProtocol());
+        } else if (!arePropertiesEqual(prevTopicArn, curTopicArn)) {
+            throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, currentModel.getTopicArn());
+        }
+
+        return progress;
+    }
+
+    private boolean arePropertiesEqual(String value1, String value2) {
+        return StringUtils.equals(value1, value2);
     }
 
     protected ProgressEvent<ResourceModel, CallbackContext> modifyRawMessageDelivery(
@@ -61,12 +73,13 @@ public class UpdateHandler extends BaseHandlerStd {
         ProgressEvent<ResourceModel, CallbackContext> progress,
         Logger logger) {
 
-        if (previousRawMessageDelivery == null || rawMessageDelivery.equals(previousRawMessageDelivery)) {
+        final Boolean desiredRawMessageDelivery = rawMessageDelivery != null ? rawMessageDelivery : Boolean.FALSE;
+        if (previousRawMessageDelivery == null || desiredRawMessageDelivery.equals(previousRawMessageDelivery)) {
             return progress;
         }
 
         return proxy.initiate("AWS-SNS-Subscription::RawMessageDelivery", proxyClient, model, progress.getCallbackContext())
-                .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousRawMessageDelivery, rawMessageDelivery))
+                .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousRawMessageDelivery, desiredRawMessageDelivery))
                 .makeServiceCall(this::updateSubscription)
                 .stabilize(this::stabilizeSnsSubscription)
                 .progress();
@@ -84,7 +97,7 @@ public class UpdateHandler extends BaseHandlerStd {
         ProgressEvent<ResourceModel, CallbackContext> progress,
         Logger logger) {
 
-        if (previousPolicy == null || desiredPolicy.equals(previousPolicy)) {
+        if (Objects.equals(desiredPolicy,previousPolicy)) {
             return progress;
         }
 
@@ -123,6 +136,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnInternalFailureException(e);
         }
 
+        logger.log(String.format("Subscription Arn %s is updated successfully", setSubscriptionAttributesRequest.subscriptionArn()));
         return setSubscriptionAttributesResponse;
     }
 }

@@ -73,6 +73,8 @@ public class CreateHandler extends BaseHandlerStd {
             throw new CfnAccessDeniedException(e);
         } catch (final InvalidSecurityException e) {
             throw new CfnInvalidCredentialsException(e);
+        }  catch (final Exception e) {
+            throw new CfnInternalFailureException(e);
         }
 
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));

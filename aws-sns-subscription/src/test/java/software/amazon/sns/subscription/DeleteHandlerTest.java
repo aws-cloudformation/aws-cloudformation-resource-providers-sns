@@ -1,34 +1,24 @@
 package software.amazon.sns.subscription;
 
-import java.time.Duration;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.exceptions.*;
-import software.amazon.awssdk.services.sns.*;
-import software.amazon.awssdk.services.sns.model.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.*;
+import software.amazon.cloudformation.proxy.*;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import java.util.HashMap;
-import java.util.Map;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest extends AbstractTestBase {
@@ -118,7 +108,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).unsubscribe(any(UnsubscribeRequest.class));
-        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test
