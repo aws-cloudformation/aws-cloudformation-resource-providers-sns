@@ -1,11 +1,14 @@
 package software.amazon.sns.subscription;
 
-import com.google.common.collect.Maps;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+
+import java.io.IOException;
+import java.util.Map;
 
 public final class SnsSubscriptionUtils {
 
@@ -16,7 +19,7 @@ public final class SnsSubscriptionUtils {
         if (jsonString != null) {
             try {
                 attribute = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-            } catch (JsonProcessingException e) {
+            } catch (Exception e) {
                 throw new CfnInvalidRequestException(e);
             }
         }
@@ -41,8 +44,6 @@ public final class SnsSubscriptionUtils {
     public static Map<String,String> getAttributesForUpdate(final SubscriptionAttribute subscriptionAttribute, final Map<String, Object> previousPolicy, final Map<String, Object> desiredPolicy) {
         final Map<String,String> attributeMap = Maps.newHashMap();
 
-        final ObjectMapper objectMapper = new ObjectMapper();
-
         putIfChanged(attributeMap, subscriptionAttribute, convertJsonObjectToString(previousPolicy), convertJsonObjectToString(desiredPolicy));
 
         return attributeMap;
@@ -51,7 +52,9 @@ public final class SnsSubscriptionUtils {
     public static Map<String,String> getAttributesForUpdate(final SubscriptionAttribute subscriptionAttribute, final Boolean previousValue, final Boolean desiredValue) {
         final Map<String,String> attributeMap = Maps.newHashMap();
 
-        putIfChanged(attributeMap, subscriptionAttribute, Boolean.toString(previousValue) != null ? Boolean.toString(previousValue) : "" , Boolean.toString(desiredValue) != null ? Boolean.toString(desiredValue) : "");
+        String previousVal = previousValue != null ? Boolean.toString(previousValue) : Boolean.FALSE.toString();
+        String currentVal = desiredValue != null ? Boolean.toString(desiredValue) : Boolean.FALSE.toString();
+        putIfChanged(attributeMap, subscriptionAttribute, previousVal , currentVal);
 
         return attributeMap;
     }
@@ -74,7 +77,9 @@ public final class SnsSubscriptionUtils {
     }
 
     private static void putIfChanged(final Map<String,String> map, final SubscriptionAttribute key, final String previousValue, final String currentValue) {
-        map.put(key.name(), currentValue);
+        if (!StringUtils.equals(previousValue, currentValue)) {
+            map.put(key.name(), currentValue);
+        }
     }
 
 }

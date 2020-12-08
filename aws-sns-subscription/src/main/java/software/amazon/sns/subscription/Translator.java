@@ -66,24 +66,18 @@ public class Translator {
 
   static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Map<String, Object> previousPolicy, final Map<String, Object> desiredPolicy) {
     Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousPolicy, desiredPolicy);
-    SetSubscriptionAttributesRequest setSubscriptionAttributesRequest;
     SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
 
-    mapAttributes.forEach((name, value) -> {
-      builder.attributeName(name).attributeValue(value);
-    });
+    mapAttributes.forEach((name, value) -> builder.attributeName(name).attributeValue(value));
 
     return builder.build();
   }
 
   static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Boolean previousValue, final Boolean desiredValue) {
     Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousValue, desiredValue);
-    SetSubscriptionAttributesRequest setSubscriptionAttributesRequest;
     SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
 
-    mapAttributes.forEach((name, value) -> {
-      builder.attributeName(name).attributeValue(value);
-    });
+    mapAttributes.forEach((name, value) -> builder.attributeName(name).attributeValue(value));
 
     return builder.build();
   }

@@ -71,11 +71,11 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     ProgressEvent<ResourceModel, CallbackContext> progress,
     Logger logger) {
 
-    return proxy.initiate("AWS-SNS-Subscription::CheckSubscriptionExists", proxyClient, model, progress.getCallbackContext())
+      logger.log(String.format("checking if subscription ARN %s exists ", model.getSubscriptionArn()));
+      return proxy.initiate("AWS-SNS-Subscription::CheckSubscriptionExists", proxyClient, model, progress.getCallbackContext())
             .translateToServiceRequest(Translator::translateToReadRequest)
             .makeServiceCall(this::readSubscriptionAttributes)
             .progress();
-
   }
 
   protected abstract ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -179,27 +179,4 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
           return true;
   }
-
-  protected boolean stabilizeOnDelete(
-    final AwsRequest awsRequest,
-    final Boolean awsResponse,
-    final ProxyClient<SnsClient> proxyClient,
-    final ResourceModel model,
-    final CallbackContext callbackContext) {
-
-    final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
-    try {
-      final GetSubscriptionAttributesRequest getSubscriptionAttributesRequest = GetSubscriptionAttributesRequest.builder()
-                                                                              .subscriptionArn(model.getSubscriptionArn())
-                                                                              .build();
-
-      getSubscriptionAttributesResponse = readSubscriptionAttributes(getSubscriptionAttributesRequest, proxyClient);
-
-    } catch (CfnNotFoundException e) {
-      return false;
-    }
-
-    return getSubscriptionAttributesResponse.hasAttributes();
-  }
-
 }

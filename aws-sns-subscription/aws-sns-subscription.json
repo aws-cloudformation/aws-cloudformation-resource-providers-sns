@@ -60,6 +60,7 @@
         "TopicArn"
     ],
     "createOnlyProperties": [
+        "/properties/Endpoint",
         "/properties/Protocol",
         "/properties/TopicArn"
     ],

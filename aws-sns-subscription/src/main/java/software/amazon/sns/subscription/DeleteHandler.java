@@ -1,28 +1,9 @@
 package software.amazon.sns.subscription;
 
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
-import software.amazon.awssdk.services.sns.model.FilterPolicyLimitExceededException;
-import software.amazon.awssdk.services.sns.model.InternalErrorException;
-import software.amazon.awssdk.services.sns.model.NotFoundException;
-import software.amazon.awssdk.services.sns.model.SubscriptionLimitExceededException;
-import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
-import software.amazon.awssdk.services.sns.model.UnsubscribeResponse;
-import software.amazon.awssdk.services.sns.model.InvalidParameterException;
-import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
-import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
-import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.*;
+import software.amazon.cloudformation.proxy.*;
 
 
 public class DeleteHandler extends BaseHandlerStd {
@@ -54,22 +35,18 @@ public class DeleteHandler extends BaseHandlerStd {
                     .then(process -> proxy.initiate("AWS-SNS-Subscription::Unsubscribe", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToDeleteRequest)
                         .makeServiceCall(this::deleteSubscription)
-                        .stabilize(this::stabilizeOnDelete)
-                        .done(awsResponse -> {return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                        .done(awsResponse -> ProgressEvent.<ResourceModel, CallbackContext>builder()
                             .status(OperationStatus.SUCCESS)
-                            .build(); }));
+                            .build()));
     }
 
     private Boolean deleteSubscription(
         final UnsubscribeRequest unsubscribeRequest,
         final ProxyClient<SnsClient> proxyClient) {
 
-        final UnsubscribeResponse unsubscribeResponse;
-
         try {
             logger.log(String.format("Deleting subscription for subscription arn: %s", unsubscribeRequest.subscriptionArn()));
-            unsubscribeResponse = proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
-
+            proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
         } catch (final SubscriptionLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (final FilterPolicyLimitExceededException e) {
@@ -84,8 +61,9 @@ public class DeleteHandler extends BaseHandlerStd {
             throw new CfnAccessDeniedException(e);
         } catch (final InvalidSecurityException e) {
             throw new CfnInvalidCredentialsException(e);
+        } catch (final Exception e) {
+            throw new CfnInternalFailureException(e);
         }
-
 
         logger.log(String.format("%s successfully deleted.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
         return true;
