@@ -17,47 +17,47 @@ public class DeleteHandler extends BaseHandlerStd {
     private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-        final AmazonWebServicesClientProxy proxy,
-        final ResourceHandlerRequest<ResourceModel> request,
-        final CallbackContext callbackContext,
-        final ProxyClient<SnsClient> proxyClient,
-        final Logger logger) {
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceHandlerRequest<ResourceModel> request,
+            final CallbackContext callbackContext,
+            final ProxyClient<SnsClient> proxyClient,
+            final Logger logger) {
 
         this.logger = logger;
 
         ResourceModel model = request.getDesiredResourceState();
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-            .then(progress ->
-                proxy.initiate("AWS-SNS-Topic::Delete::PreDeletionCheck", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToGetTopicAttributes)
-                    .makeServiceCall(this::getTopicAttributes)
-                    .progress()
-            )
-            .then(progress ->
-                proxy.initiate("AWS-SNS-Topic::Unsubscribe", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToListSubscriptionByTopic)
-                    .makeServiceCall((listSubscriptionsByTopicRequest, client) -> {
-                        ListSubscriptionsByTopicResponse response = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, client.client()::listSubscriptionsByTopic);
-                        List<String> arnList = Translator.streamOfOrEmpty(response.subscriptions())
-                                .map(Subscription::subscriptionArn)
-                                .collect(Collectors.toList());
-                        callbackContext.setSubscriptionArnToUnsubscribe(arnList);
-                        return response;
-                    })
-                    .progress()
+                .then(progress ->
+                        proxy.initiate("AWS-SNS-Topic::Delete::PreDeletionCheck", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToGetTopicAttributes)
+                                .makeServiceCall(this::getTopicAttributes)
+                                .progress()
+                )
+                .then(progress ->
+                        proxy.initiate("AWS-SNS-Topic::Unsubscribe", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToListSubscriptionByTopic)
+                                .makeServiceCall((listSubscriptionsByTopicRequest, client) -> {
+                                    ListSubscriptionsByTopicResponse response = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, client.client()::listSubscriptionsByTopic);
+                                    List<String> arnList = Translator.streamOfOrEmpty(response.subscriptions())
+                                            .map(Subscription::subscriptionArn)
+                                            .collect(Collectors.toList());
+                                    callbackContext.setSubscriptionArnToUnsubscribe(arnList);
+                                    return response;
+                                })
+                                .progress()
 
-            )
-            .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
-            .then(progress ->
-                proxy.initiate("AWS-SNS-Topic::Delete", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToDeleteTopic)
-                    .makeServiceCall((deleteTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(deleteTopicRequest, client.client()::deleteTopic))
-                    .done(awsResponse -> {
-                        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                                .status(OperationStatus.SUCCESS)
-                                .build();
-                    })
-            );
+                )
+                .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
+                .then(progress ->
+                        proxy.initiate("AWS-SNS-Topic::Delete", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDeleteTopic)
+                                .makeServiceCall((deleteTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(deleteTopicRequest, client.client()::deleteTopic))
+                                .done(awsResponse -> {
+                                    return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                                            .status(OperationStatus.SUCCESS)
+                                            .build();
+                                })
+                );
     }
 }

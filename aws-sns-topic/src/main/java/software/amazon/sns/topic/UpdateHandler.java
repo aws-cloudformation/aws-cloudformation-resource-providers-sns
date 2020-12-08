@@ -1,7 +1,7 @@
 package software.amazon.sns.topic;
 
 import com.google.common.collect.Sets;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -22,11 +22,11 @@ public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-        final AmazonWebServicesClientProxy proxy,
-        final ResourceHandlerRequest<ResourceModel> request,
-        final CallbackContext callbackContext,
-        final ProxyClient<SnsClient> proxyClient,
-        final Logger logger) {
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceHandlerRequest<ResourceModel> request,
+            final CallbackContext callbackContext,
+            final ProxyClient<SnsClient> proxyClient,
+            final Logger logger) {
 
         this.logger = logger;
 
@@ -40,44 +40,44 @@ public class UpdateHandler extends BaseHandlerStd {
         Set<Subscription> toUnsubscribe = Sets.difference(previousSubscription, desiredSubscription);
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-            .then(progress ->
-                proxy.initiate("AWS-SNS-Topic::Update::PreExistanceCheck", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToGetTopicAttributes)
-                    .makeServiceCall(this::getTopicAttributes)
-                    .progress()
-            )
-            .then(progress -> {
-                if(!StringUtils.equals(model.getDisplayName(), previousModel.getDisplayName())) {
-                    return proxy.initiate("AWS-SNS-Topic::Update::DisplayName", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.DISPLAY_NAME, m.getDisplayName()))
-                            .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
-                            .progress();
-                }
-                return progress;
-            })
-            .then(progress -> {
-                if(!StringUtils.equals(model.getKmsMasterKeyId(), previousModel.getKmsMasterKeyId())) {
-                    return proxy.initiate("AWS-SNS-Topic::Update::KMSKeyId", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.KMS_MASTER_KEY_ID, m.getKmsMasterKeyId()))
-                            .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
-                            .progress();
-                }
-                return progress;
-            })
-            .then(progress ->
-                proxy.initiate("AWS-SNS-Topic::Update::ListSubscriptionArn", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToListSubscriptionByTopic)
-                    .makeServiceCall((listSubscriptionsByTopicRequest, client) -> {
-                        ListSubscriptionsByTopicResponse response = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, client.client()::listSubscriptionsByTopic);
-                        List<String> unsubscriptionArnList = getUnsubscriptionArnList(response.subscriptions(), toUnsubscribe);
-                        callbackContext.setSubscriptionArnToUnsubscribe(unsubscriptionArnList);
-                        return response;
-                    })
-                    .progress()
-            )
-            .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
-            .then(progress -> addSubscription(proxy, proxyClient, progress, toSubscribe, logger))
-            .then(progress -> modifyTags(proxy, proxyClient, model, desiredResourceTags, previousModel.getTags(), progress, logger))
+                .then(progress ->
+                        proxy.initiate("AWS-SNS-Topic::Update::PreExistanceCheck", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToGetTopicAttributes)
+                                .makeServiceCall(this::getTopicAttributes)
+                                .progress()
+                )
+                .then(progress -> {
+                    if(!StringUtils.equals(model.getDisplayName(), previousModel.getDisplayName())) {
+                        return proxy.initiate("AWS-SNS-Topic::Update::DisplayName", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.DISPLAY_NAME, m.getDisplayName()))
+                                .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    if(!StringUtils.equals(model.getKmsMasterKeyId(), previousModel.getKmsMasterKeyId())) {
+                        return proxy.initiate("AWS-SNS-Topic::Update::KMSKeyId", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.KMS_MASTER_KEY_ID, m.getKmsMasterKeyId()))
+                                .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress ->
+                        proxy.initiate("AWS-SNS-Topic::Update::ListSubscriptionArn", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToListSubscriptionByTopic)
+                                .makeServiceCall((listSubscriptionsByTopicRequest, client) -> {
+                                    ListSubscriptionsByTopicResponse response = proxy.injectCredentialsAndInvokeV2(listSubscriptionsByTopicRequest, client.client()::listSubscriptionsByTopic);
+                                    List<String> unsubscriptionArnList = getUnsubscriptionArnList(response.subscriptions(), toUnsubscribe);
+                                    callbackContext.setSubscriptionArnToUnsubscribe(unsubscriptionArnList);
+                                    return response;
+                                })
+                                .progress()
+                )
+                .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
+                .then(progress -> addSubscription(proxy, proxyClient, progress, toSubscribe, logger))
+                .then(progress -> modifyTags(proxy, proxyClient, model, desiredResourceTags, previousModel.getTags(), progress, logger))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 

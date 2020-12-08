@@ -18,14 +18,16 @@ import software.amazon.awssdk.services.sns.model.TagResourceRequest;
 import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
 import software.amazon.awssdk.services.sns.model.UntagResourceRequest;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+/**
+ * This class is a centralized placeholder for
+ *  - api request construction
+ *  - object translation to/from aws sdk
+ *  - resource model construction for read/list handlers
+ */
 
 public class Translator {
 
@@ -69,18 +71,25 @@ public class Translator {
             .build();
   }
 
+  static GetTopicAttributesRequest translateToGetTopicAttributes(String awsPartition, String region, String accountId, String topicName) {
+    String topicArn = String.format("arn:%s:sns:%s:%s:%s", awsPartition, region, accountId, topicName);
+    return GetTopicAttributesRequest.builder()
+            .topicArn(topicArn)
+            .build();
+ }
+
   static List<ResourceModel> translateFromListTopicRequest(final ListTopicsResponse listTopicsResponse) {
     return streamOfOrEmpty(listTopicsResponse.topics())
-        .map(topic -> ResourceModel.builder()
-            .id(topic.topicArn())
-            .build())
-        .collect(Collectors.toList());
+            .map(topic -> ResourceModel.builder()
+                    .id(topic.topicArn())
+                    .build())
+            .collect(Collectors.toList());
   }
 
   static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
     return Optional.ofNullable(collection)
-        .map(Collection::stream)
-        .orElseGet(Stream::empty);
+            .map(Collection::stream)
+            .orElseGet(Stream::empty);
   }
 
   static ResourceModel translateFromGetTopicAttributes(GetTopicAttributesResponse getTopicAttributesResponse, ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse, ListTagsForResourceResponse listTagsForResourceResponse) {
@@ -166,7 +175,7 @@ public class Translator {
   }
 
   static <T> Set<T> nullIfEmpty(Set<T> set) {
-    return set != null && set.isEmpty() ? null : set;
+    return set != null && set.isEmpty() ? null : Objects.requireNonNull(set);
   }
 
   static String nullIfEmpty(String s) {

@@ -2,11 +2,8 @@ package software.amazon.sns.topic;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;

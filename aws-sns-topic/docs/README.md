@@ -14,7 +14,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#displayname" title="DisplayName">DisplayName</a>" : <i>String</i>,
         "<a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>" : <i>String</i>,
-        "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ <a href="subscription.md">Subscription</a>, ... ]</i>,
+        "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ [ <a href="subscription.md">Subscription</a>, ... ], ... ]</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#topicname" title="TopicName">TopicName</a>" : <i>String</i>,
     }

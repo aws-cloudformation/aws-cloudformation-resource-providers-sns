@@ -31,25 +31,25 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-    final AmazonWebServicesClientProxy proxy,
-    final ResourceHandlerRequest<ResourceModel> request,
-    final CallbackContext callbackContext,
-    final Logger logger) {
+          final AmazonWebServicesClientProxy proxy,
+          final ResourceHandlerRequest<ResourceModel> request,
+          final CallbackContext callbackContext,
+          final Logger logger) {
     return handleRequest(
-      proxy,
-      request,
-      callbackContext != null ? callbackContext : new CallbackContext(),
-      proxy.newProxy(ClientBuilder::getClient),
-      logger
+            proxy,
+            request,
+            callbackContext != null ? callbackContext : new CallbackContext(),
+            proxy.newProxy(ClientBuilder::getClient),
+            logger
     );
   }
 
   protected abstract ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-    final AmazonWebServicesClientProxy proxy,
-    final ResourceHandlerRequest<ResourceModel> request,
-    final CallbackContext callbackContext,
-    final ProxyClient<SnsClient> proxyClient,
-    final Logger logger);
+          final AmazonWebServicesClientProxy proxy,
+          final ResourceHandlerRequest<ResourceModel> request,
+          final CallbackContext callbackContext,
+          final ProxyClient<SnsClient> proxyClient,
+          final Logger logger);
 
   protected ProgressEvent<ResourceModel, CallbackContext> addSubscription(AmazonWebServicesClientProxy proxy, ProxyClient<SnsClient> client, ProgressEvent<ResourceModel, CallbackContext> progress, Set<Subscription> subscriptions, Logger logger) {
     final ResourceModel model = progress.getResourceModel();
