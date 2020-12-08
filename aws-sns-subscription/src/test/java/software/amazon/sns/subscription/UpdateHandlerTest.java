@@ -1,35 +1,26 @@
 package software.amazon.sns.subscription;
 
-import java.time.Duration;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.exceptions.*;
-import software.amazon.awssdk.services.sns.*;
-import software.amazon.awssdk.services.sns.model.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.*;
+import software.amazon.cloudformation.proxy.*;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import java.util.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -154,7 +145,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
-        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);//.thenReturn(getSubscriptionResponse);
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);
 
         // only raw message deivery should be different
         ResourceModel currentModel = buildCurrentObjects();
@@ -182,7 +173,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(4)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test
@@ -230,7 +221,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(2)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(3)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
 
@@ -277,15 +268,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(3)).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(5)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(6)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
-        final Map<String, String> topicAttributes = new HashMap<>();
-
-      //  final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
@@ -294,7 +282,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
@@ -319,7 +307,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
@@ -354,7 +342,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -387,7 +375,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -420,7 +408,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -453,7 +441,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnAccessDeniedException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -486,7 +474,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnInternalFailureException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -519,7 +507,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -552,7 +540,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnInvalidCredentialsException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnInvalidCredentialsException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -582,7 +570,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -612,7 +600,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                  .previousResourceState(currentModel)
                                                                  .build();
 
-          assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+          assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -641,7 +629,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -671,7 +659,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnAccessDeniedException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -700,7 +688,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnInternalFailureException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -729,7 +717,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -758,7 +746,58 @@ public class UpdateHandlerTest extends AbstractTestBase {
                                                                 .previousResourceState(currentModel)
                                                                 .build();
 
-         assertThrows(CfnInvalidCredentialsException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+         assertThrows(CfnInvalidCredentialsException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
+    }
+
+    @Test
+    public void handleRequest_UpdateSubscriptionRoleArnAttribute() throws JsonProcessingException {
+        final UpdateHandler handler = new UpdateHandler();
+
+        final Map<String, String> topicAttributes = new HashMap<>();
+        topicAttributes.put("TopicArn","topicarn");
+
+        Map<String, String> subscriptionAttributes = new HashMap<>();
+        subscriptionAttributes.put("SubscriptionArn", "arn");
+        subscriptionAttributes.put("TopicArn", "topicArn");
+        subscriptionAttributes.put("Protocol", "email");
+        subscriptionAttributes.put("Endpoint", "end");
+        subscriptionAttributes.put("SubscriptionRoleArn", "New-Subscription-Role-Arn");
+
+
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+
+        final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(subscriptionAttributes).build();
+        when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);//.thenReturn(getSubscriptionResponse);
+
+        // only subscription role arn should be different
+        ResourceModel currentModel = buildCurrentObjects();
+        currentModel.setSubscriptionRoleArn("Subscription-Role-Arn");
+        ResourceModel desiredModel = buildCurrentObjects();
+        desiredModel.setSubscriptionRoleArn("New-Subscription-Role-Arn");
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(desiredModel)
+                .previousResourceState(currentModel)
+                .build();
+
+        final SetSubscriptionAttributesResponse setSubscriptionAttributesResponse = SetSubscriptionAttributesResponse.builder().build();
+        when(proxyClient.client().setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class))).thenReturn(setSubscriptionAttributesResponse);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isNotNull();
+        assertThat(response.getResourceModel().getSubscriptionRoleArn()).isEqualTo("New-Subscription-Role-Arn");
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).setSubscriptionAttributes(any(SetSubscriptionAttributesRequest.class));
+        verify(proxyClient.client(), times(4)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
     }
 }

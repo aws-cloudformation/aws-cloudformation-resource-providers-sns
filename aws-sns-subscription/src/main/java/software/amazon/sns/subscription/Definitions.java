@@ -11,4 +11,5 @@ public  class Definitions {
     public static String subscriptionArn = "SubscriptionArn";
     public static String pendingConfirmation = "PendingConfirmation";
     public static String subscriptionNotPending = "false";
+    public static String subscriptionRoleArn = "SubscriptionRoleArn";
 }

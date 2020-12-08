@@ -80,7 +80,8 @@
                         "sms",
                         "sqs",
                         "application",
-                        "lambda"
+                        "lambda",
+                        "firehose"
                     ]
                 }
             },

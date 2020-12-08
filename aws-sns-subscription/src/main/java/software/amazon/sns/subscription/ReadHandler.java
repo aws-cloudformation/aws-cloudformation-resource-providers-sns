@@ -2,12 +2,8 @@ package software.amazon.sns.subscription;
 
 
 import software.amazon.awssdk.services.sns.SnsClient;
-
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesRequest;
+import software.amazon.cloudformation.proxy.*;
 
 
 public class ReadHandler extends BaseHandlerStd {
@@ -26,14 +22,20 @@ public class ReadHandler extends BaseHandlerStd {
         logger.log("subscription arn: " + model.getSubscriptionArn());
 
         return ProgressEvent.progress(model, callbackContext)
-             .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
-             .then(progress ->
-                 proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, model, callbackContext)
-                 .translateToServiceRequest(Translator::translateToReadRequest)
-                 .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
-                    return readSubscriptionAttributes(getSubscriptionAttributesRequest, proxyClient);
-                })
+            .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
+            .then(progress -> preliminaryGetSubscriptionCheck(Translator.translateToReadRequest(model), proxyClient, progress))
+            .then(progress ->
+                    proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, model, callbackContext)
+                        .translateToServiceRequest(Translator::translateToReadRequest)
+                        .makeServiceCall((getSubscriptionAttributesRequest, client) -> readSubscriptionAttributes(getSubscriptionAttributesRequest, proxyClient))
             .done(getSubscriptionAttributesResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(getSubscriptionAttributesResponse))));
     }
 
+    private ProgressEvent<ResourceModel, CallbackContext> preliminaryGetSubscriptionCheck(
+            GetSubscriptionAttributesRequest getSubscriptionAttributesRequest,
+            ProxyClient<SnsClient> proxyClient,
+            ProgressEvent<ResourceModel, CallbackContext> progress)  {
+        readSubscriptionAttributes(getSubscriptionAttributesRequest, proxyClient);
+        return progress;
+    }
 }

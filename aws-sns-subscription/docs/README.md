@@ -18,6 +18,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#protocol" title="Protocol">Protocol</a>" : <i>String</i>,
         "<a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>" : <i>Boolean</i>,
         "<a href="#region" title="Region">Region</a>" : <i>String</i>,
+        "<a href="#subscriptionrolearn" title="SubscriptionRoleArn">SubscriptionRoleArn</a>" : <i>String</i>,
         "<a href="#topicarn" title="TopicArn">TopicArn</a>" : <i>String</i>,
         "<a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>" : <i>Map</i>,
         "<a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>" : <i>Map</i>
@@ -36,6 +37,7 @@ Properties:
     <a href="#protocol" title="Protocol">Protocol</a>: <i>String</i>
     <a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>: <i>Boolean</i>
     <a href="#region" title="Region">Region</a>: <i>String</i>
+    <a href="#subscriptionrolearn" title="SubscriptionRoleArn">SubscriptionRoleArn</a>: <i>String</i>
     <a href="#topicarn" title="TopicArn">TopicArn</a>: <i>String</i>
     <a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>: <i>Map</i>
     <a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>: <i>Map</i>
@@ -96,6 +98,16 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### Region
 
 For cross-region subscriptions, the region in which the topic resides. If no region is specified, CloudFormation uses the region of the caller as the default.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SubscriptionRoleArn
+
+The ARN of the IAM role that has the permission to write to the Amazon Kinesis Data Firehose delivery stream and has Amazon SNS listed as a trusted entity.
 
 _Required_: No
 

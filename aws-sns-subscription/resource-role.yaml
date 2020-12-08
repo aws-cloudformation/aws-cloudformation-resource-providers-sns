@@ -23,6 +23,12 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                - "iam:DeleteRolePolicy"
+                - "iam:DetachRolePolicy"
+                - "iam:GetRole"
+                - "iam:PassRole"
+                - "iam:PutRolePolicy"
+                - "iam:UpdateRole"
                 - "sns:GetSubscriptionAttributes"
                 - "sns:GetTopicAttributes"
                 - "sns:ListSubscriptionsByTopic"

@@ -1,13 +1,6 @@
 package software.amazon.sns.subscription;
 
-import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesRequest;
-import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesResponse;
-import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
-import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicRequest;
-import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
-import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesRequest;
-import software.amazon.awssdk.services.sns.model.SubscribeRequest;
-import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
+import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.Collection;
@@ -49,6 +42,7 @@ public class Translator {
                             .redrivePolicy(attributes.get(Definitions.redrivePolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.redrivePolicy)) : null)
                             .deliveryPolicy(attributes.get(Definitions.deliveryPolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.deliveryPolicy)) : null)
                             .rawMessageDelivery(rawMessageDelivery)
+                            .subscriptionRoleArn(attributes.get(Definitions.subscriptionRoleArn))
                             .build();
   }
 
@@ -67,19 +61,22 @@ public class Translator {
   static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Map<String, Object> previousPolicy, final Map<String, Object> desiredPolicy) {
     Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousPolicy, desiredPolicy);
     SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
-
     mapAttributes.forEach((name, value) -> builder.attributeName(name).attributeValue(value));
+    return builder.build();
+  }
 
+  static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final String previousValue, final String desiredValue) {
+    Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousValue, desiredValue);
+    SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
+    mapAttributes.forEach((name, value) -> builder.attributeName(name).attributeValue(value));
     return builder.build();
   }
 
   static SetSubscriptionAttributesRequest translateToUpdateRequest(final SubscriptionAttribute subscriptionAttribute, final ResourceModel currentModel, final Boolean previousValue, final Boolean desiredValue) {
-    Map<String, String> mapAttributes = SnsSubscriptionUtils.getAttributesForUpdate(subscriptionAttribute, previousValue, desiredValue);
-    SetSubscriptionAttributesRequest.Builder builder = SetSubscriptionAttributesRequest.builder().subscriptionArn(currentModel.getSubscriptionArn());
+    final String previousVal = Boolean.valueOf(String.valueOf(previousValue)).toString();
+    final String currentVal = Boolean.valueOf(String.valueOf(desiredValue)).toString();
 
-    mapAttributes.forEach((name, value) -> builder.attributeName(name).attributeValue(value));
-
-    return builder.build();
+    return translateToUpdateRequest(subscriptionAttribute, currentModel, previousVal, currentVal);
   }
 
   private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
@@ -101,7 +98,4 @@ public class Translator {
               .topicArn(request.getDesiredResourceState().getTopicArn())
               .build();
   }
-
-
-
 }

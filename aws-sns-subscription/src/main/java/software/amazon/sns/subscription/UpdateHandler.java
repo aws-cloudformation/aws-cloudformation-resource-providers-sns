@@ -1,4 +1,3 @@
-
 package software.amazon.sns.subscription;
 
 
@@ -34,7 +33,29 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getDeliveryPolicy(), currentModel, SubscriptionAttribute.DeliveryPolicy,previousModel.getDeliveryPolicy(), progress, logger))
             .then(progress -> modifyPolicy(proxy, proxyClient, currentModel.getRedrivePolicy(), currentModel, SubscriptionAttribute.RedrivePolicy,previousModel.getRedrivePolicy(), progress, logger))
             .then(progress -> modifyRawMessageDelivery(proxy, proxyClient, currentModel.getRawMessageDelivery(), currentModel, SubscriptionAttribute.RawMessageDelivery,previousModel.getRawMessageDelivery(), progress, logger))
+            .then(progress -> modifySubscriptionRoleArn(proxy, proxyClient, currentModel.getSubscriptionRoleArn(), currentModel, SubscriptionAttribute.SubscriptionRoleArn, previousModel.getSubscriptionRoleArn(), progress, logger))
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> modifySubscriptionRoleArn(
+            AmazonWebServicesClientProxy proxy,
+            ProxyClient<SnsClient> proxyClient,
+            String desiredSubscriptionRoleArn,
+            ResourceModel currentModel,
+            SubscriptionAttribute subscriptionAttribute,
+            String previousSubscriptionRoleArn,
+            ProgressEvent<ResourceModel, CallbackContext> progress,
+            Logger logger) {
+
+        if (StringUtils.equals(desiredSubscriptionRoleArn, previousSubscriptionRoleArn)) {
+            return progress;
+        }
+
+        return proxy.initiate("AWS-SNS-Subscription::SubscriptionRoleArn", proxyClient, currentModel, progress.getCallbackContext())
+                .translateToServiceRequest((resouceModel) -> Translator.translateToUpdateRequest(subscriptionAttribute, resouceModel, previousSubscriptionRoleArn, desiredSubscriptionRoleArn))
+                .makeServiceCall(this::updateSubscription)
+                .stabilize(this::stabilizeSnsSubscription)
+                .progress();
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> validateCreateOnlyProperties(ResourceModel previousModel, ResourceModel currentModel, ProgressEvent<ResourceModel, CallbackContext> progress) {
