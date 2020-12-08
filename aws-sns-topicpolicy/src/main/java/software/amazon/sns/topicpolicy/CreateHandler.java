@@ -45,17 +45,11 @@ public class CreateHandler extends BaseHandlerStd {
      * Invocation of initCallbackContextAndPrimaryIdentifier generates primary identifier, initializes the context &
      * stores topics in it.
      *
-     * @param proxy
-     *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
-     * @param client
-     *            the aws service client {@link ProxyClient<SnsClient>} to make the call
      * @param request
-     *            {@link ResourceHandlerRequest<ResourceModel>}
+     *            {@link ResourceHandlerRequest}
      * @param callbackContext
      *            {@link CallbackContext}
-     * @param progress
-     *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
-     * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
+     * @return {@link ProgressEvent}
      */
 
     private ProgressEvent<ResourceModel, CallbackContext> initCallbackContextAndPrimaryIdentifier(

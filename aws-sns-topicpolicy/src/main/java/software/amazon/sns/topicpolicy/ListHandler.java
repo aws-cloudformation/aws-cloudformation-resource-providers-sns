@@ -16,12 +16,12 @@ public class ListHandler extends BaseHandler<CallbackContext> {
      * @param proxy
      *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
      * @param request
-     *            {@link ResourceHandlerRequest<ResourceModel>}
+     *            {@link ResourceHandlerRequest}
      * @param callbackContext
      *            {@link CallbackContext}
      * @param logger
      *            {@link Logger}
-     * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
+     * @return {@link ProgressEvent}
      */
 
     @Override

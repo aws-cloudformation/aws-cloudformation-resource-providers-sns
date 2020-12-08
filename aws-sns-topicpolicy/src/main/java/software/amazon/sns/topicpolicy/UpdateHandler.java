@@ -3,8 +3,6 @@ package software.amazon.sns.topicpolicy;
 import java.util.List;
 
 import com.amazonaws.util.StringUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -54,7 +52,7 @@ public class UpdateHandler extends BaseHandlerStd {
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
-     * @param client
+     * @param proxyClient
      *            the aws service client {@link ProxyClient<SnsClient>} to make the call
      * @param request
      *            {@link ResourceHandlerRequest<ResourceModel>}
