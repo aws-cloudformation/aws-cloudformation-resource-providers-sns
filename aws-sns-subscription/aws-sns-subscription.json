@@ -30,7 +30,8 @@
                 "sms",
                 "sqs",
                 "Endpoint Arn for mobile app and device",
-                "lambda"
+                "lambda",
+                "firehose"
             ]
         },
         "RawMessageDelivery": {
@@ -39,6 +40,10 @@
         },
         "Region": {
             "description": "For cross-region subscriptions, the region in which the topic resides. If no region is specified, CloudFormation uses the region of the caller as the default.",
+            "type": "string"
+        },
+        "SubscriptionRoleArn": {
+            "description": "The ARN of the IAM role that has the permission to write to the Amazon Kinesis Data Firehose delivery stream and has Amazon SNS listed as a trusted entity.",
             "type": "string"
         },
         "TopicArn": {
@@ -75,7 +80,10 @@
             "permissions": [
                 "sns:Subscribe",
                 "sns:GetSubscriptionAttributes",
-                "sns:GetTopicAttributes"
+                "sns:GetTopicAttributes",
+                "iam:GetRole",
+                "iam:PassRole",
+                "iam:PutRolePolicy"
             ]
         },
         "read": {
@@ -88,14 +96,20 @@
             "permissions": [
                 "sns:SetSubscriptionAttributes",
                 "sns:GetSubscriptionAttributes",
-                "sns:GetTopicAttributes"
+                "sns:GetTopicAttributes",
+                "iam:GetRole",
+                "iam:PassRole",
+                "iam:PutRolePolicy",
+                "iam:UpdateRole"
             ]
         },
         "delete": {
             "permissions": [
                 "sns:GetSubscriptionAttributes",
                 "sns:GetTopicAttributes",
-                "sns:Unsubscribe"
+                "sns:Unsubscribe",
+                "iam:DeleteRolePolicy",
+                "iam:DetachRolePolicy"
             ]
         },
         "list": {

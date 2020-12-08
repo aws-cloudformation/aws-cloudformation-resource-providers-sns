@@ -91,10 +91,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse;
 
     try {
-      getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
-      if (!getSubscriptionAttributesResponse.hasAttributes()) {
-        throw new CfnNotFoundException(new Exception(String.format("Subscription %s does not exist.", getSubscriptionAttributesRequest.subscriptionArn())));
-      }
+        if (getSubscriptionAttributesRequest.subscriptionArn() == null) {
+            throw new CfnNotFoundException(new Exception("Subscription is null"));
+        }
+
+        getSubscriptionAttributesResponse = proxyClient.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, proxyClient.client()::getSubscriptionAttributes);
+        if (!getSubscriptionAttributesResponse.hasAttributes()) {
+            throw new CfnNotFoundException(new Exception(String.format("Subscription %s does not exist.", getSubscriptionAttributesRequest.subscriptionArn())));
+        }
     } catch (final SubscriptionLimitExceededException e) {
         throw new CfnServiceLimitExceededException(e);
     } catch (final FilterPolicyLimitExceededException e) {

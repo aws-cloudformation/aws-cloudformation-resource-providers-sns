@@ -7,7 +7,6 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 
-import java.io.IOException;
 import java.util.Map;
 
 public final class SnsSubscriptionUtils {
@@ -42,20 +41,12 @@ public final class SnsSubscriptionUtils {
     }
 
     public static Map<String,String> getAttributesForUpdate(final SubscriptionAttribute subscriptionAttribute, final Map<String, Object> previousPolicy, final Map<String, Object> desiredPolicy) {
-        final Map<String,String> attributeMap = Maps.newHashMap();
-
-        putIfChanged(attributeMap, subscriptionAttribute, convertJsonObjectToString(previousPolicy), convertJsonObjectToString(desiredPolicy));
-
-        return attributeMap;
+        return getAttributesForUpdate(subscriptionAttribute, convertJsonObjectToString(previousPolicy), convertJsonObjectToString(desiredPolicy));
     }
 
-    public static Map<String,String> getAttributesForUpdate(final SubscriptionAttribute subscriptionAttribute, final Boolean previousValue, final Boolean desiredValue) {
+    public static Map<String, String> getAttributesForUpdate(SubscriptionAttribute subscriptionAttribute, String previousValue, String desiredValue) {
         final Map<String,String> attributeMap = Maps.newHashMap();
-
-        String previousVal = previousValue != null ? Boolean.toString(previousValue) : Boolean.FALSE.toString();
-        String currentVal = desiredValue != null ? Boolean.toString(desiredValue) : Boolean.FALSE.toString();
-        putIfChanged(attributeMap, subscriptionAttribute, previousVal , currentVal);
-
+        putIfChanged(attributeMap, subscriptionAttribute, previousValue , desiredValue);
         return attributeMap;
     }
 
@@ -66,12 +57,13 @@ public final class SnsSubscriptionUtils {
         putIfNotEmpty(attributeMap, SubscriptionAttribute.FilterPolicy,  convertJsonObjectToString(currentmodel.getFilterPolicy()));
         putIfNotEmpty(attributeMap, SubscriptionAttribute.RawMessageDelivery, currentmodel.getRawMessageDelivery() != null ? Boolean.toString(currentmodel.getRawMessageDelivery()) : "");
         putIfNotEmpty(attributeMap, SubscriptionAttribute.RedrivePolicy,  convertJsonObjectToString(currentmodel.getRedrivePolicy()));
+        putIfNotEmpty(attributeMap, SubscriptionAttribute.SubscriptionRoleArn,  currentmodel.getSubscriptionRoleArn());
 
         return attributeMap;
     }
 
     private static void putIfNotEmpty(final Map<String,String> attributeMap, final SubscriptionAttribute key, final String val) {
-        if (!val.isEmpty()) {
+        if (!StringUtils.isEmpty(val)) {
             attributeMap.put(key.name(), val);
         }
     }

@@ -4,5 +4,6 @@ public enum SubscriptionAttribute {
     DeliveryPolicy,
     FilterPolicy,
     RawMessageDelivery,
-    RedrivePolicy
+    RedrivePolicy,
+    SubscriptionRoleArn
 }
