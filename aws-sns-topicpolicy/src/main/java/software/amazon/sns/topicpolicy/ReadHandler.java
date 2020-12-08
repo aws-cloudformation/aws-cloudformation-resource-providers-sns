@@ -16,14 +16,14 @@ public class ReadHandler extends BaseHandlerStd {
      * @param proxy
      *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
      * @param request
-     *            {@link ResourceHandlerRequest<ResourceModel>}
+     *            {@link ResourceHandlerRequest}
      * @param callbackContext
      *            {@link CallbackContext}
      * @param proxyClient
-     *            the aws service client {@link ProxyClient<SnsClient>} to make the call
+     *            the aws service client {@link ProxyClient} to make the call
      * @param logger
      *            {@link Logger}
-     * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
+     * @return {@link ProgressEvent}
      */
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(

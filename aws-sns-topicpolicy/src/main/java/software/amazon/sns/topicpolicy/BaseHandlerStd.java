@@ -58,15 +58,19 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
-     * @param client
-     *            the aws service client {@link ProxyClient<SnsClient>} to make the call
+     * @param proxyClient
+     *            the aws service client {@link ProxyClient} to make the call
      * @param request
-     *            {@link ResourceHandlerRequest<ResourceModel>}
+     *            {@link ResourceHandlerRequest}
      * @param progress
-     *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
+     *            {@link ProgressEvent} to place hold the current progress data
+     * @param action
+     *             Action Performed by the Resource Handler (CREATE / UPDATE)
      * @param handler
      *            The handler invoking doCreate
-     * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
+     * @param logger
+     *             {@link Logger}
+     * @return {@link ProgressEvent}
      */
     protected ProgressEvent<ResourceModel, CallbackContext> doCreate(
             final AmazonWebServicesClientProxy proxy,
@@ -99,15 +103,21 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
-     * @param client
-     *            the aws service client {@link ProxyClient<SnsClient>} to make the call
+     * @param proxyClient
+     *            the aws service client {@link ProxyClient} to make the call
      * @param request
-     *            {@link ResourceHandlerRequest<ResourceModel>}
+     *            {@link ResourceHandlerRequest}
      * @param progress
-     *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
+     *            {@link ProgressEvent} to place hold the current progress data
+     * @param topics
+     *             Topics to be deleted by the resource handler
+     * @param action
+     *             Action performed by the resource hanlder: DELETE
      * @param handler
      *            The handler invoking handleDelete
-     * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
+     * @param logger
+     *             {@link Logger}
+     * @return {@link ProgressEvent}
      */
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleDelete(
@@ -142,8 +152,12 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      *
      * @param setTopicAttributesRequest
      *            {@link SetTopicAttributesRequest}
-     * @param client
-     *            the aws service client {@link ProxyClient<SnsClient>} to make the call
+     * @param proxyClient
+     *            the aws service client {@link ProxyClient} to make the call
+     * @param action
+     *             Action performed by the resource hanlder
+     * @param logger
+     *             {@link Logger}
      * @return {@link SetTopicAttributesResponse}
      */
 
