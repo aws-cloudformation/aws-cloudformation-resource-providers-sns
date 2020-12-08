@@ -27,9 +27,9 @@ public class ListHandler extends BaseHandlerStd {
         final List<ResourceModel> models = Translator.translateFromListTopicRequest(listTopicsResponse);
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
-            .resourceModels(models)
-            .nextToken(listTopicsResponse.nextToken())
-            .status(OperationStatus.SUCCESS)
-            .build();
+                .resourceModels(models)
+                .nextToken(listTopicsResponse.nextToken())
+                .status(OperationStatus.SUCCESS)
+                .build();
     }
 }
