@@ -39,7 +39,7 @@ Properties:
 
 #### DisplayName
 
-The display name to use for an Amazon SNS topic with SNS subscriptions.
+The display name to use for an Amazon SNS topic with SMS subscriptions.
 
 _Required_: No
 
@@ -49,7 +49,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### KmsMasterKeyId
 
-The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK
+The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK.
 
 _Required_: No
 
@@ -68,6 +68,8 @@ _Type_: List of <a href="subscription.md">Subscription</a>
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Tags
+
+The list of tags to add to a new topic.
 
 _Required_: No
 
@@ -105,6 +107,6 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### TopicName
+#### Id
 
-Returns the <code>TopicName</code> value.
+Returns the <code>Id</code> value.
