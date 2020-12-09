@@ -1,4 +1,4 @@
-## aws-cloudformation-resource-providers-sns
+## AWS Cloudformation Resource Providers SNS
 
 The CloudFormation Resource Provider Package For AWS Simple Notification Service
 
