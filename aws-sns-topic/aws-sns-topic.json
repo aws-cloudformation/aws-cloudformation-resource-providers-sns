@@ -5,11 +5,11 @@
     "additionalProperties": false,
     "properties": {
         "DisplayName": {
-            "description": "The display name to use for an Amazon SNS topic with SNS subscriptions.",
+            "description": "The display name to use for an Amazon SNS topic with SMS subscriptions.",
             "type": "string"
         },
         "KmsMasterKeyId": {
-            "description": "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK",
+            "description": "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK.",
             "type": "string"
         },
         "Subscription": {
@@ -22,6 +22,7 @@
             }
         },
         "Tags": {
+            "description": "The list of tags to add to a new topic.",
             "type": "array",
             "uniqueItems": true,
             "insertionOrder": false,
@@ -30,7 +31,7 @@
             }
         },
         "TopicName": {
-            "description": "The name of the topic",
+            "description": "he name of the topic you want to create. Topic names must include only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256 characters long.",
             "type": "string",
             "minLength": 1,
             "maxLength": 256,
@@ -91,6 +92,11 @@
             ]
         }
     },
+    "additionalIdentifiers": [
+        [
+            "/properties/TopicName"
+        ]
+    ],
     "createOnlyProperties": [
         "/properties/TopicName"
     ],
