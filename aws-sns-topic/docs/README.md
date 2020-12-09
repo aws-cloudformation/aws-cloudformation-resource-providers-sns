@@ -39,7 +39,7 @@ Properties:
 
 #### DisplayName
 
-The display name to use for an Amazon SNS topic with SNS subscriptions.
+The display name to use for an Amazon SNS topic with SMS subscriptions.
 
 _Required_: No
 
@@ -49,7 +49,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### KmsMasterKeyId
 
-The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK
+The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK.
 
 _Required_: No
 
@@ -68,6 +68,8 @@ _Type_: List of <a href="subscription.md">Subscription</a>
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Tags
+
+The list of tags to add to a new topic.
 
 _Required_: No
 
@@ -95,7 +97,9 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 ### Ref
 
-When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the Id.
+When you pass the logical ID of this resource to the intrinsic Ref function, Ref returns the topic ARN, for example: `arn:aws:sns:us-east-1:123456789012:mystack-mytopic-NZJ5JSMVGFIE`.
+
+For more information about using the Ref function, see [Ref](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-ref.html).
 
 ### Fn::GetAtt
 
