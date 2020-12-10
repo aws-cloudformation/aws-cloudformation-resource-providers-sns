@@ -99,6 +99,60 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_SimpleSuccess_FifoTopic() {
+        String fifoTopicName = "sns-topic-name.fifo";
+        String fifoTopicArn = "arn:aws:sns:us-east-1:123456789012:" + fifoTopicName;
+
+        final ResourceModel model = ResourceModel.builder()
+                .fifoTopic(true)
+                .contentBasedDeduplication(true)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), fifoTopicArn);
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class)))
+                .thenThrow(NotFoundException.builder().message("no topic found").build())
+                .thenReturn(getTopicAttributesResponse);
+
+        final CreateTopicResponse createTopicResponse = CreateTopicResponse.builder()
+                .topicArn(fifoTopicArn)
+                .build();
+        when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
+
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .logicalResourceIdentifier("SnsTopic")
+                .clientRequestToken("dummy-token")
+                .region("us-east-1")
+                .awsAccountId("1234567890")
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getTopicName()).isEqualTo(fifoTopicName);
+        assertThat(response.getResourceModel().getId()).isEqualTo(fifoTopicArn);
+
+        verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+    }
+
+    @Test
     public void handleRequest_SimpleSuccess_WithAttributes() {
         final ResourceModel model = ResourceModel.builder()
                 .displayName("sns-topic")

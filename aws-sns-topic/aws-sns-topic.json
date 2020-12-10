@@ -9,7 +9,7 @@
             "type": "string"
         },
         "KmsMasterKeyId": {
-            "description": "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK.",
+            "description": "The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK. For more information, see Key Terms. For more examples, see KeyId in the AWS Key Management Service API Reference.\n\nThis property applies only to [server-side-encryption](https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html).",
             "type": "string"
         },
         "Subscription": {
@@ -21,8 +21,15 @@
                 "$ref": "#/definitions/Subscription"
             }
         },
+        "FifoTopic": {
+            "description": "Set to true to create a FIFO topic.",
+            "type": "boolean"
+        },
+        "ContentBasedDeduplication": {
+            "description": "Enables content-based deduplication for FIFO topics. By default, ContentBasedDeduplication is set to false. If you create a FIFO topic and this attribute is false, you must specify a value for the MessageDeduplicationId parameter for the Publish action.\n\nWhen you set ContentBasedDeduplication to true, Amazon SNS uses a SHA-256 hash to generate the MessageDeduplicationId using the body of the message (but not the attributes of the message).\n\n(Optional) To override the generated value, you can specify a value for the the MessageDeduplicationId parameter for the Publish action.\n\n",
+            "type": "boolean"
+        },
         "Tags": {
-            "description": "The list of tags to add to a new topic.",
             "type": "array",
             "uniqueItems": true,
             "insertionOrder": false,
@@ -31,11 +38,10 @@
             }
         },
         "TopicName": {
-            "description": "The name of the topic you want to create. Topic names must include only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256 characters long.",
+            "description": "The name of the topic",
             "type": "string",
             "minLength": 1,
-            "maxLength": 256,
-            "pattern": "^[a-zA-Z0-9_-]{1,256}$"
+            "maxLength": 256
         },
         "Id": {
             "type": "string"
@@ -81,8 +87,7 @@
                         "sms",
                         "sqs",
                         "application",
-                        "lambda",
-                        "firehose"
+                        "lambda"
                     ]
                 }
             },
@@ -93,7 +98,8 @@
         }
     },
     "createOnlyProperties": [
-        "/properties/TopicName"
+        "/properties/TopicName",
+        "/properties/FifoTopic"
     ],
     "primaryIdentifier": [
         "/properties/Id"

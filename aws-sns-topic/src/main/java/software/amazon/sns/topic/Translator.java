@@ -34,10 +34,10 @@ public class Translator {
   static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model, Map<String, String> desiredResourceTags) {
     Map<String, String> attributes = new HashMap<>();
 
-    if(model.getDisplayName() != null)
-      attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), model.getDisplayName());
-    if(model.getKmsMasterKeyId() != null)
-      attributes.put(TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
+    putIfNotNull(attributes, TopicAttributeName.DISPLAY_NAME.toString(), model.getDisplayName());
+    putIfNotNull(attributes, TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
+    putIfNotNull(attributes, TopicAttributeName.FIFO_TOPIC.toString(), model.getFifoTopic());
+    putIfNotNull(attributes, TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), model.getContentBasedDeduplication());
 
     final Set<Tag> tags = convertResourceTagsToSet(desiredResourceTags);
     return CreateTopicRequest.builder()
@@ -188,5 +188,11 @@ public class Translator {
       resourceTags.forEach((key, value) -> tags.add(Tag.builder().key(key).value(value).build()));
     }
     return tags;
+  }
+
+  private static <V> void putIfNotNull(Map<String, String> attributeMap, String key, V value) {
+      if (value != null) {
+          attributeMap.put(key, value.toString());
+      }
   }
 }
