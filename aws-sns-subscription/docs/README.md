@@ -14,7 +14,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>" : <i>Map</i>,
         "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i>String</i>,
-        "<a href="#owner" title="Owner">Owner</a>" : <i>String</i>,
         "<a href="#protocol" title="Protocol">Protocol</a>" : <i>String</i>,
         "<a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>" : <i>Boolean</i>,
         "<a href="#region" title="Region">Region</a>" : <i>String</i>,
@@ -33,7 +32,6 @@ Type: AWS::SNS::Subscription
 Properties:
     <a href="#deliverypolicy" title="DeliveryPolicy">DeliveryPolicy</a>: <i>Map</i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i>String</i>
-    <a href="#owner" title="Owner">Owner</a>: <i>String</i>
     <a href="#protocol" title="Protocol">Protocol</a>: <i>String</i>
     <a href="#rawmessagedelivery" title="RawMessageDelivery">RawMessageDelivery</a>: <i>Boolean</i>
     <a href="#region" title="Region">Region</a>: <i>String</i>
@@ -47,7 +45,7 @@ Properties:
 
 #### DeliveryPolicy
 
-The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic.
+The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic. For more information, see [GetSubscriptionAttributes](https://docs.aws.amazon.com/sns/latest/api/API_GetSubscriptionAttributes.html) in the <i>Amazon Simple Notification Service API Reference</i> and [Message Delivery Retries](https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html) in the <i>Amazon SNS Developer Guide</i>.
 
 _Required_: No
 
@@ -57,7 +55,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### Endpoint
 
-The subscription's endpoint. The endpoint value depends on the protocol that you specify.
+The subscription's endpoint. The endpoint value depends on the protocol that you specify. For more information, see the Endpoint parameter of the [Subscribe](https://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) action in the <i>Amazon Simple Notification Service API Reference</i>.
 
 _Required_: No
 
@@ -65,19 +63,9 @@ _Type_: String
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
-#### Owner
-
-The AWS account ID of the subscription's owner.
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
 #### Protocol
 
-The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.
+The subscription's protocol. For more information, see the `Protocol` parameter of the [Subscribe](https://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) action in the Amazon Simple Notification Service API Reference.
 
 _Required_: Yes
 
@@ -87,7 +75,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### RawMessageDelivery
 
-When set to true, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints.
+When set to `true`, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints. For more information, see [GetSubscriptionAttributes](https://docs.aws.amazon.com/sns/latest/api/API_GetSubscriptionAttributes.html) in the <i>Amazon Simple Notification Service API Reference</i>.
 
 _Required_: No
 
@@ -97,7 +85,15 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### Region
 
-For cross-region subscriptions, the region in which the topic resides. If no region is specified, CloudFormation uses the region of the caller as the default.
+For cross-region subscriptions, the region in which the topic resides.
+
+If no region is specified, CloudFormation uses the region of the caller as the default.
+
+If you perform an update operation that only updates the Region property of a `AWS::SNS::Subscription` resource, that operation will fail unless you are either:
+
+ - Updating the Region from NULL to the caller region.
+
+ - Updating the Region from the caller region to NULL.
 
 _Required_: No
 
@@ -107,7 +103,10 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### SubscriptionRoleArn
 
-The ARN of the IAM role that has the permission to write to the Amazon Kinesis Data Firehose delivery stream and has Amazon SNS listed as a trusted entity.
+The ARN of the IAM role that has the following:
+    * Permission to write to the Amazon Kinesis Data Firehose delivery stream
+    * Amazon SNS listed as a trusted entity.
+Specifying a valid ARN for this attribute is required for Amazon Kinesis Data Firehose delivery stream subscriptions. For more information, see [Fanout to Amazon Kinesis Data Firehose delivery streams](https://alpha-docs-aws.amazon.com/sns/latest/dg/sns-kinesis-subscriber.html) in the _Amazon SNS Developer Guide_.
 
 _Required_: No
 
@@ -127,7 +126,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### FilterPolicy
 
-The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages.
+The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages. For more information, see [GetSubscriptionAttributes](https://docs.aws.amazon.com/sns/latest/api/API_GetSubscriptionAttributes.html) in the <i>Amazon Simple Notification Service API Reference</i> and [Message Filtering](https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html) in the <i>Amazon SNS Developer Guide</i>.
 
 _Required_: No
 

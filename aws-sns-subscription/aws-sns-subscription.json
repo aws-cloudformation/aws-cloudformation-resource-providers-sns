@@ -8,19 +8,15 @@
             "type": "string"
         },
         "DeliveryPolicy": {
-            "description": "The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic.",
+            "description": "The delivery policy JSON assigned to the subscription. Enables the subscriber to define the message delivery retry strategy in the case of an HTTP/S endpoint subscribed to the topic. For more information, see [GetSubscriptionAttributes](https://docs.aws.amazon.com/sns/latest/api/API_GetSubscriptionAttributes.html) in the <i>Amazon Simple Notification Service API Reference</i> and [Message Delivery Retries](https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html) in the <i>Amazon SNS Developer Guide</i>.",
             "type": "object"
         },
         "Endpoint": {
-            "description": "The subscription's endpoint. The endpoint value depends on the protocol that you specify.",
-            "type": "string"
-        },
-        "Owner": {
-            "description": "The AWS account ID of the subscription's owner.",
+            "description": "The subscription's endpoint. The endpoint value depends on the protocol that you specify. For more information, see the Endpoint parameter of the [Subscribe](https://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) action in the <i>Amazon Simple Notification Service API Reference</i>.",
             "type": "string"
         },
         "Protocol": {
-            "description": "The subscription's protocol. For more information, see the Protocol parameter of the Subscribe action in the Amazon Simple Notification Service API Reference.",
+            "description": "The subscription's protocol. For more information, see the `Protocol` parameter of the [Subscribe](https://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) action in the Amazon Simple Notification Service API Reference.",
             "type": "string",
             "examples": [
                 "http",
@@ -35,15 +31,15 @@
             ]
         },
         "RawMessageDelivery": {
-            "description": "When set to true, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints.",
+            "description": "When set to `true`, enables raw message delivery. Raw messages don't contain any JSON formatting and can be sent to Amazon SQS and HTTP/S endpoints. For more information, see [GetSubscriptionAttributes](https://docs.aws.amazon.com/sns/latest/api/API_GetSubscriptionAttributes.html) in the <i>Amazon Simple Notification Service API Reference</i>.",
             "type": "boolean"
         },
         "Region": {
-            "description": "For cross-region subscriptions, the region in which the topic resides. If no region is specified, CloudFormation uses the region of the caller as the default.",
+            "description": "For cross-region subscriptions, the region in which the topic resides.\n\nIf no region is specified, CloudFormation uses the region of the caller as the default.\n\nIf you perform an update operation that only updates the Region property of a `AWS::SNS::Subscription` resource, that operation will fail unless you are either:\n\n - Updating the Region from NULL to the caller region.\n\n - Updating the Region from the caller region to NULL.",
             "type": "string"
         },
         "SubscriptionRoleArn": {
-            "description": "The ARN of the IAM role that has the permission to write to the Amazon Kinesis Data Firehose delivery stream and has Amazon SNS listed as a trusted entity.",
+            "description": "The ARN of the IAM role that has the following:\n    * Permission to write to the Amazon Kinesis Data Firehose delivery stream\n    * Amazon SNS listed as a trusted entity.\nSpecifying a valid ARN for this attribute is required for Amazon Kinesis Data Firehose delivery stream subscriptions. For more information, see [Fanout to Amazon Kinesis Data Firehose delivery streams](https://alpha-docs-aws.amazon.com/sns/latest/dg/sns-kinesis-subscriber.html) in the _Amazon SNS Developer Guide_.",
             "type": "string"
         },
         "TopicArn": {
@@ -51,7 +47,7 @@
             "type": "string"
         },
         "FilterPolicy": {
-            "description": "The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages.",
+            "description": "The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages. For more information, see [GetSubscriptionAttributes](https://docs.aws.amazon.com/sns/latest/api/API_GetSubscriptionAttributes.html) in the <i>Amazon Simple Notification Service API Reference</i> and [Message Filtering](https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html) in the <i>Amazon SNS Developer Guide</i>.",
             "type": "object"
         },
         "RedrivePolicy": {
