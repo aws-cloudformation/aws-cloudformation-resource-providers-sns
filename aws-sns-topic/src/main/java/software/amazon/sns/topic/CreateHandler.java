@@ -32,7 +32,12 @@ public class CreateHandler extends BaseHandlerStd {
         }
 
         if (StringUtils.isBlank(model.getTopicName())) {
-            model.setTopicName(IdentifierUtils.generateResourceIdentifier(request.getLogicalResourceIdentifier(), request.getClientRequestToken(), TOPIC_NAME_MAX_LENGTH).toLowerCase());
+            String randomTopicName = IdentifierUtils.generateResourceIdentifier(request.getLogicalResourceIdentifier(), request.getClientRequestToken(), TOPIC_NAME_MAX_LENGTH);
+            if (Boolean.TRUE.equals(model.getFifoTopic())) {
+                randomTopicName = IdentifierUtils.generateResourceIdentifier(request.getLogicalResourceIdentifier(), request.getClientRequestToken(), TOPIC_NAME_MAX_LENGTH - FIFO_TOPIC_EXTENSION.length());
+                randomTopicName += FIFO_TOPIC_EXTENSION;
+            }
+            model.setTopicName(randomTopicName.toLowerCase());
         }
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)

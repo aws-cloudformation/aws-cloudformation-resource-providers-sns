@@ -28,6 +28,7 @@ import java.util.Set;
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   public static final int TOPIC_NAME_MAX_LENGTH = 256;
+  public static final String FIFO_TOPIC_EXTENSION = ".fifo";
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(

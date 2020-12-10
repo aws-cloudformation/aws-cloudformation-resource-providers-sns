@@ -14,7 +14,9 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#displayname" title="DisplayName">DisplayName</a>" : <i>String</i>,
         "<a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>" : <i>String</i>,
-        "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ [ <a href="subscription.md">Subscription</a>, ... ], ... ]</i>,
+        "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ <a href="subscription.md">Subscription</a>, ... ]</i>,
+        "<a href="#fifotopic" title="FifoTopic">FifoTopic</a>" : <i>Boolean</i>,
+        "<a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>" : <i>Boolean</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#topicname" title="TopicName">TopicName</a>" : <i>String</i>,
     }
@@ -30,6 +32,8 @@ Properties:
     <a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>: <i>String</i>
     <a href="#subscription" title="Subscription">Subscription</a>: <i>
       - <a href="subscription.md">Subscription</a></i>
+    <a href="#fifotopic" title="FifoTopic">FifoTopic</a>: <i>Boolean</i>
+    <a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>: <i>Boolean</i>
     <a href="#tags" title="Tags">Tags</a>: <i>
       - <a href="tag.md">Tag</a></i>
     <a href="#topicname" title="TopicName">TopicName</a>: <i>String</i>
@@ -49,7 +53,9 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### KmsMasterKeyId
 
-The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK.
+The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK. For more information, see Key Terms. For more examples, see KeyId in the AWS Key Management Service API Reference.
+
+This property applies only to [server-side-encryption](https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html).
 
 _Required_: No
 
@@ -67,9 +73,33 @@ _Type_: List of <a href="subscription.md">Subscription</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### Tags
+#### FifoTopic
 
-The list of tags to add to a new topic.
+Set to true to create a FIFO topic.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### ContentBasedDeduplication
+
+Enables content-based deduplication for FIFO topics. By default, ContentBasedDeduplication is set to false. If you create a FIFO topic and this attribute is false, you must specify a value for the MessageDeduplicationId parameter for the Publish action.
+
+When you set ContentBasedDeduplication to true, Amazon SNS uses a SHA-256 hash to generate the MessageDeduplicationId using the body of the message (but not the attributes of the message).
+
+(Optional) To override the generated value, you can specify a value for the the MessageDeduplicationId parameter for the Publish action.
+
+
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Tags
 
 _Required_: No
 
@@ -79,7 +109,9 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### TopicName
 
-The name of the topic
+The name of the topic you want to create. Topic names must include only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256 characters long. FIFO topic names must end with .fifo.
+
+If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the topic name. For more information, see Name Type.
 
 _Required_: No
 
@@ -88,8 +120,6 @@ _Type_: String
 _Minimum_: <code>1</code>
 
 _Maximum_: <code>256</code>
-
-_Pattern_: <code>^[a-zA-Z0-9_-]{1,256}$</code>
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 

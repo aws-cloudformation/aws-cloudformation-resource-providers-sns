@@ -3,7 +3,9 @@ package software.amazon.sns.topic;
 public enum TopicAttributeName {
 	DISPLAY_NAME("DisplayName"),
 	TOPIC_ARN("TopicArn"),
-	KMS_MASTER_KEY_ID("KmsMasterKeyId");
+	KMS_MASTER_KEY_ID("KmsMasterKeyId"),
+	CONTENT_BASED_DEDUPLICATION("ContentBasedDeduplication"),
+	FIFO_TOPIC("FifoTopic");
 
 	private final String value;
 
