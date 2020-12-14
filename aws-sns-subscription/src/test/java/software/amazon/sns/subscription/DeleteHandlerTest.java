@@ -129,7 +129,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
@@ -140,16 +140,12 @@ public class DeleteHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
-        final Map<String, String> topicAttributes = new HashMap<>();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
-
-
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
@@ -160,8 +156,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_TopicArnSubscriptionLimitExceededException()  {
 
-        final Map<String, String> topicAttributes = new HashMap<>();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(SubscriptionLimitExceededException.class);
 
 
@@ -169,7 +163,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
@@ -177,24 +171,19 @@ public class DeleteHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_TopicArnFilterPolicyLimitExceededException()  {
 
-        final Map<String, String> topicAttributes = new HashMap<>();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(FilterPolicyLimitExceededException.class);
-
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
 
     @Test
     public void handleRequest_TopicArnInvalidParameterExceptionException()  {
-
-        final Map<String, String> topicAttributes = new HashMap<>();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(InvalidParameterException.class);
 
@@ -203,15 +192,13 @@ public class DeleteHandlerTest extends AbstractTestBase {
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
 
     @Test
     public void handleRequest_TopicArnInternalErrorException()  {
-
-        final Map<String, String> topicAttributes = new HashMap<>();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(InternalErrorException.class);
 
@@ -220,15 +207,13 @@ public class DeleteHandlerTest extends AbstractTestBase {
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnInternalFailureException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
 
     @Test
     public void handleRequest_TopicArnAuthorizationErrorException()  {
-
-        final Map<String, String> topicAttributes = new HashMap<>();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(AuthorizationErrorException.class);
 
@@ -237,15 +222,13 @@ public class DeleteHandlerTest extends AbstractTestBase {
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnAccessDeniedException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
 
     @Test
     public void handleRequest_TopicArnInvalidSecurityException()  {
-
-        final Map<String, String> topicAttributes = new HashMap<>();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(InvalidSecurityException.class);
 
@@ -254,7 +237,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnInvalidCredentialsException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnInvalidCredentialsException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
@@ -275,7 +258,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
@@ -301,7 +284,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -322,7 +305,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnServiceLimitExceededException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -343,7 +326,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnInvalidRequestException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -364,7 +347,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnInternalFailureException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnInternalFailureException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -385,7 +368,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnAccessDeniedException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -406,7 +389,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnInvalidCredentialsException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnInvalidCredentialsException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -427,7 +410,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final GetSubscriptionAttributesResponse getSubscriptionResponse = GetSubscriptionAttributesResponse.builder().attributes(attributes).build();
         when(proxyClient.client().getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class))).thenReturn(getSubscriptionResponse).thenReturn(getSubscriptionResponse);
 
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 }

@@ -68,7 +68,7 @@ public class ReadHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_SimpleSuccess_SimpleAttributes() throws JsonProcessingException {
+    public void handleRequest_SimpleSuccess_SimpleAttributes() {
 
         final Map<String, String> topicAttributes = new HashMap<>();
         topicAttributes.put("TopicArn","topicarn");
@@ -76,26 +76,17 @@ public class ReadHandlerTest extends AbstractTestBase {
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
-
-        final ObjectMapper objectMapper = new ObjectMapper();
-
-
-        final Map<String, Object> filterPolicy = new HashMap<>();
-        filterPolicy.put("store", "[\"example_corp\"]");
-        filterPolicy.put("event", "[\"order_placed\"]");
-
-        final String filterPolicyString = objectMapper.writeValueAsString(filterPolicy);
-
-        final Map<String, Object> redrivePolicy = new HashMap<>();
-        redrivePolicy.put("deadLetterTargetArn", "arn");
-        redrivePolicy.put("maxReceiveCount", "1");
-
-        final String redrivePolicyString = objectMapper.writeValueAsString(redrivePolicy);
-
-        final Map<String, Object> deliveryPolicy = new HashMap<>();
-        deliveryPolicy.put("minDelayTarget", 1);
-        deliveryPolicy.put("maxDelayTarget", 2);
-        final String deliveryPolicyString = objectMapper.writeValueAsString(deliveryPolicy);
+//        final Map<String, Object> filterPolicy = new HashMap<>();
+//        filterPolicy.put("store", "[\"example_corp\"]");
+//        filterPolicy.put("event", "[\"order_placed\"]");
+//
+//        final Map<String, Object> redrivePolicy = new HashMap<>();
+//        redrivePolicy.put("deadLetterTargetArn", "arn");
+//        redrivePolicy.put("maxReceiveCount", "1");
+//
+//        final Map<String, Object> deliveryPolicy = new HashMap<>();
+//        deliveryPolicy.put("minDelayTarget", 1);
+//        deliveryPolicy.put("maxDelayTarget", 2);
 
         final Map<String, String> attributes = new HashMap<>();
 
@@ -213,8 +204,6 @@ public class ReadHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_TopicArnDoesNotExist()  {
 
-        final Map<String, String> topicAttributes = new HashMap<>();
-
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
 
@@ -222,12 +211,11 @@ public class ReadHandlerTest extends AbstractTestBase {
                                                                 .desiredResourceState(model)
                                                                 .build();
 
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
 
     }
-
 }
