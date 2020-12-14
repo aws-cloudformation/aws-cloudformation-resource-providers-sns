@@ -62,7 +62,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     for(final Subscription subscription : subscriptions) {
       final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
               .initiate("AWS-SNS-Topic::Subscribe-" + subscription.hashCode(), client, model, callbackContext)
-              .translateToServiceRequest(model1 -> Translator.traslateToSubscribeRequest(model1, subscription))
+              .translateToServiceRequest(model1 -> Translator.translateToSubscribeRequest(model1, subscription))
               .makeServiceCall((subscriptionRequest, proxyClient) -> proxy.injectCredentialsAndInvokeV2(subscriptionRequest, proxyClient.client()::subscribe))
               .success();
 
