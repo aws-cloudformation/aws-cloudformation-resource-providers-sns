@@ -142,7 +142,7 @@ public class Translator {
             .build();
   }
 
-  static SubscribeRequest traslateToSubscribeRequest(ResourceModel model, Subscription subscription) {
+  static SubscribeRequest translateToSubscribeRequest(ResourceModel model, Subscription subscription) {
     return SubscribeRequest.builder()
             .topicArn(model.getId())
             .protocol(subscription.getProtocol())
