@@ -76,18 +76,6 @@ public class ReadHandlerTest extends AbstractTestBase {
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
 
-//        final Map<String, Object> filterPolicy = new HashMap<>();
-//        filterPolicy.put("store", "[\"example_corp\"]");
-//        filterPolicy.put("event", "[\"order_placed\"]");
-//
-//        final Map<String, Object> redrivePolicy = new HashMap<>();
-//        redrivePolicy.put("deadLetterTargetArn", "arn");
-//        redrivePolicy.put("maxReceiveCount", "1");
-//
-//        final Map<String, Object> deliveryPolicy = new HashMap<>();
-//        deliveryPolicy.put("minDelayTarget", 1);
-//        deliveryPolicy.put("maxDelayTarget", 2);
-
         final Map<String, String> attributes = new HashMap<>();
 
         attributes.put("SubscriptionArn", model.getSubscriptionArn());
