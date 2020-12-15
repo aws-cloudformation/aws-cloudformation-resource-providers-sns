@@ -63,7 +63,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         // New Topics
         Map<String, Object> policyDocument = getSNSPolicy();
-        final List<String> new_topics = new ArrayList<String>();
+        final List<String> new_topics = new ArrayList<>();
         new_topics.add("arn:aws:sns:us-east-1:123456789:my-topic3");
         new_topics.add("arn:aws:sns:us-east-1:123456789:my-topic4");
         final ResourceModel desiredResourceState = ResourceModel.builder()
@@ -73,7 +73,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         // Old Topics
-        final List<String> old_topics = new ArrayList<String>();
+        final List<String> old_topics = new ArrayList<>();
         old_topics.add("arn:aws:sns:us-east-1:123456789:my-topic1");
         old_topics.add("arn:aws:sns:us-east-1:123456789:my-topic2");
         final ResourceModel previousResourceState = ResourceModel.builder()
@@ -96,7 +96,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
-        // verify(proxyClient.client()).setTopicAttributes (any(SetTopicAttributesRequest.class));
     }
 
     @Test
@@ -105,7 +104,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, Object> policyDocument = getSNSPolicy();
 
         // New Topics
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
@@ -118,38 +117,34 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .desiredResourceState(model)
                 .build();
 
-        assertThrows(CfnNotFoundException.class, () -> {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        });
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 
     @Test
     public void handleRequest_Failure_NullOrEmpty() {
 
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
 
         final ResourceModel model = ResourceModel.builder()
                 .id("aws-sns-topic-policy-id-InternalErrorException")
                 .topics(topics)
-                .policyDocument(new HashMap<String, Object>())
+                .policyDocument(new HashMap<>())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
                 .desiredResourceState(model)
                 .build();
 
-        assertThrows(CfnInvalidRequestException.class, () -> {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        });
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 
     @Test
     public void handleRequest_Failure_PolicyDocument_JsonProcessingException() {
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
-        Map<String, Object> policyDocument = new HashMap<String, Object>();
+        Map<String, Object> policyDocument = new HashMap<>();
         policyDocument.put(null, "");
         policyDocument.put("event", "[\"order_placed\"]");
 
@@ -163,9 +158,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .desiredResourceState(model)
                 .build();
 
-        assertThrows(CfnInvalidRequestException.class, () -> {
-            handler.handleRequest(proxy, request, null, proxyClient, logger);
-        });
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, null, proxyClient, logger));
     }
 
     @Test
@@ -174,7 +167,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, Object> policyDocument = getSNSPolicy();
 
         // New Topics
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
@@ -185,7 +178,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         // Previous Topics
-        final List<String> previousTopics = new ArrayList<String>();
+        final List<String> previousTopics = new ArrayList<>();
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic1");
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic2");
 
@@ -202,9 +195,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client()
                 .setTopicAttributes(any(SetTopicAttributesRequest.class)))
                         .thenThrow(NotFoundException.class);
-        assertThrows(CfnNotFoundException.class, () -> {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        });
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 
     @Test
@@ -213,7 +204,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, Object> policyDocument = getSNSPolicy();
 
         // New Topics
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
@@ -224,7 +215,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         // Previous Topics
-        final List<String> previousTopics = new ArrayList<String>();
+        final List<String> previousTopics = new ArrayList<>();
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic1");
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic2");
 
@@ -241,9 +232,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client()
                 .setTopicAttributes(any(SetTopicAttributesRequest.class)))
                         .thenThrow(InvalidParameterException.class);
-        assertThrows(CfnInvalidRequestException.class, () -> {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        });
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 
     @Test
@@ -252,7 +241,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, Object> policyDocument = getSNSPolicy();
 
         // New Topics
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
@@ -263,7 +252,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         // Previous Topics
-        final List<String> previousTopics = new ArrayList<String>();
+        final List<String> previousTopics = new ArrayList<>();
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic1");
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic2");
 
@@ -280,9 +269,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client()
                 .setTopicAttributes(any(SetTopicAttributesRequest.class)))
                         .thenThrow(InternalErrorException.class);
-        assertThrows(CfnServiceInternalErrorException.class, () -> {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        });
+        assertThrows(CfnServiceInternalErrorException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 
     @Test
@@ -291,7 +278,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, Object> policyDocument = getSNSPolicy();
 
         // New Topics
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
@@ -302,7 +289,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         // Previous Topics
-        final List<String> previousTopics = new ArrayList<String>();
+        final List<String> previousTopics = new ArrayList<>();
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic1");
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic2");
 
@@ -319,9 +306,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client()
                 .setTopicAttributes(any(SetTopicAttributesRequest.class)))
                         .thenThrow(AuthorizationErrorException.class);
-        assertThrows(CfnAccessDeniedException.class, () -> {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        });
+        assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
     }
 
@@ -331,7 +316,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, Object> policyDocument = getSNSPolicy();
 
         // New Topics
-        final List<String> topics = new ArrayList<String>();
+        final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
@@ -342,7 +327,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         // Previous Topics
-        final List<String> previousTopics = new ArrayList<String>();
+        final List<String> previousTopics = new ArrayList<>();
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic1");
         previousTopics.add("arn:aws:sns:us-east-1:123456789:my-topic2");
 
@@ -359,9 +344,24 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client()
                 .setTopicAttributes(any(SetTopicAttributesRequest.class)))
                         .thenThrow(InvalidSecurityException.class);
-        assertThrows(CfnInvalidCredentialsException.class, () -> {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        });
+        assertThrows(CfnInvalidCredentialsException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 
+    @Test
+    public void handleRequest_Failure_InvalidRequestException() {
+
+        Map<String, Object> policyDocument = getSNSPolicy();
+        final List<String> topics = new ArrayList<>();
+
+        final ResourceModel model = ResourceModel.builder()
+                .id("aws-sns-topic-policy-id-CfnInvalidCredentialsException")
+                .topics(topics)
+                .policyDocument(policyDocument)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
+                .desiredResourceState(model)
+                .build();
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
 }
