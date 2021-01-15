@@ -35,6 +35,11 @@ pre-commit run --all-files
 mvn verify
 ```
 
+Official Resource Documentation
+-------------------------------
+
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_SNS.html
+
 
 ## License
 
