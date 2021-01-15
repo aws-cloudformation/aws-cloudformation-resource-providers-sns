@@ -108,6 +108,8 @@ public class Translator {
             .topicName(getTopicNameFromArn(attributes.get(TopicAttributeName.TOPIC_ARN.toString())))
             .displayName(nullIfEmpty(attributes.get(TopicAttributeName.DISPLAY_NAME.toString())))
             .kmsMasterKeyId(nullIfEmpty(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString())))
+            .fifoTopic(nullIfEmptyBoolean(attributes.get(TopicAttributeName.FIFO_TOPIC.toString())))
+            .contentBasedDeduplication(nullIfEmptyBoolean(attributes.get(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString())))
             .subscription(nullIfEmpty(subscriptions))
             .tags(nullIfEmpty(translateTagsFromSdk(listTagsForResourceResponse.tags())))
             .build();
@@ -180,6 +182,10 @@ public class Translator {
 
   static String nullIfEmpty(String s) {
     return StringUtils.isEmpty(s) ? null : s;
+  }
+
+  static Boolean nullIfEmptyBoolean(String s) {
+      return StringUtils.isEmpty(s) ? null : Boolean.valueOf(s);
   }
 
   static Set<Tag> convertResourceTagsToSet(Map<String, String> resourceTags) {

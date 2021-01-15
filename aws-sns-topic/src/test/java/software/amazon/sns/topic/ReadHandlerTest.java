@@ -108,6 +108,51 @@ public class ReadHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_attributesForDriftDetection() {
+        final Set<Subscription> subscriptions = new HashSet<>();
+        Subscription.builder().endpoint("abc@xyz.com").protocol("email").build();
+        final Set<Tag> tags = new HashSet<>();
+        tags.add(Tag.builder().key("key1").value("value1").build());
+
+        final String topicArn = "arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo";
+        final String topicName = "sns-topic-name.fifo";
+        final String topicDisplayName = "topic-display-name";
+
+        final ResourceModel model = ResourceModel.builder()
+                .id(topicArn)
+                .topicName(topicName)
+                .displayName(topicDisplayName)
+                .subscription(subscriptions)
+                .tags(tags)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), topicDisplayName);
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), topicArn);
+        attributes.put(TopicAttributeName.FIFO_TOPIC.toString(), "true");
+        attributes.put(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), "true");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(ListSubscriptionsByTopicResponse.builder().build());
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(ListTagsForResourceResponse.builder().build());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getId()).isEqualTo(topicArn);
+        assertThat(response.getResourceModel().getFifoTopic()).isEqualTo(true);
+        assertThat(response.getResourceModel().getContentBasedDeduplication()).isEqualTo(true);
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+    }
+
+    @Test
     public void handleRequest_NotFound() {
         final ResourceModel model = ResourceModel.builder()
                 .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
@@ -116,7 +161,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
