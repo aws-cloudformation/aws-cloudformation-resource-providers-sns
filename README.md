@@ -2,7 +2,7 @@
 
 This repository contains AWS-owned resource providers for the `AWS::SNS::*` namespace. It contains all the CloudFormation Resources for Amazon Simple Notification Service ([SNS](https://aws.amazon.com/sns/)).
 
-Users can download the code and [Submit](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html#resource-type-walkthrough-submit) in an AWS account as a private CloudFormation Registry. Here is a [walkthrough](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html) on how to develop and deploy a customized resource.
+Users can download the code and deploy the package in an AWS account as a private [CloudFormation Registry](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html). Please see this [link](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-develop.html) on developing resource types. Here is a [walkthrough](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html) on how to develop and deploy a customized resource to AWS account.
 
 Usage
 -----
@@ -37,8 +37,8 @@ pre-commit run --all-files
 mvn verify
 ```
 
-Submisson of a SNS Resource
----------------------------
+Deploy SNS Resource to AWS Account
+----------------------------------
 
 After cloning this repository into your local workspac, `cd` to one of the folders under `aws-sns-*`.
 
