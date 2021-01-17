@@ -1,8 +1,8 @@
 ## The CloudFormation Resource Provider Package For AWS Simple Notification Service
 
-This repository contains AWS-owned resource providers for the `AWS::SNS::*` namespace. It contains all the CloudFormation Resources for Amazon Simple Notification Service ([SNS](https://aws.amazon.com/sns/)).
+This repository contains AWS-owned resource providers for the `AWS::SNS::*` namespace. It contains all of the currently supported CloudFormation Resources for the Amazon Simple Notification Service ([SNS](https://aws.amazon.com/sns/)).
 
-Users can download the code and deploy the package in an AWS account as a private [CloudFormation Registry](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html). Please see this [link](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-develop.html) on how to develop resource types. Here is a [walkthrough](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html) on how to develop and deploy a customized resource to an AWS account.
+Users can download the code and deploy the package in an AWS account as a private [CloudFormation Registry](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html). Please see this [link](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-develop.html) on how to develop new resource types. Here is a [walkthrough](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html) on how to develop and deploy a customized resource to an AWS account.
 
 Usage
 -----
