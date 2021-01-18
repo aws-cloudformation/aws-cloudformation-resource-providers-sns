@@ -4,6 +4,9 @@ This repository contains AWS-owned resource providers for the `AWS::SNS::*` name
 
 Users can download the code and deploy the package in an AWS account as a private [CloudFormation Registry](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html). Please see this [link](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-develop.html) on how to develop new resource types. Here is a [walkthrough](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html) on how to develop and deploy a customized resource to an AWS account.
 
+
+[![Build Status](https://travis-ci.com/aws-cloudformation/aws-cloudformation-resource-providers-sns.svg?branch=master)](https://travis-ci.com/aws-cloudformation/aws-cloudformation-resource-providers-sns)
+
 Usage
 -----
 
