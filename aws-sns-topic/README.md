@@ -1,8 +1,12 @@
 # AWS::SNS::Topic
 
-Congratulations on starting development! Next steps:
+This package contains CloudFormation resources for SNS topics: a logical channel of communications. A topic allows to group multiple subscriptions together.
 
-1. Write the JSON schema describing your resource, `aws-sns-topic.json`
+The [documentation folder](docs/README.md) contains the detailed description of the supported topic attributes.
+
+To make changes to the topics
+
+1. Update the JSON schema `aws-sns-topic.json`
 1. Implement your resource handlers.
 
 The RPDK will automatically generate the correct resource model from the schema whenever the project is built via Maven. You can also do this manually with the following command: `cfn generate`.
