@@ -2,7 +2,7 @@
 
 This package contains CloudFormation resources for SNS topic policy to control access to topics.
 
-The [documentation folder](aws-sns-topicpolicy/docs/README.md) contains the detailed description of the supported topic attributes.
+The [documentation folder](/aws-sns-topicpolicy/docs/README.md) contains the detailed description of the supported topic attributes.
 
 To make changes to the topic policy resource:
 
