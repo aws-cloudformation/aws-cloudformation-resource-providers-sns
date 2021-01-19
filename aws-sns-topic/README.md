@@ -4,7 +4,7 @@ This package contains CloudFormation resources for SNS topics: a logical channel
 
 The [documentation folder](docs/README.md) contains the detailed description of the supported topic attributes.
 
-To make changes to the topics 
+To make changes to the topics
 
 1. Write the JSON schema describing your resource, `aws-sns-topic.json`
 1. Implement your resource handlers.
