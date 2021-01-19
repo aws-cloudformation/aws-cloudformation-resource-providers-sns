@@ -1,8 +1,8 @@
 # AWS::SNS::Subscription
 
-This package contains CloudFormation resources for SNS subscriptions: endpoints to receive messages published to topics. 
+This package contains CloudFormation resources for SNS subscriptions: endpoints to receive messages published to [topics](aws-ivvladim-package-readmes/aws-sns-topic/README.md). 
 
-The [documentation folder](https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-sns/blob/master/aws-sns-subscription/docs/README.md) contains the detailed description of the supported subscription attributes.
+The [documentation folder](aws-sns-subscription/docs/README.md) contains the detailed description of the supported subscription attributes.
 
 To make changes to the subscription resouce: 
 
