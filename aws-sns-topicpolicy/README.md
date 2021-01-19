@@ -1,4 +1,4 @@
-# AWS::SNS::Topic
+# AWS::SNS::TopicPolicy
 
 This package contains CloudFormation resources for SNS topic policy to control access to topics.
 
