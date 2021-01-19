@@ -1,9 +1,13 @@
 # AWS::SNS::Subscription
 
-Congratulations on starting development! Next steps:
+This package contains CloudFormation resources for SNS subscriptions: endpoints to receive messages published to topics. 
 
-1. Write the JSON schema describing your resource, `aws-sns-subscription.json`
-1. Implement your resource handlers.
+The [documentation folder](https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-sns/blob/master/aws-sns-subscription/docs/README.md) contains the detailed description of the supported subscription attributes.
+
+To make changes to the subscription resouce: 
+
+1. Update the JSON schema `aws-sns-subscription.json`
+1. Implement changes to the resource handlers.
 
 The RPDK will automatically generate the correct resource model from the schema whenever the project is built via Maven. You can also do this manually with the following command: `cfn generate`.
 
