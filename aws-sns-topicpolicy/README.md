@@ -1,16 +1,16 @@
 # AWS::SNS::TopicPolicy
 
-This package contains CloudFormation resources for SNS topic policy to control access to topics.
+This package contains the CloudFormation resource for SNS topic policy.
 
-The [documentation folder](/aws-sns-topicpolicy/docs/README.md) contains the detailed description of the supported topic policy attributes.
+The [AWS::SNS::TopicPolicy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-policy.html) section in the CloudFormation User Guide contains the detailed description of each supported property.
 
-To make changes to the topic policy resource:
+To make changes to the **TopicPolicy** resource:
 
 1. Update the JSON schema `aws-sns-topicpolicy.json`
-1. Implement necessary changes in the resource handlers
+1. Implement your changes to the resource handlers
 
-The RPDK will automatically generate the correct resource model from the schema whenever the project is built via Maven. You can also do this manually with the following command: `cfn generate`.
+The CloudFormation CLI automatically generates the correct resource model from the schema, whenever the project is built via Maven. You can also do this manually, using the following command: `cfn generate`.
 
-> Please don't modify files under `target/generated-sources/rpdk`, as they will be automatically overwritten.
+You should not modify the files under `target/generated-sources/rpdk`, as they will be automatically overwritten.
 
-The code uses [Lombok](https://projectlombok.org/), and [you may have to install IDE integrations](https://projectlombok.org/) to enable auto-complete for Lombok-annotated classes.
+The code uses [Lombok](https://projectlombok.org/). You may have to install IDE integrations to enable auto-complete for Lombok-annotated classes.
