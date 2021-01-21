@@ -12,7 +12,7 @@ Developing SNS Resources
 
 The CloudFormation CLI (`cfn`) enables you to modify resource providers, such as this one for SNS, which can then be used in CloudFormation. To learn more, see the [CloudFormation CLI](https://github.com/aws-cloudformation/aws-cloudformation-rpdk) reposiotry in GitHub.
 
-Before you start makling changes to the SNS resource provider, you need to install the [CloudFormation CLI](https://github.com/aws-cloudformation/aws-cloudformation-rpdk), as a required dependency:
+Before you start making changes to the SNS resource provider, you need to install the [CloudFormation CLI](https://github.com/aws-cloudformation/aws-cloudformation-rpdk), as a required dependency:
 
 ```shell
 pip3 install cloudformation-cli
