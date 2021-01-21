@@ -1,37 +1,31 @@
-## The CloudFormation Resource Provider Package For AWS Simple Notification Service
+## The CloudFormation Resource Provider Package For Amazon Simple Notification Service (SNS)
 
-This repository contains AWS-owned resource providers for the `AWS::SNS::*` namespace. It contains all of the currently supported CloudFormation Resources for the Amazon Simple Notification Service ([SNS](https://aws.amazon.com/sns/)).
+This repository contains AWS-owned resource providers for the `AWS::SNS::*` namespace. It contains all of the currently supported CloudFormation resources for Amazon Simple Notification Service ([SNS](https://aws.amazon.com/sns/)).
 
-Users can download the code and deploy the package in an AWS account as a private [CloudFormation Registry](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html). Please see this [link](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-develop.html) on how to develop new resource types. Here is a [walkthrough](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html) on how to develop and deploy a customized resource to an AWS account.
+Users can download the code and deploy the package in an AWS account as a private [AWS CloudFormation Registry](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html). To learn how to develop new resource types, see [Developing resource types for use in AWS CloudFormation templates](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-develop.html). To learn how to develop and deploy custom resources to an AWS account, see [Walkthrough: Develop a resource type](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html).
 
 
 [![Build Status](https://travis-ci.com/aws-cloudformation/aws-cloudformation-resource-providers-sns.svg?branch=master)](https://travis-ci.com/aws-cloudformation/aws-cloudformation-resource-providers-sns)
 
-Usage
------
+Developing SNS Resources
+------------------------
 
-The CloudFormation CLI (cfn) allows you to author your own resource providers that can be used by CloudFormation.
+The CloudFormation CLI (`cfn`) enables you to modify resource providers, such as this one for SNS, which can then be used in CloudFormation. To learn more, see the [CloudFormation CLI](https://github.com/aws-cloudformation/aws-cloudformation-rpdk) reposiotry in GitHub.
 
-Refer to the documentation for the [CloudFormation CLI](https://github.com/aws-cloudformation/aws-cloudformation-rpdk) for usage instructions.
-
-
-Development
------------
-
-First, you will need to install the [CloudFormation CLI](https://github.com/aws-cloudformation/aws-cloudformation-rpdk), as it is a required dependency:
+Before you start making changes to the SNS resource provider, you need to install the [CloudFormation CLI](https://github.com/aws-cloudformation/aws-cloudformation-rpdk), as a required dependency:
 
 ```shell
 pip3 install cloudformation-cli
 pip3 install cloudformation-cli-java-plugin
 ```
 
-Linting is done via [pre-commit](https://pre-commit.com/), and is performed automatically on commit. The continuous integration also runs these checks.
+Now, you're ready to clone this repository and start making the changes that you need. As part of your development, you will use linting via [pre-commit](https://pre-commit.com/), which is performed automatically upon commit. The continuous integration also runs these checks.
 
 ```shell
 pre-commit install
 ```
 
-Manual options are available so you don't have to commit:
+Manual options are available, in case you don't need to commit:
 
 ```shell
 # run all hooks on all files, mirrors what the CI runs
@@ -41,7 +35,7 @@ mvn verify
 ```
 
 Deploying SNS Resources to an AWS Account
-----------------------------------
+-----------------------------------------
 
 After cloning this repository into your local workspace, `cd` to one of the folders under `aws-sns-*`.
 
@@ -52,16 +46,14 @@ mvn clean && mvn package
 cfn submit -v --region [us-east-1]
 ```
 
-Please see [here](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html#resource-type-walkthrough-submit) for more detailed information on resource submission.
+For more detailed information on resource submission, see [Submit the resource type](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-walkthrough.html#resource-type-walkthrough-submit) in the CloudFormation walkthrough.
 
-
-Official User Guide for SNS CloudFormation Resources
-----------------------------------------------------
+Official User Guide for SNS Resources in CloudFormation
+-------------------------------------------------------
 
 - [AWS::SNS::Subscription](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html)
 - [AWS::SNS::Topic](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-topic.html)
 - [AWS::SNS::TopicPolicy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-policy.html)
-
 
 ## Contributing
 
