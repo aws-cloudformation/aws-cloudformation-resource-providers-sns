@@ -19,9 +19,10 @@ pip3 install cloudformation-cli
 pip3 install cloudformation-cli-java-plugin
 ```
 
-Now, you're ready to clone this repository and start making the changes that you need. As part of your development, you will use linting via [pre-commit](https://pre-commit.com/), which is performed automatically upon commit. The continuous integration also runs these checks.
+Now, you're ready to clone this repository and start making the changes that you need. For that, [pre-commit](https://pre-commit.com/) is the linter that we use to do code style checks. You can install it by following the [Installation Guide](https://pre-commit.com/#install). Linting via `pre-commit` is performed automatically upon commit. The continuous integration also runs these style checks.
 
 ```shell
+# Install the git hook scripts
 pre-commit install
 ```
 
@@ -37,9 +38,10 @@ mvn verify
 Deploying SNS Resources to an AWS Account
 -----------------------------------------
 
-After cloning this repository into your local workspace, `cd` to one of the folders under `aws-sns-*`.
+After cloning this repository into your local workspace, `cd` to one of the folders corresponding to the resource you would like to build, for example `aws-sns-topic/` for the `AWS::SNS::Topic` resource.
 
 ```shell
+# cd aws-sns-topic/ (the folder for topic resource)
 # clean and build maven package
 mvn clean && mvn package
 #  run the submit command to register the resource type in an aws region (e.g. us-east-1)
