@@ -155,7 +155,6 @@
                         <exclude>**/BaseHandler*</exclude>
                         <exclude>**/HandlerWrapper*</exclude>
                         <exclude>**/ResourceModel*</exclude>
-                        <exclude>**/Configuration*</exclude>
                         <exclude>**/ClientBuilder*</exclude>
                     </excludes>
                 </configuration>
