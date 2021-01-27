@@ -1,26 +1,27 @@
 package software.amazon.sns.topic;
 
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-
-
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.*;
-import software.amazon.cloudformation.proxy.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
+import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
+import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.proxy.*;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -146,7 +147,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
         assertThat(response.getResourceModel().getTopicName()).isEqualTo(fifoTopicName);
-        assertThat(response.getResourceModel().getId()).isEqualTo(fifoTopicArn);
+        assertThat(response.getResourceModel().getTopicArn()).isEqualTo(fifoTopicArn);
 
         verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
@@ -285,7 +286,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     public void handleRequest_Failure_InvalidRequest_Id() {
         final ResourceModel model = ResourceModel.builder()
                 .topicName("sns-topic-name")
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();

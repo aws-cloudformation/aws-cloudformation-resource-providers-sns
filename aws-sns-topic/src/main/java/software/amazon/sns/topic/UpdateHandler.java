@@ -49,7 +49,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> {
                     if(!StringUtils.equals(model.getDisplayName(), previousModel.getDisplayName())) {
                         return proxy.initiate("AWS-SNS-Topic::Update::DisplayName", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.DISPLAY_NAME, m.getDisplayName()))
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.DISPLAY_NAME, m.getDisplayName()))
                                 .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
                                 .progress();
                     }
@@ -58,7 +58,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> {
                     if(!StringUtils.equals(model.getKmsMasterKeyId(), previousModel.getKmsMasterKeyId())) {
                         return proxy.initiate("AWS-SNS-Topic::Update::KMSKeyId", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.KMS_MASTER_KEY_ID, m.getKmsMasterKeyId()))
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.KMS_MASTER_KEY_ID, m.getKmsMasterKeyId()))
                                 .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
                                 .progress();
                     }
@@ -69,7 +69,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     String desiredVal =  model.getContentBasedDeduplication() != null ? model.getContentBasedDeduplication().toString() : null;
                     if (!StringUtils.equals(previousVal, desiredVal)) {
                         return proxy.initiate("AWS-SNS-Topic::Update::ContentBasedDeduplication", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getId(), TopicAttributeName.CONTENT_BASED_DEDUPLICATION, desiredVal))
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.CONTENT_BASED_DEDUPLICATION, desiredVal))
                                 .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
                                 .progress();
                     }

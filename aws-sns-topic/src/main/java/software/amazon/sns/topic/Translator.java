@@ -55,13 +55,13 @@ public class Translator {
 
   static DeleteTopicRequest translateToDeleteTopic(final ResourceModel model) {
     return DeleteTopicRequest.builder()
-            .topicArn(model.getId())
+            .topicArn(model.getTopicArn())
             .build();
   }
 
   static GetTopicAttributesRequest translateToGetTopicAttributes(final ResourceModel model) {
     return GetTopicAttributesRequest.builder()
-            .topicArn(model.getId())
+            .topicArn(model.getTopicArn())
             .build();
   }
 
@@ -81,7 +81,7 @@ public class Translator {
   static List<ResourceModel> translateFromListTopicRequest(final ListTopicsResponse listTopicsResponse) {
     return streamOfOrEmpty(listTopicsResponse.topics())
             .map(topic -> ResourceModel.builder()
-                    .id(topic.topicArn())
+                    .topicArn(topic.topicArn())
                     .build())
             .collect(Collectors.toList());
   }
@@ -104,7 +104,7 @@ public class Translator {
 
 
     return ResourceModel.builder()
-            .id(attributes.get(TopicAttributeName.TOPIC_ARN.toString()))
+            .topicArn(attributes.get(TopicAttributeName.TOPIC_ARN.toString()))
             .topicName(getTopicNameFromArn(attributes.get(TopicAttributeName.TOPIC_ARN.toString())))
             .displayName(nullIfEmpty(attributes.get(TopicAttributeName.DISPLAY_NAME.toString())))
             .kmsMasterKeyId(nullIfEmpty(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString())))
@@ -134,7 +134,7 @@ public class Translator {
 
   static ListSubscriptionsByTopicRequest translateToListSubscriptionByTopic(ResourceModel model) {
     return ListSubscriptionsByTopicRequest.builder()
-            .topicArn(model.getId())
+            .topicArn(model.getTopicArn())
             .build();
   }
 
@@ -146,7 +146,7 @@ public class Translator {
 
   static SubscribeRequest translateToSubscribeRequest(ResourceModel model, Subscription subscription) {
     return SubscribeRequest.builder()
-            .topicArn(model.getId())
+            .topicArn(model.getTopicArn())
             .protocol(subscription.getProtocol())
             .endpoint(subscription.getEndpoint())
             .build();

@@ -27,8 +27,8 @@ public class CreateHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
         final Map<String, String> desiredResourceTags = request.getDesiredResourceTags();
 
-        if (StringUtils.isNotEmpty(model.getId())) {
-            return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.InvalidRequest, "Id is a read-only property.");
+        if (StringUtils.isNotEmpty(model.getTopicArn())) {
+            return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.InvalidRequest, "TopicArn is a read-only property.");
         }
 
         if (StringUtils.isBlank(model.getTopicName())) {
@@ -47,7 +47,7 @@ public class CreateHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(model1 -> Translator.translateToCreateTopicRequest(model1, desiredResourceTags))
                                 .makeServiceCall((createTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(createTopicRequest, client.client()::createTopic))
                                 .done((createTopicRequest, createTopicResponse, client, resourceModel, context) -> {
-                                    model.setId(createTopicResponse.topicArn());
+                                    model.setTopicArn(createTopicResponse.topicArn());
                                     return ProgressEvent.progress(model, context);
                                 })
                 )

@@ -29,7 +29,7 @@ public class ReadHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(Translator::translateToGetTopicAttributes)
                                 .makeServiceCall(this::getTopicAttributes)
                                 .done((getTopicAttributesRequest, getTopicAttributesResponse, sdkProxyClient, resourceModel, context) -> {
-                                    final ListTagsForResourceResponse listTagsForResourceResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.listTagsForResourceRequest(resourceModel.getId()), sdkProxyClient.client()::listTagsForResource);
+                                    final ListTagsForResourceResponse listTagsForResourceResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.listTagsForResourceRequest(resourceModel.getTopicArn()), sdkProxyClient.client()::listTagsForResource);
                                     final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(resourceModel), sdkProxyClient.client()::listSubscriptionsByTopic);
                                     return ProgressEvent.success(Translator.translateFromGetTopicAttributes(getTopicAttributesResponse, listSubscriptionsByTopicResponse, listTagsForResourceResponse), callbackContext);
                                 }));
