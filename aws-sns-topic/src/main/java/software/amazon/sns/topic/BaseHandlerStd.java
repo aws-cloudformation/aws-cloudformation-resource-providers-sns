@@ -105,10 +105,10 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final Set<Tag> tagsToAdd = Sets.difference(currentTags, previousTags);
 
     if (tagsToRemove.size() > 0) {
-      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToUntagRequest(model.getId(), tagsToRemove), proxyClient.client()::untagResource);
+      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToUntagRequest(model.getTopicArn(), tagsToRemove), proxyClient.client()::untagResource);
     }
     if (tagsToAdd.size() > 0) {
-      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToTagRequest(model.getId(), tagsToAdd), proxyClient.client()::tagResource);
+      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToTagRequest(model.getTopicArn(), tagsToAdd), proxyClient.client()::tagResource);
     }
     return progress;
   }

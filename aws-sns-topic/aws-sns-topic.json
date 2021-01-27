@@ -43,7 +43,7 @@
             "minLength": 1,
             "maxLength": 256
         },
-        "Id": {
+        "TopicArn": {
             "type": "string"
         }
     },
@@ -105,10 +105,10 @@
         "/properties/FifoTopic"
     ],
     "primaryIdentifier": [
-        "/properties/Id"
+        "/properties/TopicArn"
     ],
     "readOnlyProperties": [
-        "/properties/Id"
+        "/properties/TopicArn"
     ],
     "handlers": {
         "create": {

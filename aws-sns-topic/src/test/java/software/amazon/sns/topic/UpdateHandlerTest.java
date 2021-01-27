@@ -1,27 +1,22 @@
 package software.amazon.sns.topic;
 
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.common.collect.Maps;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.exceptions.CfnNotUpdatableException;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.proxy.*;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,11 +54,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess() {
         final ResourceModel model = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .displayName("topic-display-name")
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
@@ -89,11 +84,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess_UpdateKmsKeyId() {
         final ResourceModel model = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .kmsMasterKeyId("dummy-key-id-2")
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .kmsMasterKeyId("dummy-key-id-1")
                 .build();
 
@@ -120,14 +115,14 @@ public class UpdateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_NotFound() {
         final ResourceModel model = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         final ResourceModel previousModel = ResourceModel.builder().build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
-        assertThrows(CfnNotFoundException.class, () -> {handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);});
+        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
     }
@@ -143,10 +138,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
         oldTags.add(Tag.builder().key("key2").value("value2").build());
 
         final ResourceModel model = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .tags(oldTags)
                 .build();
 
@@ -191,12 +186,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
         String fifoTopicArn = "arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo";
 
         final ResourceModel model = ResourceModel.builder()
-                .id(fifoTopicArn)
+                .topicArn(fifoTopicArn)
                 .fifoTopic(true)
                 .contentBasedDeduplication(true)
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
-                .id(fifoTopicArn)
+                .topicArn(fifoTopicArn)
                 .fifoTopic(true)
                 .contentBasedDeduplication(false)
                 .build();

@@ -63,7 +63,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         tags.add(Tag.builder().key("key1").value("value1").build());
 
         final ResourceModel model = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .topicName("sns-topic-name")
                 .displayName("topic-display-name")
                 .subscription(subscriptions)
@@ -119,7 +119,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         final String topicDisplayName = "topic-display-name";
 
         final ResourceModel model = ResourceModel.builder()
-                .id(topicArn)
+                .topicArn(topicArn)
                 .topicName(topicName)
                 .displayName(topicDisplayName)
                 .subscription(subscriptions)
@@ -143,7 +143,7 @@ public class ReadHandlerTest extends AbstractTestBase {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel().getId()).isEqualTo(topicArn);
+        assertThat(response.getResourceModel().getTopicArn()).isEqualTo(topicArn);
         assertThat(response.getResourceModel().getFifoTopic()).isEqualTo(true);
         assertThat(response.getResourceModel().getContentBasedDeduplication()).isEqualTo(true);
 
@@ -155,7 +155,7 @@ public class ReadHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_NotFound() {
         final ResourceModel model = ResourceModel.builder()
-                .id("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
 
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
