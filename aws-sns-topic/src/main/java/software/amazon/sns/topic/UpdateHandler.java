@@ -32,7 +32,11 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
         final ResourceModel previousModel = request.getPreviousResourceState();
-        final Map<String, String> desiredResourceTags = request.getDesiredResourceTags();
+
+        Set<Tag> previousModelTags = new HashSet<>(Optional.ofNullable(previousModel.getTags()).orElse(Collections.emptySet()));
+        Set<Tag> previousResourceTags = Sets.union(Translator.convertResourceTagsToSet(request.getPreviousResourceTags()), previousModelTags);
+        Set<Tag> desiredModelTags = new HashSet<>(Optional.ofNullable(model.getTags()).orElse(Collections.emptySet()));
+        Set<Tag> desiredResourceTags = Sets.union(Translator.convertResourceTagsToSet(request.getDesiredResourceTags()), desiredModelTags);
 
         Set<Subscription> desiredSubscription = new HashSet<>(Optional.ofNullable(model.getSubscription()).orElse(Collections.emptySet()));
         Set<Subscription> previousSubscription = new HashSet<>(Optional.ofNullable(previousModel.getSubscription()).orElse(Collections.emptySet()));
@@ -88,7 +92,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 )
                 .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
                 .then(progress -> addSubscription(proxy, proxyClient, progress, toSubscribe, logger))
-                .then(progress -> modifyTags(proxy, proxyClient, model, desiredResourceTags, previousModel.getTags(), progress, logger))
+                .then(progress -> modifyTags(proxy, proxyClient, model, desiredResourceTags, previousResourceTags, progress, logger))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 

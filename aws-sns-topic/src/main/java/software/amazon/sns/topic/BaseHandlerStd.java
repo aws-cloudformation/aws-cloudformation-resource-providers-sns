@@ -98,7 +98,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return ProgressEvent.progress(model, callbackContext);
   }
 
-  protected ProgressEvent<ResourceModel, CallbackContext> modifyTags(AmazonWebServicesClientProxy proxy, ProxyClient<SnsClient> proxyClient, ResourceModel model, Map<String, String> desiredResourceTags, Set<Tag> existingTags, ProgressEvent<ResourceModel, CallbackContext> progress, Logger logger) {
+  protected ProgressEvent<ResourceModel, CallbackContext> modifyTags(AmazonWebServicesClientProxy proxy, ProxyClient<SnsClient> proxyClient, ResourceModel model, Set<Tag> currentTags, Set<Tag> existingTags, ProgressEvent<ResourceModel, CallbackContext> progress, Logger logger) {
     final Set<Tag> currentTags = Translator.convertResourceTagsToSet(desiredResourceTags);
     final Set<Tag> previousTags = new HashSet<>(Optional.ofNullable(existingTags).orElse(Collections.emptySet()));
     final Set<Tag> tagsToRemove = Sets.difference(previousTags, currentTags);
