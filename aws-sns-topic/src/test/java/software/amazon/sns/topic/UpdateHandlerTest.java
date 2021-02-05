@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.*;
 
@@ -69,13 +70,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-
+        validateResponseSuccess(response);
         verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
@@ -100,13 +95,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-
+        validateResponseSuccess(response);
         verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
@@ -155,10 +144,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().tagResource(any(TagResourceRequest.class))).thenReturn(tagResourceResponse);
         final UntagResourceResponse untagResourceResponse = UntagResourceResponse.builder().build();
         when(proxyClient.client().untagResource(any(UntagResourceRequest.class))).thenReturn(untagResourceResponse);
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
-        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
-        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+        readHandlerMocks();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -167,13 +153,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-
+        validateResponseSuccess(response);
         verify(proxyClient.client()).tagResource(any(TagResourceRequest.class));
         verify(proxyClient.client()).untagResource(any(UntagResourceRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
@@ -205,16 +185,152 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
+        validateResponseSuccess(response);
+        verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SwallowTagResourceAuthorizationException() {
+        final Map<String, String> tags = Maps.newHashMap();
+        tags.put("key1", "value1");
+        tags.put("key3", "value3");
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().tagResource(any(TagResourceRequest.class))).thenThrow(AuthorizationErrorException.builder().message("Tagging Access Denied").build());
+        readHandlerMocks();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .desiredResourceTags(tags)
+                .previousResourceState(previousModel)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+        verify(proxyClient.client()).tagResource(any(TagResourceRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SwallowUntagResourceAuthorizationException() {
+        final Set<Tag> oldTags = new HashSet<>();
+        oldTags.add(Tag.builder().key("key1").value("value1").build());
+        oldTags.add(Tag.builder().key("key2").value("value2").build());
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .tags(oldTags)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().untagResource(any(UntagResourceRequest.class))).thenThrow(AuthorizationErrorException.builder().message("Untagging Access Denied").build());
+        readHandlerMocks();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceState(previousModel)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+        verify(proxyClient.client()).untagResource(any(UntagResourceRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+    }
+
+    @Test
+    public void handleRequest_TagResourcException() {
+        final Map<String, String> tags = Maps.newHashMap();
+        tags.put("key1", "value1");
+        tags.put("key3", "value3");
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().tagResource(any(TagResourceRequest.class))).thenThrow(ConcurrentAccessException.builder().message("Tagging Concurrent Access").build());
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .desiredResourceTags(tags)
+                .previousResourceState(previousModel)
+                .build();
+
+        assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_UntagResourceException() {
+        final Set<Tag> oldTags = new HashSet<>();
+        oldTags.add(Tag.builder().key("key1").value("value1").build());
+        oldTags.add(Tag.builder().key("key2").value("value2").build());
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .tags(oldTags)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().untagResource(any(UntagResourceRequest.class))).thenThrow(ConcurrentAccessException.builder().message("Tagging Concurrent Access").build());
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceState(previousModel)
+                .build();
+        assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    private void validateResponseSuccess(final ProgressEvent<ResourceModel, CallbackContext> response) {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
-
-        verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
-        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
     }
 
     private void setupUpdateHandlerMocks(Map<String, String> attributes) {
@@ -224,6 +340,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
         final SetTopicAttributesResponse setTopicAttributesResponse = SetTopicAttributesResponse.builder().build();
         when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class))).thenReturn(setTopicAttributesResponse);
+        readHandlerMocks();
+    }
+
+    private void readHandlerMocks() {
         final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
         when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
         final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
