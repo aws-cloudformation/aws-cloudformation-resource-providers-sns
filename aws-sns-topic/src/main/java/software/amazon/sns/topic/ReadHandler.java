@@ -10,6 +10,7 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class ReadHandler extends BaseHandlerStd {
+
     private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -29,8 +30,8 @@ public class ReadHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(Translator::translateToGetTopicAttributes)
                                 .makeServiceCall(this::getTopicAttributes)
                                 .done((getTopicAttributesRequest, getTopicAttributesResponse, sdkProxyClient, resourceModel, context) -> {
-                                    final ListTagsForResourceResponse listTagsForResourceResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.listTagsForResourceRequest(resourceModel.getTopicArn()), sdkProxyClient.client()::listTagsForResource);
-                                    final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = sdkProxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(resourceModel), sdkProxyClient.client()::listSubscriptionsByTopic);
+                                    final ListTagsForResourceResponse listTagsForResourceResponse = invokeListTagsForResource(sdkProxyClient, resourceModel.getTopicArn(), logger);
+                                    final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = invokeListSubscriptionsByTopic(sdkProxyClient, resourceModel, logger);
                                     return ProgressEvent.success(Translator.translateFromGetTopicAttributes(getTopicAttributesResponse, listSubscriptionsByTopicResponse, listTagsForResourceResponse), callbackContext);
                                 }));
     }

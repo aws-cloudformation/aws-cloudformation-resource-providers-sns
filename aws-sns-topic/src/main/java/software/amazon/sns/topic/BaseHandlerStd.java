@@ -3,11 +3,7 @@ package software.amazon.sns.topic;
 import com.google.common.collect.Sets;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
-import software.amazon.awssdk.services.sns.model.GetTopicAttributesResponse;
-import software.amazon.awssdk.services.sns.model.InvalidParameterException;
-import software.amazon.awssdk.services.sns.model.NotFoundException;
-import software.amazon.awssdk.services.sns.model.SnsException;
+import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -18,12 +14,8 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
@@ -104,10 +96,10 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final Set<Tag> tagsToAdd = Sets.difference(currentTags, previousTags);
 
     if (tagsToRemove.size() > 0) {
-      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToUntagRequest(model.getTopicArn(), tagsToRemove), proxyClient.client()::untagResource);
+      invokeUnTagResource(proxyClient, model.getTopicArn(), tagsToRemove, logger);
     }
     if (tagsToAdd.size() > 0) {
-      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToTagRequest(model.getTopicArn(), tagsToAdd), proxyClient.client()::tagResource);
+      invokeTagResource(proxyClient, model.getTopicArn(), tagsToAdd, logger);
     }
     return progress;
   }
@@ -128,5 +120,51 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       throw new CfnInternalFailureException(e);
     }
     return getTopicAttributesResponse;
+  }
+
+  protected ListTagsForResourceResponse invokeListTagsForResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Logger logger) {
+    try {
+      return proxyClient.injectCredentialsAndInvokeV2(Translator.listTagsForResourceRequest(topicArn), proxyClient.client()::listTagsForResource);
+    } catch (AuthorizationErrorException e) {
+      // This is a short term fix for Fn::GetAtt backwards compatibility
+      logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+      return ListTagsForResourceResponse.builder().build();
+    } catch (SnsException e) {
+      throw new CfnGeneralServiceException(e.getMessage(), e);
+    }
+  }
+
+  protected ListSubscriptionsByTopicResponse invokeListSubscriptionsByTopic(final ProxyClient<SnsClient> proxyClient, final ResourceModel resourceModel, final Logger logger) {
+    try {
+      return proxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(resourceModel), proxyClient.client()::listSubscriptionsByTopic);
+    } catch (AuthorizationErrorException e) {
+      // This is a short term fix for Fn::GetAtt backwards compatibility
+      logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), resourceModel.getTopicArn()));
+      return ListSubscriptionsByTopicResponse.builder().build();
+    } catch (SnsException e) {
+      throw new CfnGeneralServiceException(e.getMessage(), e);
+    }
+  }
+
+  private void invokeUnTagResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Set<Tag> tagsToRemove, final Logger logger) {
+    try {
+      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToUntagRequest(topicArn, tagsToRemove), proxyClient.client()::untagResource);
+    } catch (AuthorizationErrorException e) {
+      // fail silently in case the user does not have access to either stack level or resource level tags
+      logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+    } catch (SnsException e) {
+      throw new CfnGeneralServiceException(e.getMessage(), e);
+    }
+  }
+
+  private void invokeTagResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Set<Tag> tagsToAdd, final Logger logger) {
+    try {
+      proxyClient.injectCredentialsAndInvokeV2(Translator.translateToTagRequest(topicArn, tagsToAdd), proxyClient.client()::tagResource);
+    } catch (AuthorizationErrorException e) {
+      // fail silently in case the user does not have access to either stack level or resource level tags
+      logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+    } catch (SnsException e) {
+      throw new CfnGeneralServiceException(e.getMessage(), e);
+    }
   }
 }

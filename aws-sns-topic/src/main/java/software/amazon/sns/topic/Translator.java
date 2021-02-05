@@ -31,20 +31,22 @@ import java.util.stream.Stream;
 
 public class Translator {
 
-  static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model, Map<String, String> desiredResourceTags) {
-    Map<String, String> attributes = new HashMap<>();
 
-    putIfNotNull(attributes, TopicAttributeName.DISPLAY_NAME.toString(), model.getDisplayName());
-    putIfNotNull(attributes, TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
-    putIfNotNull(attributes, TopicAttributeName.FIFO_TOPIC.toString(), model.getFifoTopic());
-    putIfNotNull(attributes, TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), model.getContentBasedDeduplication());
+  static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model, Map<String, String> desiredResourceTags) {
 
     final Set<Tag> tags = convertResourceTagsToSet(desiredResourceTags);
     return CreateTopicRequest.builder()
             .name(model.getTopicName())
-            .attributes(attributes)
+            .attributes(translateTopicAttributesToMap(model))
             .tags(translateTagsToSdk(tags))
             .build();
+  }
+
+  static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model) {
+      return CreateTopicRequest.builder()
+              .name(model.getTopicName())
+              .attributes(translateTopicAttributesToMap(model))
+              .build();
   }
 
   static Set<software.amazon.awssdk.services.sns.model.Tag> translateTagsToSdk(Set<Tag> tags) {
@@ -200,5 +202,15 @@ public class Translator {
       if (value != null) {
           attributeMap.put(key, value.toString());
       }
+  }
+
+  private static Map<String, String>  translateTopicAttributesToMap(ResourceModel model) {
+      Map<String, String> attributes = new HashMap<>();
+
+      putIfNotNull(attributes, TopicAttributeName.DISPLAY_NAME.toString(), model.getDisplayName());
+      putIfNotNull(attributes, TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
+      putIfNotNull(attributes, TopicAttributeName.FIFO_TOPIC.toString(), model.getFifoTopic());
+      putIfNotNull(attributes, TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), model.getContentBasedDeduplication());
+      return attributes;
   }
 }

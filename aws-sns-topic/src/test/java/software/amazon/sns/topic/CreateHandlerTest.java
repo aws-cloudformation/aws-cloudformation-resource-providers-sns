@@ -1,5 +1,6 @@
 package software.amazon.sns.topic;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,10 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
-import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
-import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.*;
 import software.amazon.cloudformation.proxy.*;
 
 import java.time.Duration;
@@ -72,11 +70,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
-
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
-        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
-        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+        readHandlerMocks();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -87,14 +81,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-
-
+        validateResponseSuccess(response);
         verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
@@ -125,11 +112,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .topicArn(fifoTopicArn)
                 .build();
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
-
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
-        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
-        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+        readHandlerMocks();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -140,15 +123,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
+        validateResponseSuccess(response);
         assertThat(response.getResourceModel().getTopicName()).isEqualTo(fifoTopicName);
         assertThat(response.getResourceModel().getTopicArn()).isEqualTo(fifoTopicArn);
-
         verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
@@ -176,22 +153,12 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
-
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
-        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
-        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+        readHandlerMocks();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).logicalResourceIdentifier("SnsTopic").clientRequestToken("dummy-token").build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-
+        validateResponseSuccess(response);
         verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
@@ -282,6 +249,79 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_swallowCreateWithTagAuthorizationError() {
+
+        final ResourceModel model = ResourceModel.builder()
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class)))
+                .thenThrow(NotFoundException.builder().message("no topic found").build())
+                .thenReturn(getTopicAttributesResponse);
+
+        final CreateTopicResponse createTopicResponse = CreateTopicResponse.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenThrow(AuthorizationErrorException.builder().message("Tagging Access Denied").build()).thenReturn(createTopicResponse);
+        readHandlerMocks();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceTags(ImmutableMap.of("KeyName", "Value"))
+                .desiredResourceState(model)
+                .logicalResourceIdentifier("SnsTopic")
+                .clientRequestToken("dummy-token")
+                .region("us-east-1")
+                .awsAccountId("1234567890")
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+        verify(proxyClient.client(), times(2)).createTopic(any(CreateTopicRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+    }
+
+    @Test
+    public void handleRequest_CreateTopicWithTagException() {
+
+        final ResourceModel model = ResourceModel.builder()
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class)))
+                .thenThrow(NotFoundException.builder().message("no topic found").build())
+                .thenReturn(getTopicAttributesResponse);
+
+        final CreateTopicResponse createTopicResponse = CreateTopicResponse.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenThrow(InternalErrorException.class).thenReturn(createTopicResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceTags(ImmutableMap.of("KeyName", "Value"))
+                .desiredResourceState(model)
+                .logicalResourceIdentifier("SnsTopic")
+                .clientRequestToken("dummy-token")
+                .region("us-east-1")
+                .awsAccountId("1234567890")
+                .build();
+
+        assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+        verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
+    }
+
+    @Test
     @org.junit.jupiter.api.Tag("skipSdkInteraction")
     public void handleRequest_Failure_InvalidRequest_Id() {
         final ResourceModel model = ResourceModel.builder()
@@ -297,5 +337,21 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNotNull();
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+    }
+
+    private void readHandlerMocks() {
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder().build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+    }
+
+    private void validateResponseSuccess(final ProgressEvent<ResourceModel, CallbackContext> response) {
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
     }
 }

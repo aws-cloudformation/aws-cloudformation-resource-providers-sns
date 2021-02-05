@@ -2,10 +2,7 @@ package software.amazon.sns.topic;
 
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
-import software.amazon.awssdk.services.sns.model.InvalidParameterException;
-import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
-import software.amazon.awssdk.services.sns.model.NotFoundException;
+import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.*;
 import software.amazon.cloudformation.proxy.*;
 import software.amazon.cloudformation.resource.IdentifierUtils;
@@ -42,17 +39,46 @@ public class CreateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress -> checkForPreCreateResourceExistence(request, proxyClient, progress))
-                .then(progress ->
-                        proxy.initiate("AWS-SNS-Topic::Create", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(model1 -> Translator.translateToCreateTopicRequest(model1, desiredResourceTags))
-                                .makeServiceCall((createTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(createTopicRequest, client.client()::createTopic))
-                                .done((createTopicRequest, createTopicResponse, client, resourceModel, context) -> {
-                                    model.setTopicArn(createTopicResponse.topicArn());
-                                    return ProgressEvent.progress(model, context);
-                                })
-                )
+                .then(progress -> createTopicWithTags(proxy, model, desiredResourceTags, callbackContext, proxyClient))
+                .then(progress -> retryCreateTopicWithoutTags(proxy, model, callbackContext, proxyClient))
                 .then(progress -> addSubscription(proxy, proxyClient, progress, model.getSubscription(), logger))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> createTopicWithTags(
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceModel model,
+            final Map<String, String> desiredResourceTags,
+            final CallbackContext callbackContext,
+            final ProxyClient<SnsClient> proxyClient
+    ) {
+        try {
+            CreateTopicResponse createTopicResponse = proxy.injectCredentialsAndInvokeV2(Translator.translateToCreateTopicRequest(model, desiredResourceTags), proxyClient.client()::createTopic);
+            model.setTopicArn(createTopicResponse.topicArn());
+            return ProgressEvent.progress(model, callbackContext);
+        } catch (AuthorizationErrorException e) {
+            // will retry create topic without tags in the next flow
+            return ProgressEvent.progress(model, callbackContext);
+        } catch (SnsException e) {
+            throw new CfnGeneralServiceException(e);
+        }
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> retryCreateTopicWithoutTags(
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceModel model,
+            final CallbackContext callbackContext,
+            final ProxyClient<SnsClient> proxyClient) {
+        if (StringUtils.isEmpty(model.getTopicArn())) {
+            return proxy.initiate("AWS-SNS-Topic::RetryCreate", proxyClient, model, callbackContext)
+                    .translateToServiceRequest(Translator::translateToCreateTopicRequest)
+                    .makeServiceCall((createTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(createTopicRequest, client.client()::createTopic))
+                    .done((createTopicRequest, createTopicResponse, client, resourceModel, context) -> {
+                        model.setTopicArn(createTopicResponse.topicArn());
+                        return ProgressEvent.progress(model, context);
+                    });
+        }
+        return ProgressEvent.progress(model, callbackContext);
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> checkForPreCreateResourceExistence(
