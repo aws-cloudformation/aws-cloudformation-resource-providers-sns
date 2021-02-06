@@ -33,10 +33,8 @@ public class UpdateHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
         final ResourceModel previousModel = request.getPreviousResourceState();
 
-        Set<Tag> previousModelTags = new HashSet<>(Optional.ofNullable(previousModel.getTags()).orElse(Collections.emptySet()));
-        Set<Tag> previousResourceTags = Sets.union(Translator.convertResourceTagsToSet(request.getPreviousResourceTags()), previousModelTags);
-        Set<Tag> desiredModelTags = new HashSet<>(Optional.ofNullable(model.getTags()).orElse(Collections.emptySet()));
-        Set<Tag> desiredResourceTags = Sets.union(Translator.convertResourceTagsToSet(request.getDesiredResourceTags()), desiredModelTags);
+        Set<Tag> previousResourceTags = Translator.convertResourceTagsToSet(request.getPreviousResourceTags());
+        Set<Tag> desiredResourceTags = Translator.convertResourceTagsToSet(request.getDesiredResourceTags());
 
         Set<Subscription> desiredSubscription = new HashSet<>(Optional.ofNullable(model.getSubscription()).orElse(Collections.emptySet()));
         Set<Subscription> previousSubscription = new HashSet<>(Optional.ofNullable(previousModel.getSubscription()).orElse(Collections.emptySet()));
