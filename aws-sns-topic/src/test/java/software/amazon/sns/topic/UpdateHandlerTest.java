@@ -15,9 +15,7 @@ import software.amazon.cloudformation.proxy.*;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -122,16 +120,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
         tags.put("key1", "value1");
         tags.put("key3", "value3");
 
-        final Set<Tag> oldTags = new HashSet<>();
-        oldTags.add(Tag.builder().key("key1").value("value1").build());
-        oldTags.add(Tag.builder().key("key2").value("value2").build());
+        final Map<String, String> oldTags = Maps.newHashMap();
+        oldTags.put("key1", "value1");
+        oldTags.put("key2", "value2");
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tags(oldTags)
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
@@ -149,6 +146,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .desiredResourceTags(tags)
+                .previousResourceTags(oldTags)
                 .previousResourceState(previousModel)
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -228,16 +226,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SwallowUntagResourceAuthorizationException() {
-        final Set<Tag> oldTags = new HashSet<>();
-        oldTags.add(Tag.builder().key("key1").value("value1").build());
-        oldTags.add(Tag.builder().key("key2").value("value2").build());
+        final Map<String, String> oldTags = new HashMap<>();
+        oldTags.put("key1", "value1");
+        oldTags.put("key2", "value2");
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tags(oldTags)
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
@@ -252,6 +249,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .previousResourceState(previousModel)
+                .previousResourceTags(oldTags)
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -295,16 +293,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_UntagResourceException() {
-        final Set<Tag> oldTags = new HashSet<>();
-        oldTags.add(Tag.builder().key("key1").value("value1").build());
-        oldTags.add(Tag.builder().key("key2").value("value2").build());
+        final Map<String, String> oldTags = new HashMap<>();
+        oldTags.put("key1", "value1");
+        oldTags.put("key2", "value2");
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tags(oldTags)
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
@@ -320,6 +317,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .previousResourceState(previousModel)
+                .previousResourceTags(oldTags)
                 .build();
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
