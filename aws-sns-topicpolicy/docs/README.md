@@ -66,6 +66,3 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 The provider-assigned unique ID for this managed resource.
 
-
-### Official User Guide
-[AWS::SNS::TopicPolicy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-policy.html)

@@ -160,6 +160,3 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 This is the subscription amazon resource name generated at creation time.
 
-
-### Official User Guide
-[AWS::SNS::Subscription](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html)

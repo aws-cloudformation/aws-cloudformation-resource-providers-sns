@@ -127,9 +127,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 ### Ref
 
-When you pass the logical ID of this resource to the intrinsic Ref function, Ref returns the topic ARN, for example: `arn:aws:sns:us-east-1:123456789012:mystack-mytopic-NZJ5JSMVGFIE`.
-
-For more information about using the Ref function, see [Ref](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-ref.html).
+When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the TopicArn.
 
 ### Fn::GetAtt
 
@@ -140,6 +138,3 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### TopicArn
 
 Returns the <code>TopicArn</code> value.
-
-### Official User Guide
-[AWS::SNS::Topic](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-topic.html)

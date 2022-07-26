@@ -30,6 +30,10 @@ _Required_: Yes
 
 _Type_: String
 
+_Minimum_: <code>1</code>
+
+_Maximum_: <code>128</code>
+
 _Pattern_: <code>^[a-zA-Z0-9_./=+-]{1,128}$</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
@@ -41,6 +45,8 @@ The value for the tag. You can specify a value that is 0 to 256 characters in le
 _Required_: Yes
 
 _Type_: String
+
+_Maximum_: <code>256</code>
 
 _Pattern_: <code>^[a-zA-Z0-9_./=+-]{0,256}$</code>
 
