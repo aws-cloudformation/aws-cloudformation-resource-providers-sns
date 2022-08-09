@@ -62,17 +62,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .attributes(attributes)
                 .build();
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder()
-                .subscriptions(software.amazon.awssdk.services.sns.model.Subscription.builder()
-                        .subscriptionArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name:27735157-80a9-4735-9427-090465a162d2")
-                        .endpoint("abc@xyz.com")
-                        .protocol("email")
-                        .build()
-                )
-                .build();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
-        final UnsubscribeResponse unsubscribeResponse = UnsubscribeResponse.builder().build();
-        when(proxyClient.client().unsubscribe(any(UnsubscribeRequest.class))).thenReturn(unsubscribeResponse);
         final DeleteTopicResponse deleteTopicResponse = DeleteTopicResponse.builder().build();
         when(proxyClient.client().deleteTopic(any(DeleteTopicRequest.class))).thenReturn(deleteTopicResponse);
 
@@ -87,8 +76,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
 
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
-        verify(proxyClient.client()).unsubscribe(any(UnsubscribeRequest.class));
         verify(proxyClient.client()).deleteTopic(any(DeleteTopicRequest.class));
     }
 
