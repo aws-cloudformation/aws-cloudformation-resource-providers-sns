@@ -1,6 +1,8 @@
 package software.amazon.sns.topic;
 
 import com.google.common.collect.Sets;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
@@ -21,6 +23,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   public static final int TOPIC_NAME_MAX_LENGTH = 256;
   public static final String FIFO_TOPIC_EXTENSION = ".fifo";
+  private static final int DELAY_TIME_MILLI_SECS = 8000;
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -51,6 +54,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     if(subscriptions == null) {
       return ProgressEvent.progress(model, callbackContext);
     }
+    // Sleep before and after calling Subscribe because SNS has inconsistency issue, then Subscribe
+    // or ListSubscriptionsByTopic may fail.
+    // This is a temporary fix, will check stabilize later.
+    try {
+      Thread.sleep(DELAY_TIME_MILLI_SECS);
+    } catch (InterruptedException e) {
+      throw new CfnGeneralServiceException(e);
+    }
     for(final Subscription subscription : subscriptions) {
       final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
               .initiate("AWS-SNS-Topic::Subscribe-" + subscription.hashCode(), client, model, callbackContext)
@@ -62,6 +73,12 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return progressEvent;
       }
     }
+    try {
+      Thread.sleep(DELAY_TIME_MILLI_SECS);
+    } catch (InterruptedException e) {
+      throw new CfnGeneralServiceException(e);
+    }
+    logger.log(String.format("CREATE? %s", model.toString()));
     return ProgressEvent.progress(model, callbackContext);
   }
 
