@@ -1,5 +1,6 @@
 package software.amazon.sns.topic;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ class ConfigurationTest {
     @Test
     public void testMergeDuplicateKeys() {
         final ResourceModel model = ResourceModel.builder()
-                .tags(ImmutableSet.of(new Tag("sameKey", "value1"), new Tag("sameKey", "value2")))
+                .tags(ImmutableList.of(new Tag("sameKey", "value1"), new Tag("sameKey", "value2")))
                 .build();
 
         final Configuration configuration = new Configuration();

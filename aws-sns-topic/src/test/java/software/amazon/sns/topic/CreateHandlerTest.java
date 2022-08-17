@@ -13,7 +13,9 @@ import software.amazon.cloudformation.exceptions.*;
 import software.amazon.cloudformation.proxy.*;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +55,11 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
+        final List<Subscription> subscriptions = new ArrayList<>();
+        Subscription subscription = Subscription.builder().endpoint("abc@xyz.com").protocol("email").build();
+        subscriptions.add(subscription);
         final ResourceModel model = ResourceModel.builder()
+                .subscription(subscriptions)
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
@@ -70,7 +76,19 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
-        readHandlerMocks();
+
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+
+        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder()
+                .subscriptions(software.amazon.awssdk.services.sns.model.Subscription.builder()
+                        .subscriptionArn("subs-arn")
+                        .endpoint("endpoint")
+                        .protocol("email")
+                        .build()
+                )
+                .build();
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -82,10 +100,12 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         validateResponseSuccess(response);
+
         verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
         verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
     }
 
     @Test

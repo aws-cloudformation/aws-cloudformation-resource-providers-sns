@@ -2,9 +2,9 @@ package software.amazon.sns.topic;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
@@ -58,9 +58,9 @@ public class ReadHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final Set<Subscription> subscriptions = new HashSet<>();
+        final List<Subscription> subscriptions = new ArrayList<>();
         Subscription.builder().endpoint("abc@xyz.com").protocol("email").build();
-        final Set<Tag> tags = new HashSet<>();
+        final List<Tag> tags = new ArrayList<>();
         tags.add(Tag.builder().key("key1").value("value1").build());
 
         final ResourceModel model = ResourceModel.builder()
@@ -110,9 +110,9 @@ public class ReadHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_attributesForDriftDetection() {
-        final Set<Subscription> subscriptions = new HashSet<>();
+        final List<Subscription> subscriptions = new ArrayList<>();
         Subscription.builder().endpoint("abc@xyz.com").protocol("email").build();
-        final Set<Tag> tags = new HashSet<>();
+        final List<Tag> tags = new ArrayList<>();
         tags.add(Tag.builder().key("key1").value("value1").build());
 
         final String topicArn = "arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo";

@@ -1,8 +1,6 @@
 package software.amazon.sns.topic;
 
 import com.google.common.collect.Sets;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
@@ -23,7 +21,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   public static final int TOPIC_NAME_MAX_LENGTH = 256;
   public static final String FIFO_TOPIC_EXTENSION = ".fifo";
-  private static final int DELAY_TIME_MILLI_SECS = 8000;
+  private static final int DELAY_TIME_MILLI_SECS = 6000;
+  private static final int MAX_RETRIES = 10;
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -47,7 +46,13 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
           final ProxyClient<SnsClient> proxyClient,
           final Logger logger);
 
-  protected ProgressEvent<ResourceModel, CallbackContext> addSubscription(AmazonWebServicesClientProxy proxy, ProxyClient<SnsClient> client, ProgressEvent<ResourceModel, CallbackContext> progress, Set<Subscription> subscriptions, Logger logger) {
+  protected ProgressEvent<ResourceModel, CallbackContext> addSubscription(
+          AmazonWebServicesClientProxy proxy,
+          ProxyClient<SnsClient> client,
+          ProgressEvent<ResourceModel, CallbackContext> progress,
+          List<Subscription> subscriptions, Logger logger,
+          boolean isCreate
+  ) {
     final ResourceModel model = progress.getResourceModel();
     final CallbackContext callbackContext = progress.getCallbackContext();
 
@@ -55,8 +60,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       return ProgressEvent.progress(model, callbackContext);
     }
     // Sleep before and after calling Subscribe because SNS has inconsistency issue, then Subscribe
-    // or ListSubscriptionsByTopic may fail.
-    // This is a temporary fix, will check stabilize later.
+    // may fail. In workflow implementation, we have a initial wait time as 10 seconds.
     try {
       Thread.sleep(DELAY_TIME_MILLI_SECS);
     } catch (InterruptedException e) {
@@ -73,12 +77,25 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return progressEvent;
       }
     }
-    try {
-      Thread.sleep(DELAY_TIME_MILLI_SECS);
-    } catch (InterruptedException e) {
-      throw new CfnGeneralServiceException(e);
+    /*
+     Only compare list subscriptions result with request when it is creating new stack.
+     The SNS inconsistency issue is obvious if recreate topic/subscriptions with same name or endpoints, so we sleep for some time to try make listSubscriptionByTopic return correct result.
+     This change is kinda Contract Test oriented... As they have a case that test_read_input_output_negative_match which will compare the input request with READ result.
+     But for most customers we will not increase their latency as they don't frequently recreate topic or subscriptions with same name or endpoints.
+    */
+    if (isCreate) {
+      int retryCount = 0;
+      ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = invokeListSubscriptionsByTopic(client, model, logger);
+      while (listSubscriptionsByTopicResponse.subscriptions().size() != subscriptions.size() && retryCount < MAX_RETRIES) {
+        try {
+          Thread.sleep(2000);
+          ++retryCount;
+          listSubscriptionsByTopicResponse = invokeListSubscriptionsByTopic(client, model, logger);
+        } catch (InterruptedException e) {
+          throw new CfnGeneralServiceException(e);
+        }
+      }
     }
-    logger.log(String.format("CREATE? %s", model.toString()));
     return ProgressEvent.progress(model, callbackContext);
   }
 

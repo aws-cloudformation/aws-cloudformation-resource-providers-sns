@@ -13,7 +13,7 @@ class Configuration extends BaseConfiguration {
 
     @Override
     public Map<String, String> resourceDefinedTags(ResourceModel resourceModel) {
-        return Optional.ofNullable(resourceModel.getTags()).orElse(Collections.emptySet())
+        return Optional.ofNullable(resourceModel.getTags()).orElse(Collections.emptyList())
                 .stream()
                 .collect(Collectors.toMap(Tag::getKey, Tag::getValue, (value1, value2) -> value2));
     }

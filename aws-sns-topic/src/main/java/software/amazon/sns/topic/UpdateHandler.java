@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class UpdateHandler extends BaseHandlerStd {
@@ -36,8 +37,8 @@ public class UpdateHandler extends BaseHandlerStd {
         Set<Tag> previousResourceTags = Translator.convertResourceTagsToSet(request.getPreviousResourceTags());
         Set<Tag> desiredResourceTags = Translator.convertResourceTagsToSet(request.getDesiredResourceTags());
 
-        Set<Subscription> desiredSubscription = new HashSet<>(Optional.ofNullable(model.getSubscription()).orElse(Collections.emptySet()));
-        Set<Subscription> previousSubscription = new HashSet<>(Optional.ofNullable(previousModel.getSubscription()).orElse(Collections.emptySet()));
+        Set<Subscription> desiredSubscription = new HashSet<>(Optional.ofNullable(model.getSubscription()).orElse(Collections.emptyList()));
+        Set<Subscription> previousSubscription = new HashSet<>(Optional.ofNullable(previousModel.getSubscription()).orElse(Collections.emptyList()));
         Set<Subscription> toSubscribe = Sets.difference(desiredSubscription, previousSubscription);
         Set<Subscription> toUnsubscribe = Sets.difference(previousSubscription, desiredSubscription);
 
@@ -89,7 +90,7 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .progress()
                 )
                 .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
-                .then(progress -> addSubscription(proxy, proxyClient, progress, toSubscribe, logger))
+                .then(progress -> addSubscription(proxy, proxyClient, progress, new ArrayList<>(toSubscribe), logger, false))
                 .then(progress -> modifyTags(proxy, proxyClient, model, desiredResourceTags, previousResourceTags, progress, logger))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
