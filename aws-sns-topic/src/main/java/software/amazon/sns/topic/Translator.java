@@ -97,12 +97,12 @@ public class Translator {
   static ResourceModel translateFromGetTopicAttributes(GetTopicAttributesResponse getTopicAttributesResponse, ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse, ListTagsForResourceResponse listTagsForResourceResponse) {
     Map<String, String> attributes = getTopicAttributesResponse.attributes();
 
-    Set<Subscription> subscriptions = streamOfOrEmpty(listSubscriptionsByTopicResponse.subscriptions())
+    List<Subscription> subscriptions = streamOfOrEmpty(listSubscriptionsByTopicResponse.subscriptions())
             .map(subscription -> Subscription.builder()
                     .endpoint(subscription.endpoint())
                     .protocol(subscription.protocol())
                     .build())
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
 
 
     return ResourceModel.builder()
@@ -117,10 +117,10 @@ public class Translator {
             .build();
   }
 
-  static Set<Tag> translateTagsFromSdk(List<software.amazon.awssdk.services.sns.model.Tag> tags) {
+  static List<Tag> translateTagsFromSdk(List<software.amazon.awssdk.services.sns.model.Tag> tags) {
     return streamOfOrEmpty(tags)
             .map(tag -> Tag.builder().key(tag.key()).value(tag.value()).build())
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
   }
 
   private static String getTopicNameFromArn(String arn) {
@@ -178,8 +178,8 @@ public class Translator {
             .build();
   }
 
-  static <T> Set<T> nullIfEmpty(Set<T> set) {
-    return set != null && set.isEmpty() ? null : Objects.requireNonNull(set);
+  static <T> List<T> nullIfEmpty(List<T> list) {
+    return list != null && list.isEmpty() ? null : Objects.requireNonNull(list);
   }
 
   static String nullIfEmpty(String s) {

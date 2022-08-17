@@ -15,7 +15,7 @@
         "Subscription": {
             "description": "The SNS subscriptions (endpoints) for this topic.",
             "type": "array",
-            "uniqueItems": true,
+            "uniqueItems": false,
             "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/Subscription"
@@ -31,7 +31,7 @@
         },
         "Tags": {
             "type": "array",
-            "uniqueItems": true,
+            "uniqueItems": false,
             "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/Tag"
@@ -39,9 +39,7 @@
         },
         "TopicName": {
             "description": "The name of the topic you want to create. Topic names must include only uppercase and lowercase ASCII letters, numbers, underscores, and hyphens, and must be between 1 and 256 characters long. FIFO topic names must end with .fifo.\n\nIf you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the topic name. For more information, see Name Type.",
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 256
+            "type": "string"
         },
         "TopicArn": {
             "type": "string"
@@ -54,17 +52,11 @@
             "properties": {
                 "Key": {
                     "type": "string",
-                    "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, `_`, `.`, `/`, `=`, `+`, and `-`.",
-                    "minLength": 1,
-                    "maxLength": 128,
-                    "pattern": "^[a-zA-Z0-9_./=+-]{1,128}$"
+                    "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, `_`, `.`, `/`, `=`, `+`, and `-`."
                 },
                 "Value": {
                     "type": "string",
-                    "description": "The value for the tag. You can specify a value that is 0 to 256 characters in length.",
-                    "minLength": 0,
-                    "maxLength": 256,
-                    "pattern": "^[a-zA-Z0-9_./=+-]{0,256}$"
+                    "description": "The value for the tag. You can specify a value that is 0 to 256 characters in length."
                 }
             },
             "required": [
@@ -80,18 +72,7 @@
                     "type": "string"
                 },
                 "Protocol": {
-                    "type": "string",
-                    "enum": [
-                        "http",
-                        "https",
-                        "email",
-                        "email-json",
-                        "sms",
-                        "sqs",
-                        "application",
-                        "lambda",
-                        "firehose"
-                    ]
+                    "type": "string"
                 }
             },
             "required": [

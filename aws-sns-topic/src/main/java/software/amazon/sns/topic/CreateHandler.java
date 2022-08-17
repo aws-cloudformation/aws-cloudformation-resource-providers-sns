@@ -41,7 +41,7 @@ public class CreateHandler extends BaseHandlerStd {
                 .then(progress -> checkForPreCreateResourceExistence(request, proxyClient, progress))
                 .then(progress -> createTopicWithTags(proxy, model, desiredResourceTags, callbackContext, proxyClient))
                 .then(progress -> retryCreateTopicWithoutTags(proxy, model, callbackContext, proxyClient))
-                .then(progress -> addSubscription(proxy, proxyClient, progress, model.getSubscription(), logger))
+                .then(progress -> addSubscription(proxy, proxyClient, progress, model.getSubscription(), logger, true))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
