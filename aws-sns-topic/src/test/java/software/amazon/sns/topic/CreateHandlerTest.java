@@ -96,6 +96,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .clientRequestToken("dummy-token")
                 .region("us-east-1")
                 .awsAccountId("1234567890")
+                .stackId("stackid")
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -140,6 +141,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .clientRequestToken("dummy-token")
                 .region("us-east-1")
                 .awsAccountId("1234567890")
+                .stackId("stackid")
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -175,7 +177,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
         readHandlerMocks();
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).logicalResourceIdentifier("SnsTopic").clientRequestToken("dummy-token").build();
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).logicalResourceIdentifier("SnsTopic").clientRequestToken("dummy-token").stackId("stackid").build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         validateResponseSuccess(response);
@@ -297,6 +299,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .clientRequestToken("dummy-token")
                 .region("us-east-1")
                 .awsAccountId("1234567890")
+                .stackId("stackid")
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -335,6 +338,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .clientRequestToken("dummy-token")
                 .region("us-east-1")
                 .awsAccountId("1234567890")
+                .stackId("stackid")
                 .build();
 
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
