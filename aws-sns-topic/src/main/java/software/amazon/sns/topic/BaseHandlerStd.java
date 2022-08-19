@@ -85,15 +85,20 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     */
     if (isCreate) {
       int retryCount = 0;
-      ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = invokeListSubscriptionsByTopic(client, model, logger);
-      while (listSubscriptionsByTopicResponse.subscriptions().size() != subscriptions.size() && retryCount < MAX_RETRIES) {
-        try {
+      try {
+        ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = client.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(model), client.client()::listSubscriptionsByTopic);
+        while (listSubscriptionsByTopicResponse.subscriptions().size() != subscriptions.size() && retryCount < MAX_RETRIES) {
           Thread.sleep(2000);
           ++retryCount;
-          listSubscriptionsByTopicResponse = invokeListSubscriptionsByTopic(client, model, logger);
-        } catch (InterruptedException e) {
-          throw new CfnGeneralServiceException(e);
+          listSubscriptionsByTopicResponse = client.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(model), client.client()::listSubscriptionsByTopic);
         }
+      } catch (AuthorizationErrorException e) {
+        // This is a short term fix for Fn::GetAtt backwards compatibility
+        logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), model.getTopicArn()));
+      } catch (SnsException e) {
+        throw new CfnGeneralServiceException(e.getMessage(), e);
+      } catch (InterruptedException e) {
+        throw new CfnGeneralServiceException(e);
       }
     }
     return ProgressEvent.progress(model, callbackContext);
