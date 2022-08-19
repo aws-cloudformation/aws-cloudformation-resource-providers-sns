@@ -68,8 +68,8 @@ public class UpdateHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
-                    String previousVal = previousModel.getContentBasedDeduplication() != null ? previousModel.getContentBasedDeduplication().toString() : null;
-                    String desiredVal =  model.getContentBasedDeduplication() != null ? model.getContentBasedDeduplication().toString() : null;
+                    String previousVal = previousModel.getContentBasedDeduplication() != null ? previousModel.getContentBasedDeduplication().toString() : "false";
+                    String desiredVal =  model.getContentBasedDeduplication() != null ? model.getContentBasedDeduplication().toString() : "false";
                     if (!StringUtils.equals(previousVal, desiredVal)) {
                         return proxy.initiate("AWS-SNS-Topic::Update::ContentBasedDeduplication", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.CONTENT_BASED_DEDUPLICATION, desiredVal))

@@ -114,7 +114,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
 
     for(final String subscriptionArn : unsubscribeArnList) {
-      if(!"PendingConfirmation".equals(subscriptionArn)) {
+      if(null != subscriptionArn && !"PendingConfirmation".equals(subscriptionArn)) {
         final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
                 .initiate("AWS-SNS-Topic::Unsubscribe-" + subscriptionArn.hashCode(), client, model, callbackContext)
                 .translateToServiceRequest(model1 -> Translator.translateToUnsubscribe(subscriptionArn))
