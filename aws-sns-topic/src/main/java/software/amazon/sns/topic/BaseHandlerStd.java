@@ -4,10 +4,12 @@ import com.google.common.collect.Sets;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
+import software.amazon.cloudformation.exceptions.BaseHandlerException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnThrottlingException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -96,7 +98,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         // This is a short term fix for Fn::GetAtt backwards compatibility
         logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), model.getTopicArn()));
       } catch (SnsException e) {
-        throw new CfnGeneralServiceException(e.getMessage(), e);
+        throw translateServiceExceptionToFailure(e);
       } catch (InterruptedException e) {
         throw new CfnGeneralServiceException(e);
       }
@@ -153,7 +155,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     } catch (final InvalidParameterException e) {
       throw new CfnInvalidRequestException(e);
     } catch (final SnsException e) {
-      throw new CfnGeneralServiceException(e);
+      throw translateServiceExceptionToFailure(e);
     } catch (final SdkException e) {
       throw new CfnInternalFailureException(e);
     }
@@ -168,7 +170,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
       return ListTagsForResourceResponse.builder().build();
     } catch (SnsException e) {
-      throw new CfnGeneralServiceException(e.getMessage(), e);
+      throw translateServiceExceptionToFailure(e);
     }
   }
 
@@ -180,7 +182,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), resourceModel.getTopicArn()));
       return ListSubscriptionsByTopicResponse.builder().build();
     } catch (SnsException e) {
-      throw new CfnGeneralServiceException(e.getMessage(), e);
+      throw translateServiceExceptionToFailure(e);
     }
   }
 
@@ -191,7 +193,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       // fail silently in case the user does not have access to either stack level or resource level tags
       logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
     } catch (SnsException e) {
-      throw new CfnGeneralServiceException(e.getMessage(), e);
+      throw translateServiceExceptionToFailure(e);
     }
   }
 
@@ -202,7 +204,15 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       // fail silently in case the user does not have access to either stack level or resource level tags
       logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
     } catch (SnsException e) {
-      throw new CfnGeneralServiceException(e.getMessage(), e);
+      throw translateServiceExceptionToFailure(e);
     }
   }
+
+  private BaseHandlerException translateServiceExceptionToFailure(final SnsException ex) {
+    if (ex instanceof ThrottledException) {
+      return new CfnThrottlingException(ex); // CFN can retry on throttling error.
+    }
+    return new CfnGeneralServiceException(ex);
+  }
+
 }
