@@ -14,6 +14,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#displayname" title="DisplayName">DisplayName</a>" : <i>String</i>,
         "<a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>" : <i>String</i>,
+        "<a href="#dataprotectionpolicy" title="DataProtectionPolicy">DataProtectionPolicy</a>" : <i>Map</i>,
         "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ [ <a href="subscription.md">Subscription</a>, ... ], ... ]</i>,
         "<a href="#fifotopic" title="FifoTopic">FifoTopic</a>" : <i>Boolean</i>,
         "<a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>" : <i>Boolean</i>,
@@ -30,6 +31,7 @@ Type: AWS::SNS::Topic
 Properties:
     <a href="#displayname" title="DisplayName">DisplayName</a>: <i>String</i>
     <a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>: <i>String</i>
+    <a href="#dataprotectionpolicy" title="DataProtectionPolicy">DataProtectionPolicy</a>: <i>Map</i>
     <a href="#subscription" title="Subscription">Subscription</a>: <i>
       -
       - <a href="subscription.md">Subscription</a></i>
@@ -61,6 +63,22 @@ This property applies only to [server-side-encryption](https://docs.aws.amazon.c
 _Required_: No
 
 _Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DataProtectionPolicy
+
+The body of the policy document you want to use for this topic.
+
+You can only add one policy per topic.
+
+The policy must be in JSON string format.
+
+Length Constraints: Maximum length of 30720
+
+_Required_: No
+
+_Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

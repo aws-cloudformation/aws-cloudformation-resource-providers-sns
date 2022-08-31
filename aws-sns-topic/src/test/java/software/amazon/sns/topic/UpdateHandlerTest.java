@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -72,6 +73,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -97,6 +99,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -156,6 +159,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).untagResource(any(UntagResourceRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -177,6 +181,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), "false");
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), fifoTopicArn);
+        attributes.put(TopicAttributeName.FIFO_TOPIC.toString(), "true");
 
         setupUpdateHandlerMocks(attributes);
 
@@ -222,6 +227,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).tagResource(any(TagResourceRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -257,6 +263,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).untagResource(any(UntagResourceRequest.class));
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -320,6 +327,139 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .previousResourceTags(oldTags)
                 .build();
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_DataProtectionPolicy() {
+        Map<String, Object> oldPolicy = new HashMap<>();
+        oldPolicy.put("key", "old");
+
+        Map<String, Object> newPolicy = new HashMap<>();
+        newPolicy.put("key", "new");
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .dataProtectionPolicy(newPolicy)
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .dataProtectionPolicy(oldPolicy)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        final PutDataProtectionPolicyResponse putDataProtectionPolicyResponse = PutDataProtectionPolicyResponse.builder().build();
+        when(proxyClient.client().putDataProtectionPolicy(any(PutDataProtectionPolicyRequest.class))).thenReturn(putDataProtectionPolicyResponse);
+        readHandlerMocks();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceState(previousModel)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+        verify(proxyClient.client()).putDataProtectionPolicy(any(PutDataProtectionPolicyRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client(), times(1)).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_DataProtectionPolicy_NoChange() {
+        Map<String, Object> policy = new HashMap<>();
+        policy.put("key", "val");
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .dataProtectionPolicy(policy)
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .dataProtectionPolicy(policy)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        readHandlerMocks();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceState(previousModel)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+        verify(proxyClient.client(), never()).putDataProtectionPolicy(any(PutDataProtectionPolicyRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client(), times(1)).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
+    }
+
+    @Test
+    public void handleRequest_DataProtectionPolicy_ThrottleException() {
+        handleRequest_DataProtectionPolicy_Exception(ThrottledException.class, HandlerErrorCode.Throttling);
+    }
+
+    @Test
+    public void handleRequest_DataProtectionPolicy_AuthorizationErrorException() {
+        handleRequest_DataProtectionPolicy_Exception(AuthorizationErrorException.class, HandlerErrorCode.AccessDenied);
+    }
+
+    @Test
+    public void handleRequest_DataProtectionPolicy_InvalidParameterException() {
+        handleRequest_DataProtectionPolicy_Exception(InvalidParameterException.class, HandlerErrorCode.InvalidRequest);
+    }
+
+    @Test
+    public void handleRequest_DataProtectionPolicy_InternalException() {
+        handleRequest_DataProtectionPolicy_Exception(InternalErrorException.class, HandlerErrorCode.ServiceInternalError);
+    }
+
+    @Test
+    public void handleRequest_DataProtectionPolicy_RuntimeException() {
+        handleRequest_DataProtectionPolicy_Exception(RuntimeException.class, HandlerErrorCode.GeneralServiceException);
+    }
+
+    private void handleRequest_DataProtectionPolicy_Exception(Class<? extends Throwable> exceptionClass, HandlerErrorCode errorCode) {
+        Map<String, Object> oldPolicy = new HashMap<>();
+        oldPolicy.put("key", "old");
+
+        Map<String, Object> newPolicy = new HashMap<>();
+        newPolicy.put("key", "new");
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .dataProtectionPolicy(newPolicy)
+                .build();
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .dataProtectionPolicy(oldPolicy)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().putDataProtectionPolicy(any(PutDataProtectionPolicyRequest.class))).thenThrow(exceptionClass);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceState(previousModel)
+                .build();
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        assertEquals(OperationStatus.FAILED, response.getStatus());
+        assertEquals(errorCode, response.getErrorCode());
     }
 
     private void validateResponseSuccess(final ProgressEvent<ResourceModel, CallbackContext> response) {

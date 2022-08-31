@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnThrottlingException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -41,6 +42,7 @@ public class ReadHandlerTest extends AbstractTestBase {
     SnsClient client;
 
     private ReadHandler handler;
+    final GetDataProtectionPolicyResponse getDataProtectionPolicyResponse = GetDataProtectionPolicyResponse.builder().build();
 
     @BeforeEach
     public void setup() {
@@ -62,6 +64,8 @@ public class ReadHandlerTest extends AbstractTestBase {
         Subscription.builder().endpoint("abc@xyz.com").protocol("email").build();
         final List<Tag> tags = new ArrayList<>();
         tags.add(Tag.builder().key("key1").value("value1").build());
+        Map<String, Object> policy = new HashMap<>();
+        policy.put("key", "val");
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
@@ -69,6 +73,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .displayName("topic-display-name")
                 .subscription(subscriptions)
                 .tags(tags)
+                .dataProtectionPolicy(policy)
                 .build();
 
 
@@ -92,6 +97,8 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .tags(software.amazon.awssdk.services.sns.model.Tag.builder().key("key1").value("value1").build())
                 .build();
         when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+        when(proxyClient.client().getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class)))
+                .thenReturn(GetDataProtectionPolicyResponse.builder().dataProtectionPolicy(toJsonSafe(policy)).build());
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -106,6 +113,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
         verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -151,6 +159,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
         verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client(), never()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -184,6 +193,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
         when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(ListSubscriptionsByTopicResponse.builder().build());
         when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenThrow(AuthorizationErrorException.class);
+        when(proxyClient.client().getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class))).thenReturn(getDataProtectionPolicyResponse);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -235,6 +245,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
         when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(AuthorizationErrorException.class);
         when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(ListTagsForResourceResponse.builder().build());
+        when(proxyClient.client().getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class))).thenReturn(getDataProtectionPolicyResponse);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -267,5 +278,78 @@ public class ReadHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_SwallowGetDataProtectionPolicyAuthorizationErrorException() {
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(ListSubscriptionsByTopicResponse.builder().build());
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(ListTagsForResourceResponse.builder().build());
+        when(proxyClient.client().getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class))).thenThrow(AuthorizationErrorException.class);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_GetDataProtectionPolicyException() {
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(ListSubscriptionsByTopicResponse.builder().build());
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(ListTagsForResourceResponse.builder().build());
+        when(proxyClient.client().getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class))).thenThrow(InternalErrorException.class);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
+        assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_GetDataProtectionPolicyThrottleException() {
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(ListSubscriptionsByTopicResponse.builder().build());
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(ListTagsForResourceResponse.builder().build());
+        when(proxyClient.client().getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class))).thenThrow(ThrottledException.class);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
+        assertThrows(CfnThrottlingException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 }

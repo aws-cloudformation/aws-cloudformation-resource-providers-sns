@@ -186,6 +186,23 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
   }
 
+  protected GetDataProtectionPolicyResponse invokeGetDataProtectionPolicy(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Logger logger) {
+    try {
+      return proxyClient.injectCredentialsAndInvokeV2(Translator.getDataProtectionPolicyRequest(topicArn), proxyClient.client()::getDataProtectionPolicy);
+    } catch (AuthorizationErrorException e) {
+      // This is for backwards compatibility so that we don't break existing SNS CF customers.
+      logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+      return GetDataProtectionPolicyResponse.builder().build();
+    } catch (SnsException e) {
+      // This is for backwards compatibility so that we don't break customers in regions where MessageDataProtection is not launched.
+      if (400 == e.statusCode() && e.awsErrorDetails() != null && "InvalidAction".equals(e.awsErrorDetails().errorCode())) {
+        logger.log(String.format("MessageDataProtection not allowlisted error: %s for topic: %s", e.getMessage(), topicArn));
+        return GetDataProtectionPolicyResponse.builder().build();
+      }
+      throw translateServiceExceptionToFailure(e);
+    }
+  }
+
   private void invokeUnTagResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Set<Tag> tagsToRemove, final Logger logger) {
     try {
       proxyClient.injectCredentialsAndInvokeV2(Translator.translateToUntagRequest(topicArn, tagsToRemove), proxyClient.client()::untagResource);
