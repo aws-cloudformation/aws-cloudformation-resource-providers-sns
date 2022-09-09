@@ -2,20 +2,22 @@ package software.amazon.sns.topic;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.ListTagsForResourceResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Credentials;
 import software.amazon.cloudformation.proxy.LoggerProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
 public class AbstractTestBase {
+  protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   protected static final Credentials MOCK_CREDENTIALS;
   protected static final LoggerProxy logger;
 
@@ -64,5 +66,10 @@ public class AbstractTestBase {
         return snsClient;
       }
     };
+  }
+
+  @SneakyThrows
+  String toJsonSafe(Object obj) {
+    return OBJECT_MAPPER.writeValueAsString(obj);
   }
 }

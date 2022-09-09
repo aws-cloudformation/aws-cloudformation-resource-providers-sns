@@ -32,10 +32,12 @@ Resources:
                 Action:
                 - "sns:CreateTopic"
                 - "sns:DeleteTopic"
+                - "sns:GetDataProtectionPolicy"
                 - "sns:GetTopicAttributes"
                 - "sns:ListSubscriptionsByTopic"
                 - "sns:ListTagsForResource"
                 - "sns:ListTopics"
+                - "sns:PutDataProtectionPolicy"
                 - "sns:SetTopicAttributes"
                 - "sns:Subscribe"
                 - "sns:TagResource"

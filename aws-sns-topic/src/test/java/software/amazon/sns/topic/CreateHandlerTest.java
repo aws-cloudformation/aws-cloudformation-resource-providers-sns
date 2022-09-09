@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -106,6 +107,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
         verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
         verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
     }
 
@@ -121,6 +123,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), fifoTopicArn);
+        attributes.put(TopicAttributeName.FIFO_TOPIC.toString(), "true");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
@@ -185,6 +188,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
         verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
@@ -308,11 +312,11 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
         verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test
     public void handleRequest_CreateTopicWithTagException() {
-
         final ResourceModel model = ResourceModel.builder()
                 .build();
 
@@ -361,6 +365,50 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNotNull();
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_WithDataProtectionPolicy() {
+        Map<String, Object> stewardPolicy = new HashMap<>();
+        stewardPolicy.put("key", "test");
+        final ResourceModel model = ResourceModel.builder()
+                .dataProtectionPolicy(stewardPolicy)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class)))
+                .thenThrow(NotFoundException.builder().message("no topic found").build())
+                .thenReturn(getTopicAttributesResponse);
+
+        final CreateTopicResponse createTopicResponse = CreateTopicResponse.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        when(proxyClient.client()
+                .createTopic(argThat((ArgumentMatcher<CreateTopicRequest>) req -> req.dataProtectionPolicy().equals(toJsonSafe(stewardPolicy)))))
+                .thenReturn(createTopicResponse);
+        readHandlerMocks();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .logicalResourceIdentifier("SnsTopic")
+                .clientRequestToken("dummy-token")
+                .region("us-east-1")
+                .awsAccountId("1234567890")
+                .stackId("stackid")
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+        verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     private void readHandlerMocks() {

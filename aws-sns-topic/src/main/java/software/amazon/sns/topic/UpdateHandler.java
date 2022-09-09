@@ -2,9 +2,16 @@ package software.amazon.sns.topic;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
 import software.amazon.awssdk.services.sns.model.ListSubscriptionsByTopicResponse;
+import software.amazon.awssdk.services.sns.model.PutDataProtectionPolicyRequest;
+import software.amazon.awssdk.services.sns.model.ThrottledException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -42,6 +49,9 @@ public class UpdateHandler extends BaseHandlerStd {
         Set<Subscription> toSubscribe = Sets.difference(desiredSubscription, previousSubscription);
         Set<Subscription> toUnsubscribe = Sets.difference(previousSubscription, desiredSubscription);
 
+        String previousDataProtectionPolicy = Translator.getDataProtectionPolicyAsString(previousModel);
+        String desiredDataProtectionPolicy = Translator.getDataProtectionPolicyAsString(model);
+
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-SNS-Topic::Update::PreExistanceCheck", proxyClient, model, callbackContext)
@@ -78,6 +88,16 @@ public class UpdateHandler extends BaseHandlerStd {
                     }
                     return progress;
                 })
+                .then(progress -> {
+                    if (!StringUtils.equals(previousDataProtectionPolicy, desiredDataProtectionPolicy)) {
+                        return proxy.initiate("AWS-SNS-Topic::Update::DataProtectionPolicy", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(m -> Translator.translatePutDataProtectionPolicyRequest(model))
+                                .makeServiceCall((putDataProtectionPolicyRequest, client) -> proxy.injectCredentialsAndInvokeV2(putDataProtectionPolicyRequest, client.client()::putDataProtectionPolicy))
+                                .handleError(this::handlePutDataProtectionPolicyError)
+                                .progress();
+                    }
+                    return progress;
+                })
                 .then(progress ->
                         proxy.initiate("AWS-SNS-Topic::Update::ListSubscriptionArn", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToListSubscriptionByTopic)
@@ -105,4 +125,35 @@ public class UpdateHandler extends BaseHandlerStd {
     private String getEndpointProtocolString(String endpoint, String protocol) {
         return String.format("[%s][%s]", endpoint, protocol);
     }
+
+    private ProgressEvent<ResourceModel, CallbackContext> handlePutDataProtectionPolicyError(
+            final PutDataProtectionPolicyRequest request,
+            final Exception ex,
+            final ProxyClient<SnsClient> proxyClient,
+            final ResourceModel model,
+            final CallbackContext context) {
+        if (ex instanceof SdkException) {
+            return translateSdkExceptionToFailure((SdkException) ex);
+        }
+        return ProgressEvent.defaultFailureHandler(ex, HandlerErrorCode.GeneralServiceException);
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> translateSdkExceptionToFailure(final SdkException ex) {
+        if (ex instanceof AwsServiceException) {
+            return translateServiceExceptionToFailure((AwsServiceException) ex);
+        }
+        return ProgressEvent.defaultFailureHandler(ex, HandlerErrorCode.GeneralServiceException);
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> translateServiceExceptionToFailure(final AwsServiceException ex) {
+        if (ex instanceof AuthorizationErrorException) {
+            return ProgressEvent.defaultFailureHandler(ex, HandlerErrorCode.AccessDenied);
+        } else if (ex instanceof ThrottledException) {
+            return ProgressEvent.defaultFailureHandler(ex, HandlerErrorCode.Throttling);
+        } else if (ex instanceof InvalidParameterException) {
+            return ProgressEvent.defaultFailureHandler(ex, HandlerErrorCode.InvalidRequest);
+        }
+        return ProgressEvent.defaultFailureHandler(ex, HandlerErrorCode.ServiceInternalError);
+    }
+
 }
