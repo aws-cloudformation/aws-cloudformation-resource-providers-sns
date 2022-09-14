@@ -226,7 +226,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   private BaseHandlerException translateServiceExceptionToFailure(final SnsException ex) {
-    if (ex instanceof ThrottledException) {
+    if (ex instanceof ThrottledException || ex.isThrottlingException()) {
       return new CfnThrottlingException(ex); // CFN can retry on throttling error.
     }
     return new CfnGeneralServiceException(ex);
