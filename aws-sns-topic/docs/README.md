@@ -20,6 +20,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>" : <i>Boolean</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#topicname" title="TopicName">TopicName</a>" : <i>String</i>,
+        "<a href="#signatureversion" title="SignatureVersion">SignatureVersion</a>" : <i>String</i>
     }
 }
 </pre>
@@ -33,13 +34,14 @@ Properties:
     <a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>: <i>String</i>
     <a href="#dataprotectionpolicy" title="DataProtectionPolicy">DataProtectionPolicy</a>: <i>Map</i>
     <a href="#subscription" title="Subscription">Subscription</a>: <i>
-      -
+      - 
       - <a href="subscription.md">Subscription</a></i>
     <a href="#fifotopic" title="FifoTopic">FifoTopic</a>: <i>Boolean</i>
     <a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>: <i>Boolean</i>
     <a href="#tags" title="Tags">Tags</a>: <i>
       - <a href="tag.md">Tag</a></i>
     <a href="#topicname" title="TopicName">TopicName</a>: <i>String</i>
+    <a href="#signatureversion" title="SignatureVersion">SignatureVersion</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -137,6 +139,20 @@ _Required_: No
 _Type_: String
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### SignatureVersion
+
+Version of the Amazon SNS signature used.
+
+* If the SignatureVersion is 1, Signature is a Base64-encoded SHA1withRSA signature of the Message, MessageId, Type, Timestamp, and TopicArn values.
+
+* If the SignatureVersion is 2, Signature is a Base64-encoded SHA256withRSA signature of the Message, MessageId, Type, Timestamp, and TopicArn values.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 ## Return Values
 

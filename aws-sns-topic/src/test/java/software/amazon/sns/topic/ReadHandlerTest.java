@@ -72,6 +72,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .topicName("sns-topic-name")
                 .displayName("topic-display-name")
                 .subscription(subscriptions)
+                .signatureVersion("2")
                 .tags(tags)
                 .dataProtectionPolicy(policy)
                 .build();
@@ -80,6 +81,8 @@ public class ReadHandlerTest extends AbstractTestBase {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
+
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
@@ -126,12 +129,14 @@ public class ReadHandlerTest extends AbstractTestBase {
         final String topicArn = "arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo";
         final String topicName = "sns-topic-name.fifo";
         final String topicDisplayName = "topic-display-name";
+        final String signatureVersion = "2";
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn(topicArn)
                 .topicName(topicName)
                 .displayName(topicDisplayName)
                 .subscription(subscriptions)
+                .signatureVersion(signatureVersion)
                 .tags(tags)
                 .build();
 
@@ -139,6 +144,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), topicDisplayName);
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), topicArn);
         attributes.put(TopicAttributeName.FIFO_TOPIC.toString(), "true");
+        attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), signatureVersion);
         attributes.put(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), "true");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)

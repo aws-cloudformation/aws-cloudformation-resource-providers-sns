@@ -78,6 +78,15 @@ public class UpdateHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
+                    if(!StringUtils.equals(model.getSignatureVersion(), previousModel.getSignatureVersion())) {
+                        return proxy.initiate("AWS-SNS-Topic::Update::SignatureVersion", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.SIGNATURE_VERSION, m.getSignatureVersion()))
+                                .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
                     String previousVal = previousModel.getContentBasedDeduplication() != null ? previousModel.getContentBasedDeduplication().toString() : "false";
                     String desiredVal =  model.getContentBasedDeduplication() != null ? model.getContentBasedDeduplication().toString() : "false";
                     if (!StringUtils.equals(previousVal, desiredVal)) {

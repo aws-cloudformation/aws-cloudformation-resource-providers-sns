@@ -162,10 +162,12 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ResourceModel model = ResourceModel.builder()
                 .displayName("sns-topic")
                 .kmsMasterKeyId("dummy-kms-key-id")
+                .signatureVersion("2")
                 .build();
-
+                
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
