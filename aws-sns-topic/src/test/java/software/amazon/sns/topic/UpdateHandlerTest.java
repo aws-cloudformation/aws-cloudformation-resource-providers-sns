@@ -119,7 +119,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         setupUpdateHandlerMocks(attributes);
-        
+
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 

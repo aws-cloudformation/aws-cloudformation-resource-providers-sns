@@ -164,7 +164,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .kmsMasterKeyId("dummy-kms-key-id")
                 .signatureVersion("2")
                 .build();
-                
+
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");

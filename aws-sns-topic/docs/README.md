@@ -34,7 +34,7 @@ Properties:
     <a href="#kmsmasterkeyid" title="KmsMasterKeyId">KmsMasterKeyId</a>: <i>String</i>
     <a href="#dataprotectionpolicy" title="DataProtectionPolicy">DataProtectionPolicy</a>: <i>Map</i>
     <a href="#subscription" title="Subscription">Subscription</a>: <i>
-      - 
+      -
       - <a href="subscription.md">Subscription</a></i>
     <a href="#fifotopic" title="FifoTopic">FifoTopic</a>: <i>Boolean</i>
     <a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>: <i>Boolean</i>
