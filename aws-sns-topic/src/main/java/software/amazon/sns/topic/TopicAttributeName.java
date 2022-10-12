@@ -5,7 +5,8 @@ public enum TopicAttributeName {
 	TOPIC_ARN("TopicArn"),
 	KMS_MASTER_KEY_ID("KmsMasterKeyId"),
 	CONTENT_BASED_DEDUPLICATION("ContentBasedDeduplication"),
-	FIFO_TOPIC("FifoTopic");
+	FIFO_TOPIC("FifoTopic"),
+	SIGNATURE_VERSION("SignatureVersion");
 
 	private final String value;
 

@@ -136,6 +136,7 @@ public class Translator {
                 .topicName(getTopicNameFromArn(attributes.get(TopicAttributeName.TOPIC_ARN.toString())))
                 .displayName(nullIfEmpty(attributes.get(TopicAttributeName.DISPLAY_NAME.toString())))
                 .kmsMasterKeyId(nullIfEmpty(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString())))
+                .signatureVersion(nullIfEmpty(attributes.get(TopicAttributeName.SIGNATURE_VERSION.toString())))
                 .fifoTopic(nullIfEmptyBoolean(attributes.get(TopicAttributeName.FIFO_TOPIC.toString())))
                 .contentBasedDeduplication(nullIfEmptyBoolean(attributes.get(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString())))
                 .dataProtectionPolicy(getDataProtectionPolicyResponse == null ? null : convertToJson(getDataProtectionPolicyResponse.dataProtectionPolicy()))
@@ -260,6 +261,7 @@ public class Translator {
 
         putIfNotNull(attributes, TopicAttributeName.DISPLAY_NAME.toString(), model.getDisplayName());
         putIfNotNull(attributes, TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
+        putIfNotNull(attributes, TopicAttributeName.SIGNATURE_VERSION.toString(), model.getSignatureVersion());
         putIfNotNull(attributes, TopicAttributeName.FIFO_TOPIC.toString(), model.getFifoTopic());
         putIfNotNull(attributes, TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), model.getContentBasedDeduplication());
         return attributes;
