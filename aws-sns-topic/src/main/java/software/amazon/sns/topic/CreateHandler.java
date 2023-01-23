@@ -20,7 +20,7 @@ public class CreateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
-
+        logger.log("CreateHandler invoked in: "+ request.getStackId()+ " " +request.getLogicalResourceIdentifier());
         final ResourceModel model = request.getDesiredResourceState();
         final Map<String, String> desiredResourceTags = request.getDesiredResourceTags();
 
@@ -40,7 +40,6 @@ public class CreateHandler extends BaseHandlerStd {
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress -> checkForPreCreateResourceExistence(request, proxyClient, progress))
                 .then(progress -> createTopicWithTags(proxy, model, desiredResourceTags, callbackContext, proxyClient))
-                .then(progress -> retryCreateTopicWithoutTags(proxy, model, callbackContext, proxyClient))
                 .then(progress -> addSubscription(proxy, proxyClient, progress, model.getSubscription(), logger, true))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
@@ -57,28 +56,10 @@ public class CreateHandler extends BaseHandlerStd {
             model.setTopicArn(createTopicResponse.topicArn());
             return ProgressEvent.progress(model, callbackContext);
         } catch (AuthorizationErrorException e) {
-            // will retry create topic without tags in the next flow
-            return ProgressEvent.progress(model, callbackContext);
+            throw new CfnAccessDeniedException(e);
         } catch (SnsException e) {
             throw new CfnGeneralServiceException(e);
         }
-    }
-
-    private ProgressEvent<ResourceModel, CallbackContext> retryCreateTopicWithoutTags(
-            final AmazonWebServicesClientProxy proxy,
-            final ResourceModel model,
-            final CallbackContext callbackContext,
-            final ProxyClient<SnsClient> proxyClient) {
-        if (StringUtils.isEmpty(model.getTopicArn())) {
-            return proxy.initiate("AWS-SNS-Topic::RetryCreate", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToCreateTopicRequest)
-                    .makeServiceCall((createTopicRequest, client) -> proxy.injectCredentialsAndInvokeV2(createTopicRequest, client.client()::createTopic))
-                    .done((createTopicRequest, createTopicResponse, client, resourceModel, context) -> {
-                        model.setTopicArn(createTopicResponse.topicArn());
-                        return ProgressEvent.progress(model, context);
-                    });
-        }
-        return ProgressEvent.progress(model, callbackContext);
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> checkForPreCreateResourceExistence(

@@ -277,8 +277,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_swallowCreateWithTagAuthorizationError() {
-
+    public void handleRequest_CreateWithTagAuthorizationError() {
         final ResourceModel model = ResourceModel.builder()
                 .build();
 
@@ -292,11 +291,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .thenThrow(NotFoundException.builder().message("no topic found").build())
                 .thenReturn(getTopicAttributesResponse);
 
-        final CreateTopicResponse createTopicResponse = CreateTopicResponse.builder()
-                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .build();
-        when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenThrow(AuthorizationErrorException.builder().message("Tagging Access Denied").build()).thenReturn(createTopicResponse);
-        readHandlerMocks();
+        when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenThrow(AuthorizationErrorException.builder().message("Tagging Access Denied").build());
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceTags(ImmutableMap.of("KeyName", "Value"))
@@ -307,14 +302,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .awsAccountId("1234567890")
                 .stackId("stackid")
                 .build();
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
-        validateResponseSuccess(response);
-        verify(proxyClient.client(), times(2)).createTopic(any(CreateTopicRequest.class));
-        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
-        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
-        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
+        assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
     }
 
     @Test
