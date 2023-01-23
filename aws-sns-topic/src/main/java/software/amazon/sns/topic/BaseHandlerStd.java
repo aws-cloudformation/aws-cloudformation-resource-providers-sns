@@ -4,12 +4,7 @@ import com.google.common.collect.Sets;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.BaseHandlerException;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
-import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.exceptions.CfnThrottlingException;
+import software.amazon.cloudformation.exceptions.*;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -207,8 +202,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     try {
       proxyClient.injectCredentialsAndInvokeV2(Translator.translateToUntagRequest(topicArn, tagsToRemove), proxyClient.client()::untagResource);
     } catch (AuthorizationErrorException e) {
-      // fail silently in case the user does not have access to either stack level or resource level tags
       logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+      throw new CfnAccessDeniedException(e);
     } catch (SnsException e) {
       throw translateServiceExceptionToFailure(e);
     }
@@ -218,8 +213,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     try {
       proxyClient.injectCredentialsAndInvokeV2(Translator.translateToTagRequest(topicArn, tagsToAdd), proxyClient.client()::tagResource);
     } catch (AuthorizationErrorException e) {
-      // fail silently in case the user does not have access to either stack level or resource level tags
       logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+      throw new CfnAccessDeniedException(e);
     } catch (SnsException e) {
       throw translateServiceExceptionToFailure(e);
     }
