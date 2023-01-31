@@ -119,7 +119,7 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .progress()
                 )
                 .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
-                .then(progress -> addSubscription(proxy, proxyClient, progress, new ArrayList<>(toSubscribe), logger, false))
+                .then(progress -> addSubscription(proxy, proxyClient, progress, new ArrayList<>(toSubscribe), logger))
                 .then(progress -> modifyTags(proxy, proxyClient, model, desiredResourceTags, previousResourceTags, progress, logger))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
