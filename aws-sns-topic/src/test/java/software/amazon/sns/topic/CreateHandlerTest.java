@@ -1,6 +1,7 @@
 package software.amazon.sns.topic;
 
 import com.google.common.collect.ImmutableMap;
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,6 +94,8 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
+                .desiredResourceTags(Maps.newHashMap("KeyName", "Value"))
+                .systemTags(Maps.newHashMap("aws:cloudformation:logical-id", "Value1"))
                 .logicalResourceIdentifier("SnsTopic")
                 .clientRequestToken("dummy-token")
                 .region("us-east-1")
@@ -285,7 +288,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenThrow(AuthorizationErrorException.builder().message("Tagging Access Denied").build());
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceTags(ImmutableMap.of("KeyName", "Value"))
+                .desiredResourceTags(Maps.newHashMap("KeyName", "Value"))
                 .desiredResourceState(model)
                 .logicalResourceIdentifier("SnsTopic")
                 .clientRequestToken("dummy-token")
@@ -318,7 +321,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenThrow(InternalErrorException.class).thenReturn(createTopicResponse);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceTags(ImmutableMap.of("KeyName", "Value"))
+                .desiredResourceTags(Maps.newHashMap("KeyName", "Value"))
                 .desiredResourceState(model)
                 .logicalResourceIdentifier("SnsTopic")
                 .clientRequestToken("dummy-token")

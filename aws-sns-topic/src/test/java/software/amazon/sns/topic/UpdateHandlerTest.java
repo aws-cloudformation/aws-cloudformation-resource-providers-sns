@@ -157,6 +157,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
         oldTags.put("key1", "value1");
         oldTags.put("key2", "value2");
 
+        final Map<String, String> systemTags = Maps.newHashMap();
+        systemTags.put("aws:cloudformation:logical-id", "value2");
+
+        final Map<String, String> oldSystemTags = Maps.newHashMap();
+        oldSystemTags.put("aws:cloudformation:logical-id", "value1");
+
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
@@ -180,6 +186,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .desiredResourceState(model)
                 .desiredResourceTags(tags)
                 .previousResourceTags(oldTags)
+                .systemTags(systemTags)
+                .previousSystemTags(oldSystemTags)
                 .previousResourceState(previousModel)
                 .build();
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
