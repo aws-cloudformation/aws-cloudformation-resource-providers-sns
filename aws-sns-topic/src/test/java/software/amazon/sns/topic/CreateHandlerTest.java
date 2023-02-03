@@ -1,6 +1,5 @@
 package software.amazon.sns.topic;
 
-import com.google.common.collect.ImmutableMap;
 import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -376,6 +375,57 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
         verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
         verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_ListSubscriptionsByTopicAuthorizationError() {
+        final List<Subscription> subscriptions = new ArrayList<>();
+        Subscription subscription = Subscription.builder().endpoint("abc@xyz.com").protocol("email").build();
+        subscriptions.add(subscription);
+        final ResourceModel model = ResourceModel.builder()
+                .subscription(subscriptions)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class)))
+                .thenThrow(NotFoundException.builder().message("no topic found").build())
+                .thenReturn(getTopicAttributesResponse);
+
+        final CreateTopicResponse createTopicResponse = CreateTopicResponse.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+        when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenReturn(createTopicResponse);
+
+        final ListTagsForResourceResponse listTagsForStreamResponse = ListTagsForResourceResponse.builder().build();
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(listTagsForStreamResponse);
+
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(AuthorizationErrorException.class);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .desiredResourceTags(Maps.newHashMap("KeyName", "Value"))
+                .systemTags(Maps.newHashMap("aws:cloudformation:logical-id", "Value1"))
+                .logicalResourceIdentifier("SnsTopic")
+                .clientRequestToken("dummy-token")
+                .region("us-east-1")
+                .awsAccountId("1234567890")
+                .stackId("stackid")
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+
+        verify(proxyClient.client()).createTopic(any(CreateTopicRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
+        verify(proxyClient.client()).subscribe(any(SubscribeRequest.class));
     }
 
     private void readHandlerMocks() {

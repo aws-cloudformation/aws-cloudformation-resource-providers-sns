@@ -59,8 +59,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             return true;
         }
         int expectedSubCount = model.getSubscription().size();
-        ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(model), proxyClient.client()::listSubscriptionsByTopic);
-        return listSubscriptionsByTopicResponse.subscriptions().size() == expectedSubCount;
+        try {
+            ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(model), proxyClient.client()::listSubscriptionsByTopic);
+            return listSubscriptionsByTopicResponse.subscriptions().size() == expectedSubCount;
+        } catch (AuthorizationErrorException e) {
+            return true;
+        } catch (SnsException e) {
+            throw translateServiceExceptionToFailure(e);
+        }
     }
 
     protected boolean checkIfTopicAlreadyExist(
