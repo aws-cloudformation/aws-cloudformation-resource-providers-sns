@@ -7,6 +7,7 @@ import software.amazon.cloudformation.exceptions.*;
 import software.amazon.cloudformation.proxy.*;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class CreateHandler extends BaseHandlerStd {
@@ -22,7 +23,9 @@ public class CreateHandler extends BaseHandlerStd {
         this.logger = logger;
         logger.log("CreateHandler invoked in: "+ request.getStackId()+ " " +request.getLogicalResourceIdentifier());
         final ResourceModel model = request.getDesiredResourceState();
-        final Map<String, String> desiredResourceTags = request.getDesiredResourceTags();
+        final Map<String, String> tagsList = request.getDesiredResourceTags() != null? request.getDesiredResourceTags(): Collections.emptyMap();
+        if (request.getSystemTags() != null)
+            tagsList.putAll(request.getSystemTags());
 
         if (StringUtils.isBlank(model.getTopicName())) {
             String randomTopicName = IdentifierUtils.generateResourceIdentifier(request.getStackId(), request.getLogicalResourceIdentifier(), request.getClientRequestToken(), TOPIC_NAME_MAX_LENGTH);
@@ -41,7 +44,7 @@ public class CreateHandler extends BaseHandlerStd {
                             if (checkIfTopicAlreadyExist(request, proxyClient, model.getTopicName(), logger))
                                 throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, model.getTopicName());
                             try {
-                                CreateTopicResponse createTopicResponse = proxy.injectCredentialsAndInvokeV2(Translator.translateToCreateTopicRequest(model, desiredResourceTags), proxyClient.client()::createTopic);
+                                CreateTopicResponse createTopicResponse = proxy.injectCredentialsAndInvokeV2(Translator.translateToCreateTopicRequest(model, tagsList), proxyClient.client()::createTopic);
                                 model.setTopicArn(createTopicResponse.topicArn());
                                 createSubscriptions(proxyClient, model.getSubscription(), model, logger);
                                 return createTopicResponse;
