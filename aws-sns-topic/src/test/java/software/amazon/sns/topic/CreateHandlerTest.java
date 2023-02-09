@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.*;
@@ -297,6 +299,60 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .build();
 
         assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_CreateWithOnlySystemTags_AuthorizationError() {
+        Map<String, String> attributes = new HashMap<>();
+        Map<String, String> systemTags = Maps.newHashMap("aws:cloudformation:stack-name", "systemTagValue");
+        final ResourceModel model = ResourceModel.builder()
+                .topicName("TopicName")
+                .build();
+
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class)))
+                .thenThrow(NotFoundException.builder().message("no topic found").build())
+                .thenReturn(getTopicAttributesResponse);
+
+        final CreateTopicResponse createTopicResponse = CreateTopicResponse.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
+                .build();
+
+        when(proxyClient.client().createTopic(any(CreateTopicRequest.class))).thenAnswer(new Answer<CreateTopicResponse>() {
+            @Override
+            public CreateTopicResponse answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                CreateTopicRequest createTopicRequest = (CreateTopicRequest) args[0];
+                if (createTopicRequest.hasTags() && !createTopicRequest.tags().isEmpty())
+                    throw AuthorizationErrorException.builder().message("Tagging Access Denied").build();
+                return createTopicResponse;
+            }
+        });
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .systemTags(systemTags)
+                .desiredResourceState(model)
+                .logicalResourceIdentifier("SnsTopic")
+                .clientRequestToken("dummy-token")
+                .region("us-east-1")
+                .awsAccountId("1234567890")
+                .stackId("stackid")
+                .build();
+
+        readHandlerMocks();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        validateResponseSuccess(response);
+
+        verify(proxyClient.client(), times(2)).createTopic(any(CreateTopicRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(1)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 
     @Test

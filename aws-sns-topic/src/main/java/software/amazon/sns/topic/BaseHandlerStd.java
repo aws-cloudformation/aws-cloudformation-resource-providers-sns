@@ -181,15 +181,28 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return ProgressEvent.progress(model, callbackContext);
     }
 
-    protected ProgressEvent<ResourceModel, CallbackContext> modifyTags(AmazonWebServicesClientProxy proxy, ProxyClient<SnsClient> proxyClient, ResourceModel model, Set<Tag> currentTags, Set<Tag> existingTags, ProgressEvent<ResourceModel, CallbackContext> progress, Logger logger) {
-        final Set<Tag> tagsToRemove = Sets.difference(existingTags, currentTags);
-        final Set<Tag> tagsToAdd = Sets.difference(currentTags, existingTags);
+    protected ProgressEvent<ResourceModel, CallbackContext> modifyTags(
+            AmazonWebServicesClientProxy proxy,
+            ProxyClient<SnsClient> proxyClient,
+            ResourceModel model,
+            Set<Tag> desiredResourceTags,
+            Set<Tag> existingResourceTags,
+            Set<Tag> desiredSystemTags,
+            Set<Tag> existingSystemTags,
+            ProgressEvent<ResourceModel,CallbackContext> progress,
+            Logger logger
+    ) {
+        final Set<Tag> resourceTagsToRemove = Sets.difference(existingResourceTags, desiredResourceTags);
+        final Set<Tag> resourceTagsToAdd = Sets.difference(desiredResourceTags, existingResourceTags);
 
-        if (tagsToRemove.size() > 0) {
-            invokeUnTagResource(proxyClient, model.getTopicArn(), tagsToRemove, logger);
+        final Set<Tag> systemTagsToRemove = Sets.difference(existingSystemTags, desiredSystemTags);
+        final Set<Tag> systemTagsToAdd = Sets.difference(desiredSystemTags, existingSystemTags);
+
+        if (resourceTagsToRemove.size() > 0 || systemTagsToRemove.size() > 0) {
+            invokeUnTagResource(proxyClient, model.getTopicArn(), resourceTagsToRemove, systemTagsToRemove, logger);
         }
-        if (tagsToAdd.size() > 0) {
-            invokeTagResource(proxyClient, model.getTopicArn(), tagsToAdd, logger);
+        if (resourceTagsToAdd.size() > 0 || systemTagsToAdd.size() > 0) {
+            invokeTagResource(proxyClient, model.getTopicArn(), resourceTagsToAdd, systemTagsToAdd, logger);
         }
         return progress;
     }
@@ -253,22 +266,32 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         }
     }
 
-    private void invokeUnTagResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Set<Tag> tagsToRemove, final Logger logger) {
+    private void invokeUnTagResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Set<Tag> resourceTagsToRemove, final Set<Tag> systemTagsToRemove, final Logger logger) {
         try {
+            Set<Tag> tagsToRemove = new HashSet<>(resourceTagsToRemove);
+            tagsToRemove.addAll(systemTagsToRemove);
             proxyClient.injectCredentialsAndInvokeV2(Translator.translateToUntagRequest(topicArn, tagsToRemove), proxyClient.client()::untagResource);
         } catch (AuthorizationErrorException e) {
             logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+            if (resourceTagsToRemove.isEmpty())
+                // There is only systemTags to untag, but no permission for UntagResource, just skip
+                return;
             throw new CfnAccessDeniedException(e);
         } catch (SnsException e) {
             throw translateServiceExceptionToFailure(e);
         }
     }
 
-    private void invokeTagResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Set<Tag> tagsToAdd, final Logger logger) {
+    private void invokeTagResource(final ProxyClient<SnsClient> proxyClient, final String topicArn, final Set<Tag> resourceTagsToAdd, final Set<Tag> systemTagsToAdd, final Logger logger) {
         try {
+            Set<Tag> tagsToAdd = new HashSet<>(resourceTagsToAdd);
+            tagsToAdd.addAll(systemTagsToAdd);
             proxyClient.injectCredentialsAndInvokeV2(Translator.translateToTagRequest(topicArn, tagsToAdd), proxyClient.client()::tagResource);
         } catch (AuthorizationErrorException e) {
             logger.log(String.format("AccessDenied error: %s for topic: %s", e.getMessage(), topicArn));
+            if (resourceTagsToAdd.isEmpty())
+                // There is only systemTags to tag, but no permission for TagResource, just skip
+                return;
             throw new CfnAccessDeniedException(e);
         } catch (SnsException e) {
             throw translateServiceExceptionToFailure(e);
