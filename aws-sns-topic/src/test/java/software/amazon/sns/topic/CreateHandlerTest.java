@@ -167,11 +167,13 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .displayName("sns-topic")
                 .kmsMasterKeyId("dummy-kms-key-id")
                 .signatureVersion("2")
+                .tracingConfig("Active")
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), "Active");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
