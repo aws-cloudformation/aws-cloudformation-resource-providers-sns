@@ -6,7 +6,8 @@ public enum TopicAttributeName {
 	KMS_MASTER_KEY_ID("KmsMasterKeyId"),
 	CONTENT_BASED_DEDUPLICATION("ContentBasedDeduplication"),
 	FIFO_TOPIC("FifoTopic"),
-	SIGNATURE_VERSION("SignatureVersion");
+	SIGNATURE_VERSION("SignatureVersion"),
+	TRACING_CONFIG("TracingConfig");
 
 	private final String value;
 

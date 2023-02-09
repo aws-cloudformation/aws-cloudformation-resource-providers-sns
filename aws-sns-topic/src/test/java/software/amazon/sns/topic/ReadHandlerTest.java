@@ -73,6 +73,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .displayName("topic-display-name")
                 .subscription(subscriptions)
                 .signatureVersion("2")
+                .tracingConfig("PassThrough")
                 .tags(tags)
                 .dataProtectionPolicy(policy)
                 .build();
@@ -82,6 +83,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), "PassThrough");
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
@@ -130,6 +132,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         final String topicName = "sns-topic-name.fifo";
         final String topicDisplayName = "topic-display-name";
         final String signatureVersion = "2";
+        final String tracingConfig = "Active";
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn(topicArn)
@@ -137,6 +140,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .displayName(topicDisplayName)
                 .subscription(subscriptions)
                 .signatureVersion(signatureVersion)
+                .tracingConfig(tracingConfig)
                 .tags(tags)
                 .build();
 
@@ -145,6 +149,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), topicArn);
         attributes.put(TopicAttributeName.FIFO_TOPIC.toString(), "true");
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), signatureVersion);
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), tracingConfig);
         attributes.put(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), "true");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)

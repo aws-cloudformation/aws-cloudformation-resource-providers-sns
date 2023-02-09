@@ -20,7 +20,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>" : <i>Boolean</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#topicname" title="TopicName">TopicName</a>" : <i>String</i>,
-        "<a href="#signatureversion" title="SignatureVersion">SignatureVersion</a>" : <i>String</i>
+        "<a href="#signatureversion" title="SignatureVersion">SignatureVersion</a>" : <i>String</i>,
+        "<a href="#tracingconfig" title="TracingConfig">TracingConfig</a>" : <i>String</i>
     }
 }
 </pre>
@@ -42,6 +43,7 @@ Properties:
       - <a href="tag.md">Tag</a></i>
     <a href="#topicname" title="TopicName">TopicName</a>: <i>String</i>
     <a href="#signatureversion" title="SignatureVersion">SignatureVersion</a>: <i>String</i>
+    <a href="#tracingconfig" title="TracingConfig">TracingConfig</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -143,6 +145,16 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 #### SignatureVersion
 
 Version of the Amazon SNS signature used. If the SignatureVersion is 1, Signature is a Base64-encoded SHA1withRSA signature of the Message, MessageId, Type, Timestamp, and TopicArn values. If the SignatureVersion is 2, Signature is a Base64-encoded SHA256withRSA signature of the Message, MessageId, Type, Timestamp, and TopicArn values.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TracingConfig
+
+Tracing mode of an Amazon SNS topic. By default TracingConfig is set to PassThrough, and the topic passes through the tracing header it receives from an SNS publisher to its subscriptions. If set to Active, SNS will vend X-Ray segment data to topic owner account if the sampled flag in the tracing header is true. Only supported on standard topics.
 
 _Required_: No
 
