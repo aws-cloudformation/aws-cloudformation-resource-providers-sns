@@ -7,7 +7,7 @@ import software.amazon.cloudformation.exceptions.*;
 import software.amazon.cloudformation.proxy.*;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 public class CreateHandler extends BaseHandlerStd {
@@ -23,7 +23,7 @@ public class CreateHandler extends BaseHandlerStd {
         this.logger = logger;
         logger.log("CreateHandler invoked in: "+ request.getStackId()+ " " +request.getLogicalResourceIdentifier());
         final ResourceModel model = request.getDesiredResourceState();
-        final Map<String, String> tagsList = request.getDesiredResourceTags() != null? new HashMap<>(request.getDesiredResourceTags()): new HashMap<>();
+        final Map<String, String> tagsList = request.getDesiredResourceTags() != null? request.getDesiredResourceTags(): Collections.emptyMap();
         if (request.getSystemTags() != null)
             tagsList.putAll(request.getSystemTags());
 
@@ -43,29 +43,9 @@ public class CreateHandler extends BaseHandlerStd {
                         .makeServiceCall((createRequest, client) -> {
                             if (checkIfTopicAlreadyExist(request, proxyClient, model.getTopicName(), logger))
                                 throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, model.getTopicName());
-                            CreateTopicResponse createTopicResponse = null;
-                            boolean retryCreateWithoutTags = false;
                             try {
-                                createTopicResponse = proxy.injectCredentialsAndInvokeV2(Translator.translateToCreateTopicRequest(model, tagsList), proxyClient.client()::createTopic);
+                                CreateTopicResponse createTopicResponse = proxy.injectCredentialsAndInvokeV2(Translator.translateToCreateTopicRequest(model, tagsList), proxyClient.client()::createTopic);
                                 model.setTopicArn(createTopicResponse.topicArn());
-                            } catch (AuthorizationErrorException e) {
-                                if (request.getDesiredResourceTags() == null || request.getDesiredResourceTags().isEmpty()) {
-                                    retryCreateWithoutTags = true;
-                                }
-                                else {
-                                    throw new CfnAccessDeniedException(e);
-                                }
-                            } catch (SnsException e) {
-                                throw new CfnGeneralServiceException(e);
-                            }
-                            try {
-                                if (retryCreateWithoutTags) {
-                                    logger.log(
-                                            String.format("Retry create %s without tags", model.getTopicName())
-                                    );
-                                    createTopicResponse = proxy.injectCredentialsAndInvokeV2(Translator.translateToCreateTopicRequest(model), proxyClient.client()::createTopic);
-                                    model.setTopicArn(createTopicResponse.topicArn());
-                                }
                                 createSubscriptions(proxyClient, model.getSubscription(), model, logger);
                                 return createTopicResponse;
                             } catch (AuthorizationErrorException e) {

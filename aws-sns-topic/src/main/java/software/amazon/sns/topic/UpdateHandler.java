@@ -41,11 +41,11 @@ public class UpdateHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
         final ResourceModel previousModel = request.getPreviousResourceState();
 
-        Set<Tag> previousResourceTags = Translator.convertResourceTagsToSet(request.getPreviousResourceTags());
-        Set<Tag> desiredResourceTags = Translator.convertResourceTagsToSet(request.getDesiredResourceTags());
+        Set<Tag> previousTags = Translator.convertResourceTagsToSet(request.getPreviousResourceTags());
+        Set<Tag> desiredTags = Translator.convertResourceTagsToSet(request.getDesiredResourceTags());
 
-        Set<Tag> previousSystemTags = Translator.convertResourceTagsToSet(request.getPreviousSystemTags());
-        Set<Tag> desiredSystemTags = Translator.convertResourceTagsToSet(request.getSystemTags());
+        previousTags.addAll(Translator.convertResourceTagsToSet(request.getPreviousSystemTags()));
+        desiredTags.addAll(Translator.convertResourceTagsToSet(request.getSystemTags()));
 
         Set<Subscription> desiredSubscription = new HashSet<>(Optional.ofNullable(model.getSubscription()).orElse(Collections.emptyList()));
         Set<Subscription> previousSubscription = new HashSet<>(Optional.ofNullable(previousModel.getSubscription()).orElse(Collections.emptyList()));
@@ -132,8 +132,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 )
                 .then(progress -> removeSubscription(proxy, proxyClient, progress, logger))
                 .then(progress -> addSubscription(proxy, proxyClient, progress, new ArrayList<>(toSubscribe), logger))
-                // Per test, the systemTags are not changed in previous and desired model, still leave current logic here as it doesn't impact logic, in case any future change
-                .then(progress -> modifyTags(proxy, proxyClient, model, desiredResourceTags, previousResourceTags, desiredSystemTags, previousSystemTags, progress, logger))
+                .then(progress -> modifyTags(proxy, proxyClient, model, desiredTags, previousTags, progress, logger))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
