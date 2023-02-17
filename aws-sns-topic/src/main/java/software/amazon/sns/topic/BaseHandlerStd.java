@@ -24,7 +24,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     //For stabilization backoff, set the timeout to 2 mins and duration as 15 second for initial strategy
     public static final Constant BACKOFF_STRATEGY = Constant.of().timeout(Duration.ofMinutes(2L)).delay(Duration.ofSeconds(15L)).build();
-    private static final int DELAY_TIME_MILLI_SECS = 6000;
+    private static final int DELAY_TIME_MILLI_SECS = 8000;
 
     @Override
     public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -47,27 +47,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final CallbackContext callbackContext,
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger);
-
-    protected boolean stabilizeSubscriptions(
-            final CreateTopicRequest request,
-            final CreateTopicResponse response,
-            final ProxyClient<SnsClient> proxyClient,
-            final ResourceModel model,
-            final CallbackContext callbackContext
-    ) {
-        if (model.getSubscription() == null) {
-            return true;
-        }
-        int expectedSubCount = model.getSubscription().size();
-        try {
-            ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(model), proxyClient.client()::listSubscriptionsByTopic);
-            return listSubscriptionsByTopicResponse.subscriptions().size() == expectedSubCount;
-        } catch (AuthorizationErrorException e) {
-            return true;
-        } catch (SnsException e) {
-            throw translateServiceExceptionToFailure(e);
-        }
-    }
 
     protected boolean checkIfTopicAlreadyExist(
             final ResourceHandlerRequest<ResourceModel> request,
