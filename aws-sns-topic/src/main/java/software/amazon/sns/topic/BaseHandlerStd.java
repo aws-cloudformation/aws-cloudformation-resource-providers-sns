@@ -24,7 +24,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     //For stabilization backoff, set the timeout to 2 mins and duration as 15 second for initial strategy
     public static final Constant BACKOFF_STRATEGY = Constant.of().timeout(Duration.ofMinutes(2L)).delay(Duration.ofSeconds(15L)).build();
-    private static final int DELAY_TIME_MILLI_SECS = 8000;
+    private static final int DELAY_TIME_MILLI_SECS = 6000;
 
     @Override
     public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
