@@ -54,9 +54,8 @@ public class CreateHandler extends BaseHandlerStd {
                                 throw new CfnGeneralServiceException(e);
                             }
                         })
-                        .stabilize(this::stabilizeSubscriptions)
                         .progress()
                 )
-                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+                .defaultSuccessHandler(model);
     }
 }

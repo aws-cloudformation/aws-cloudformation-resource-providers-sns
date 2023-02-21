@@ -48,27 +48,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger);
 
-    protected boolean stabilizeSubscriptions(
-            final CreateTopicRequest request,
-            final CreateTopicResponse response,
-            final ProxyClient<SnsClient> proxyClient,
-            final ResourceModel model,
-            final CallbackContext callbackContext
-    ) {
-        if (model.getSubscription() == null) {
-            return true;
-        }
-        int expectedSubCount = model.getSubscription().size();
-        try {
-            ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToListSubscriptionByTopic(model), proxyClient.client()::listSubscriptionsByTopic);
-            return listSubscriptionsByTopicResponse.subscriptions().size() == expectedSubCount;
-        } catch (AuthorizationErrorException e) {
-            return true;
-        } catch (SnsException e) {
-            throw translateServiceExceptionToFailure(e);
-        }
-    }
-
     protected boolean checkIfTopicAlreadyExist(
             final ResourceHandlerRequest<ResourceModel> request,
             final ProxyClient<SnsClient> proxyClient,
