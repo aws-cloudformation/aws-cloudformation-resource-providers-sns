@@ -73,7 +73,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .displayName("topic-display-name")
                 .subscription(subscriptions)
                 .signatureVersion("2")
-                .tracingConfig("PassThrough")
+                .tracingConfig(TracingMode.PASS_THROUGH.toString())
                 .tags(tags)
                 .dataProtectionPolicy(policy)
                 .build();
@@ -83,7 +83,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), "topic-display-name");
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
-        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), "PassThrough");
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.PASS_THROUGH.toString());
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
@@ -132,7 +132,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         final String topicName = "sns-topic-name.fifo";
         final String topicDisplayName = "topic-display-name";
         final String signatureVersion = "2";
-        final String tracingConfig = "Active";
+        final String tracingConfig = TracingMode.ACTIVE.toString();
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn(topicArn)

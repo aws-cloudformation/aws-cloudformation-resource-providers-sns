@@ -94,7 +94,7 @@ public class UpdateHandler extends BaseHandlerStd {
                         return progress;
                     }
                     String previousVal = previousModel.getTracingConfig();
-                    String desiredVal =  model.getTracingConfig() != null ? model.getTracingConfig().toString() : "PassThrough";
+                    String desiredVal =  model.getTracingConfig() != null ? model.getTracingConfig().toString() : TracingMode.PASS_THROUGH.toString();
                     if(!StringUtils.equals(previousVal, desiredVal)) {
                         return proxy.initiate("AWS-SNS-Topic::Update::TracingConfig", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.TRACING_CONFIG, desiredVal))

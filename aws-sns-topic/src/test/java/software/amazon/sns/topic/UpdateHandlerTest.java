@@ -136,15 +136,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
     public void handleRequest_SimpleSuccess_UpdateTracingConfig() {
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tracingConfig("Active")
+                .tracingConfig(TracingMode.ACTIVE.toString())
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tracingConfig("PassThrough")
+                .tracingConfig(TracingMode.PASS_THROUGH.toString())
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), "Active");
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.ACTIVE.toString());
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         setupUpdateHandlerMocks(attributes);
 
@@ -166,11 +166,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tracingConfig("Active")
+                .tracingConfig(TracingMode.ACTIVE.toString())
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), "PassThrough");
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.PASS_THROUGH.toString());
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         setupUpdateHandlerMocks(attributes);
 
@@ -189,14 +189,14 @@ public class UpdateHandlerTest extends AbstractTestBase {
     public void handleRequest_SimpleSuccess_AddPassThroughTracingConfig() {
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tracingConfig("PassThrough")
+                .tracingConfig(TracingMode.PASS_THROUGH.toString())
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), "PassThrough");
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.PASS_THROUGH.toString());
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         setupUpdateHandlerMocks(attributes);
 
@@ -215,14 +215,14 @@ public class UpdateHandlerTest extends AbstractTestBase {
     public void handleRequest_SimpleSuccess_AddActiveTracingConfig() {
         final ResourceModel model = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
-                .tracingConfig("Active")
+                .tracingConfig(TracingMode.ACTIVE.toString())
                 .build();
         final ResourceModel previousModel = ResourceModel.builder()
                 .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name")
                 .build();
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), "Active");
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.ACTIVE.toString());
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         setupUpdateHandlerMocks(attributes);
 
