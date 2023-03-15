@@ -90,9 +90,14 @@ public class UpdateHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
-                    if(!StringUtils.equals(model.getTracingConfig(), previousModel.getTracingConfig())) {
+                    if ( previousModel.getTracingConfig() == null && model.getTracingConfig() == null) {
+                        return progress;
+                    }
+                    String previousVal = previousModel.getTracingConfig();
+                    String desiredVal =  model.getTracingConfig() != null ? model.getTracingConfig().toString() : TracingMode.PASS_THROUGH.toString();
+                    if(!StringUtils.equals(previousVal, desiredVal)) {
                         return proxy.initiate("AWS-SNS-Topic::Update::TracingConfig", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.TRACING_CONFIG, m.getTracingConfig()))
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.TRACING_CONFIG, desiredVal))
                                 .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
                                 .progress();
                     }
