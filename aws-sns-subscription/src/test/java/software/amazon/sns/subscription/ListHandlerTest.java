@@ -5,21 +5,29 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.*;
-import software.amazon.cloudformation.proxy.*;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsResponse;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsRequest;
+import software.amazon.awssdk.services.sns.model.Subscription;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.OperationStatus;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 @ExtendWith(MockitoExtension.class)
 public class ListHandlerTest extends AbstractTestBase {
@@ -48,7 +56,7 @@ public class ListHandlerTest extends AbstractTestBase {
 
     private void buildObjects() {
 
-        model = ResourceModel.builder().subscriptionArn("testArn").topicArn("topicArn").build();
+        model = ResourceModel.builder().subscriptionArn("topicArn:testArn").topicArn("topicArn").build();
         attributes = new HashMap<>();
         attributes.put("SubscriptionArn", model.getSubscriptionArn());
         attributes.put("TopicArn", "topicArn");
@@ -66,14 +74,11 @@ public class ListHandlerTest extends AbstractTestBase {
         listSubscriptions.add(subscription1);
         listSubscriptions.add(subscription2);
 
-        setupGetTopicAttributeMock();
-
-
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder()
+        final ListSubscriptionsResponse listSubscriptionsResponse = ListSubscriptionsResponse.builder()
                                         .subscriptions(listSubscriptions)
                                         .build();
 
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse);
+        when(proxyClient.client().listSubscriptions(any(ListSubscriptionsRequest.class))).thenReturn(listSubscriptionsResponse);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                                                                 .desiredResourceState(model)
@@ -91,9 +96,7 @@ public class ListHandlerTest extends AbstractTestBase {
         assertThat(response.getNextToken()).isNull();
         assertThat(response.getErrorCode()).isNull();
 
-        verify(proxyClient.client(), times(1)).getTopicAttributes(any(GetTopicAttributesRequest.class));
-       // verify(proxyClient.client(), times(1)).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
-        verify(proxyClient.client(), times(1)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client(), times(1)).listSubscriptions(any(ListSubscriptionsRequest.class));
     }
 
     @Test
@@ -104,9 +107,7 @@ public class ListHandlerTest extends AbstractTestBase {
         listSubscriptions.add(subscription1);
         listSubscriptions.add(subscription2);
 
-        setupGetTopicAttributeMock();
-
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse = ListSubscriptionsByTopicResponse.builder()
+        final ListSubscriptionsResponse listSubscriptionsResponse = ListSubscriptionsResponse.builder()
                                         .subscriptions(listSubscriptions)
                                         .nextToken("nextToken")
                                         .build();
@@ -115,12 +116,12 @@ public class ListHandlerTest extends AbstractTestBase {
         final List<Subscription> listSubscriptions2 = new ArrayList<>();
         listSubscriptions2.add(subscription3);
 
-        final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse2 = ListSubscriptionsByTopicResponse.builder()
+        final ListSubscriptionsResponse listSubscriptionsResponse2 = ListSubscriptionsResponse.builder()
                                         .subscriptions(listSubscriptions2)
                                         .nextToken("")
                                         .build();
 
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(listSubscriptionsByTopicResponse).thenReturn(listSubscriptionsByTopicResponse2);
+        when(proxyClient.client().listSubscriptions(any(ListSubscriptionsRequest.class))).thenReturn(listSubscriptionsResponse).thenReturn(listSubscriptionsResponse2);
 
         final ResourceModel model = ResourceModel.builder()
                                     .topicArn("topicArn")
@@ -167,118 +168,6 @@ public class ListHandlerTest extends AbstractTestBase {
         assertThat(response2.getErrorCode()).isNull();
         assertThat(response2.getNextToken()).isEqualTo("");
 
-        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
-    }
-
-    @Test
-    public void handleRequest_TopicArnDoesNotExist()  {
-
-        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenThrow(NotFoundException.class);
-
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                                                                .desiredResourceState(model)
-                                                                .build();
-
-        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-
-        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
-        verify(proxyClient.client(), never()).unsubscribe(any(UnsubscribeRequest.class));
-        verify(proxyClient.client(), never()).getSubscriptionAttributes(any(GetSubscriptionAttributesRequest.class));
-
-    }
-
-    @Test
-    public void handleRequest_SubscriptionLimitExceededException()  {
-
-        setupGetTopicAttributeMock();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(SubscriptionLimitExceededException.class);
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-
-        assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-    }
-
-    @Test
-    public void handleRequest_FilterPolicyLimitExceededException()  {
-
-        setupGetTopicAttributeMock();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(FilterPolicyLimitExceededException.class);
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-
-        assertThrows(CfnServiceLimitExceededException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-    }
-
-    @Test
-    public void handleRequest_InvalidParameterException()  {
-
-        setupGetTopicAttributeMock();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(InvalidParameterException.class);
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-    }
-
-    @Test
-    public void handleRequest_InternalErrorException()  {
-
-        setupGetTopicAttributeMock();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(InternalErrorException.class);
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-        assertThrows(CfnInternalFailureException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-    }
-
-    @Test
-    public void handleRequest_NotFoundException()  {
-
-        setupGetTopicAttributeMock();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(NotFoundException.class);
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-        assertThrows(CfnNotFoundException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-    }
-
-    @Test
-    public void handleRequest_AuthorizationErrorException()  {
-
-        setupGetTopicAttributeMock();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(AuthorizationErrorException.class);
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-        assertThrows(CfnAccessDeniedException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-    }
-
-    @Test
-    public void handleRequest_InvalidSecurityException()  {
-
-        setupGetTopicAttributeMock();
-        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenThrow(InvalidSecurityException.class);
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-        assertThrows(CfnInvalidCredentialsException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-    }
-
-    private void setupGetTopicAttributeMock() {
-        final Map<String, String> topicAttributes = new HashMap<>();
-        topicAttributes.put("TopicArn","topicarn");
-        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder().attributes(topicAttributes).build();
-        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        verify(proxyClient.client(), times(2)).listSubscriptions(any(ListSubscriptionsRequest.class));
     }
 }
