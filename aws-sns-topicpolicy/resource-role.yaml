@@ -30,7 +30,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "sns:SetTopicAttributes"
+                - "sns: SetTopicAttributes"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
