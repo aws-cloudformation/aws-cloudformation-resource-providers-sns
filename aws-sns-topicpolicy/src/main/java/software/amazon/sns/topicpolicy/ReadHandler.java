@@ -1,12 +1,7 @@
 package software.amazon.sns.topicpolicy;
 
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
-import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.*;
 
 public class ReadHandler extends BaseHandlerStd {
 
@@ -33,10 +28,9 @@ public class ReadHandler extends BaseHandlerStd {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
 
-        return ProgressEvent.failed(null,
-                        null,
-                        HandlerErrorCode.InvalidRequest,
-                        "Read operation is not supported.") ;
+        ResourceModel resourceModel = request.getDesiredResourceState();
+        return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest,
+                "Read operation is not supported.");
     }
 
 }

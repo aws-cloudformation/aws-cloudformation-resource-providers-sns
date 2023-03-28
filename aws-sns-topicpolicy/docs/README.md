@@ -1,6 +1,6 @@
 # AWS::SNS::TopicPolicy
 
-Resource Type definition for AWS::SNS::TopicPolicy, this resource associates Amazon SNS topics with a policy.
+Schema for AWS::SNS::TopicPolicy
 
 ## Syntax
 
@@ -65,3 +65,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### Id
 
 The provider-assigned unique ID for this managed resource.
+

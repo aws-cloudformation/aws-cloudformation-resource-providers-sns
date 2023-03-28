@@ -1,24 +1,20 @@
 package software.amazon.sns.topicpolicy;
 
-import java.util.List;
-
-import com.amazonaws.util.StringUtils;
-
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesResponse;
 import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
+
+import java.util.List;
 
 public class UpdateHandler extends BaseHandlerStd {
-    private Logger logger;
-    private final String UPDATE_HANDLER = "AWS-SNS-TopicPolicy::Update";
+    private software.amazon.cloudformation.proxy.Logger logger;
 
-    @Override
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
             final ResourceHandlerRequest<ResourceModel> request,
@@ -27,54 +23,70 @@ public class UpdateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
-        final ResourceModel model = request.getDesiredResourceState();
-        // primary id must be set up
-        if (StringUtils.isNullOrEmpty(model.getId())) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, "Cannot update a resource which does not exist.");
+        ResourceModel resourceModel = request.getDesiredResourceState();
+
+        if (CollectionUtils.isNullOrEmpty(resourceModel.getTopics())) {
+            return ProgressEvent.failed(resourceModel, callbackContext, null, "Value of property Topics must be of type List of String");
         }
-        // Check if invalid request
-        if (CollectionUtils.isNullOrEmpty(model.getPolicyDocument())
-                || CollectionUtils.isNullOrEmpty(model.getTopics()))
-        {
-            throw new CfnInvalidRequestException(
-                    String.format("Invalid create request, policy document & topics cannot be null or empty : %s)",
-                            model.toString()));
+        else if (CollectionUtils.isNullOrEmpty(resourceModel.getPolicyDocument())) {
+            return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, "Invalid parameter: Policy Error: null");
         }
 
-        return ProgressEvent.progress(model, callbackContext)
-                .then(progress -> doCreate(proxy, proxyClient, request, progress, ACTION_CREATED, UPDATE_HANDLER, logger))
-                .then(progress -> doDelete(proxy, proxyClient, request, progress))
-                .then(progress -> ProgressEvent.success(model, callbackContext));
+        logger.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Update TopicPolicy", request.getStackId(), request.getClientRequestToken()));
+
+        return ProgressEvent.progress(resourceModel, callbackContext)
+                .then(progress -> Update(proxy, proxyClient, request, progress, logger))
+                .then(progress -> ProgressEvent.defaultSuccessHandler(null));
     }
 
-    /**
-     * Invocation of doDelete calls setTopicAttributes to delete topic-policy of a given topic ARN.
-     *
-     * @param proxy
-     *            {@link AmazonWebServicesClientProxy} to initiate proxy chain
-     * @param proxyClient
-     *            the aws service client {@link ProxyClient<SnsClient>} to make the call
-     * @param request
-     *            {@link ResourceHandlerRequest<ResourceModel>}
-     * @param progress
-     *            {@link ProgressEvent<ResourceModel, CallbackContext>} to place hold the current progress data
-     * @return {@link ProgressEvent<ResourceModel, CallbackContext>}
-     */
-
-    private ProgressEvent<ResourceModel, CallbackContext> doDelete(
+    protected ProgressEvent<ResourceModel, CallbackContext> Update(
             final AmazonWebServicesClientProxy proxy,
             final ProxyClient<SnsClient> proxyClient,
             final ResourceHandlerRequest<ResourceModel> request,
-            final ProgressEvent<ResourceModel, CallbackContext> progress) {
+            ProgressEvent<ResourceModel, CallbackContext> progress,
+            final Logger logger) {
         final ResourceModel model = request.getDesiredResourceState();
         final ResourceModel previousState = request.getPreviousResourceState();
+        final String policy = getPolicyDocument(request);
         // new topics
         List<String> newTopics = model.getTopics();
         // previous topics
         List<String> previousTopics = previousState.getTopics();
         // extract the topics that needs to be deleted.
         previousTopics.removeAll(newTopics);
-        return handleDelete(proxy, proxyClient, request, progress, previousTopics, ACTION_DELETED, UPDATE_HANDLER, logger);
+        final CallbackContext callbackContext = progress.getCallbackContext();
+        for (final String topicArn : newTopics) {
+            final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
+                    .initiate("AWS-SNS-TopicPolicy::Update", proxyClient, model, callbackContext)
+                    .translateToServiceRequest((resourceModel) -> Translator.translateToRequest(topicArn, policy))
+                    .makeServiceCall((awsRequest, client) -> {
+                        SetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::setTopicAttributes);
+                        logger.log(String.format("Resource Updated in StackId: %s", request.getStackId()));
+                        return response;
+                    })
+                    .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))
+                    .success();
+            if (!progressEvent.isSuccess()) {
+                return progressEvent;
+            }
+        }
+        for (final String topicArn : previousTopics) {
+            String defaultPolicy = getDefaultPolicy(request,topicArn);
+            final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
+                    .initiate("AWS-SNS-TopicPolicy::Update", proxyClient, model, callbackContext)
+                    .translateToServiceRequest((resourceModel) -> Translator.translateToRequest(topicArn, defaultPolicy))
+                    .makeServiceCall((awsRequest, client) -> {
+                        SetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::setTopicAttributes);
+                        logger.log(String.format("Resource Updated in StackId: %s", request.getStackId()));
+                        return response;
+                    })
+                    .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))
+                    .success();
+            if (!progressEvent.isSuccess()) {
+                return progressEvent;
+            }
+        }
+        return ProgressEvent.progress(model, callbackContext);
     }
 
 }
