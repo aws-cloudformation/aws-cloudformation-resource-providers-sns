@@ -25,7 +25,10 @@ public class UpdateHandler extends BaseHandlerStd {
         this.logger = logger;
         ResourceModel resourceModel = request.getDesiredResourceState();
 
-        if (CollectionUtils.isNullOrEmpty(resourceModel.getTopics())) {
+        if (resourceModel == null) {
+            return ProgressEvent.failed(resourceModel, callbackContext, null, "Property PolicyDocument cannot be empty");
+        }
+        else if (CollectionUtils.isNullOrEmpty(resourceModel.getTopics())) {
             return ProgressEvent.failed(resourceModel, callbackContext, null, "Value of property Topics must be of type List of String");
         }
         else if (CollectionUtils.isNullOrEmpty(resourceModel.getPolicyDocument())) {

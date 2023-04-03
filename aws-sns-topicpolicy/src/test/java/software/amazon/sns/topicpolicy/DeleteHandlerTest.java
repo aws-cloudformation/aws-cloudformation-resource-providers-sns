@@ -116,7 +116,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 new CallbackContext(), proxyClient, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
     }
 
     @Test
@@ -243,6 +243,19 @@ public class DeleteHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_Failure_Null_ResourceModel() {
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(null)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        assertThat(response).isNotNull();
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getMessage()).isEqualTo("Invalid request");
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+
+    }
+
+    @Test
     public void handleRequest_Failure_GeneralException() {
 
         final List<String> topics = new ArrayList<>();
@@ -253,6 +266,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final ResourceModel model = ResourceModel.builder()
                 .id("aws-sns-topic-policy-id-CfnGeneralServiceException")
                 .topics(topics)
+                .policyDocument(new HashMap<>())
                 .policyDocument(policyDocument)
                 .build();
 

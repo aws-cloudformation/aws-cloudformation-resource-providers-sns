@@ -298,7 +298,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 new CallbackContext(), proxyClient, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
     }
 
     @Test
@@ -459,6 +459,19 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_Failure_Null_ResourceModel() {
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
+                .desiredResourceState(null)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        assertThat(response).isNotNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getMessage()).isEqualTo("Property PolicyDocument cannot be empty");
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+
+    }
+
+    @Test
     public void handleRequest_Failure_GeneralException() {
         Map<String, Object> policyDocument = getSNSPolicy();
 
@@ -468,7 +481,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
 
         final ResourceModel model = ResourceModel.builder()
-                .id("aws-sns-topic-policy-id-cfnnotfound")
+                .id("aws-sns-topic-policy-id-CfnInvalidCredentialsException")
                 .topics(topics)
                 .policyDocument(policyDocument)
                 .build();
@@ -490,8 +503,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))
                 .thenThrow(ConcurrentAccessException.class);
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 new CallbackContext(), proxyClient, logger);
+
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.GeneralServiceException);
     }

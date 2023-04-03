@@ -70,6 +70,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 new CallbackContext(), proxyClient, logger);
 
+
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
@@ -152,6 +153,19 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_Failure_Null_ResourceModel() {
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
+                .desiredResourceState(null)
+                .build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        assertThat(response).isNotNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getMessage()).isEqualTo("Property PolicyDocument cannot be empty");
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+
+    }
+
+    @Test
     public void handleRequest_Failure_PolicyDocument_JsonProcessingException() {
         final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
@@ -198,7 +212,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 new CallbackContext(), proxyClient, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
     }
 
     @Test

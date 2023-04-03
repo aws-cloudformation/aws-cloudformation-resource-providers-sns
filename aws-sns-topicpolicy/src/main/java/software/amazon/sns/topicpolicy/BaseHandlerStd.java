@@ -10,17 +10,24 @@ import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
 import software.amazon.cloudformation.exceptions.CfnThrottlingException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.exceptions.BaseHandlerException;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.*;
+import software.amazon.awssdk.services.sns.model.NotFoundException;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
+import software.amazon.awssdk.services.sns.model.InternalErrorException;
+import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
+import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
+import software.amazon.awssdk.services.sns.model.ThrottledException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 
 import static java.util.Objects.requireNonNull;
+import java.util.regex.Pattern;
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
@@ -38,7 +45,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return snsClient;
   }
   private  final ObjectMapper MAPPER = new ObjectMapper();
-
+  private static final Pattern PRINCIPAL_NOT_FOUND_PATTERN = Pattern.compile("Invalid parameter: Policy Error: PrincipalNotFound");
+  public static int EVENTUAL_CONSISTENCY_DELAY_SECONDS = 5;
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
           final AmazonWebServicesClientProxy proxy,
@@ -71,22 +79,44 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     if (e instanceof NotFoundException) {
       ex = new CfnNotFoundException(e);
-    } else if(e instanceof InvalidParameterException){
-      ex = new CfnInvalidRequestException(e);
     } else if (e instanceof InternalErrorException) {
       ex = new CfnServiceInternalErrorException(e);
     } else if (e instanceof AuthorizationErrorException) {
       ex = new CfnAccessDeniedException(e);
     } else if (e instanceof InvalidSecurityException) {
       ex = new CfnInvalidCredentialsException(e);
-    } else if (e instanceof ThrottledException){
+    } else if (e instanceof ThrottledException) {
       ex = new CfnThrottlingException(e);
+    } else if(e instanceof InvalidParameterException) {
+      ex = new CfnInvalidRequestException(e);
+      final String errorMessage = ((AwsServiceException) e).awsErrorDetails().errorMessage();
+      if (PRINCIPAL_NOT_FOUND_PATTERN.matcher(errorMessage).matches()) {
+        callbackContext.setPropagationDelay(true);
+        if (callbackContext.isPropagationDelay() && callbackContext.getPrincipalRetryAttempts()>0) {
+          callbackContext.minusOneAttempts();
+          System.out.println("Attempts left: "+callbackContext.getPrincipalRetryAttempts());
+          if (callbackContext.getPrincipalRetryAttempts() == 0){
+            callbackContext.setPropagationDelay(false);
+          }
+          return ProgressEvent.defaultInProgressHandler(callbackContext,
+                  EVENTUAL_CONSISTENCY_DELAY_SECONDS, resourceModel);
+        }
+        return ProgressEvent.failed(resourceModel, callbackContext, ex.getErrorCode(), ex.getMessage());
+      }
     } else {
       ex = new CfnGeneralServiceException(e);
     }
     return ProgressEvent.failed(resourceModel, callbackContext, ex.getErrorCode(), ex.getMessage());
   }
 
+
+  /**
+   * Invocation of getPolicyDocument returns the policy document .
+   *
+   * @param request
+   *            {@link ResourceHandlerRequest<ResourceModel>}
+   * @return Returns policy document
+   */
   protected String getPolicyDocument(final ResourceHandlerRequest<ResourceModel> request) {
     try {
       return MAPPER.writeValueAsString(request.getDesiredResourceState().getPolicyDocument());
@@ -95,7 +125,12 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
   }
 
-
+  /*
+   * Unfortunately, SNS requires a policy for a topic, so we must reset to the default policy for now. The original
+   * default policy, created by the SNS service (not CloudFormation) when the topic was created, specified an
+   * uppercase SNS: asin spite of the public AWS documentation always using a lowercase sns:. So this method uses SNS:
+   * as the service does. The Ruby integration tests will fail if the code below uses sns: instead.
+   */
   static String getDefaultPolicy(final ResourceHandlerRequest<ResourceModel> request, String topicArn) {
     String accountId = request.getAwsAccountId();
     StringBuilder sb = new StringBuilder()
