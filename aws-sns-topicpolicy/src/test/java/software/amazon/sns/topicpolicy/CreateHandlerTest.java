@@ -6,9 +6,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.*;
-import software.amazon.cloudformation.proxy.*;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesRequest;
+import software.amazon.awssdk.services.sns.model.SetTopicAttributesResponse;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.awssdk.services.sns.model.NotFoundException;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
+import software.amazon.awssdk.services.sns.model.InternalErrorException;
+import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
+import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
+import software.amazon.awssdk.services.sns.model.ThrottledException;
+import software.amazon.awssdk.services.sns.model.ConcurrentAccessException;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -213,6 +227,117 @@ public class CreateHandlerTest extends AbstractTestBase {
                 new CallbackContext(), proxyClient, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
+    }
+
+    @Test
+    public void handleRequest_INPROCESS_InvalidParameterExceptionWithWrongPrincipal() {
+
+        final List<String> topics = new ArrayList<>();
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
+
+        Map<String, Object> policyDocument = getSNSPolicy();
+
+        final ResourceModel model = ResourceModel.builder()
+                .id("aws-sns-topic-policy-id-CfnInvalidRequestException")
+                .topics(topics)
+                .policyDocument(policyDocument)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
+                .desiredResourceState(model)
+                .build();
+
+        InvalidParameterException exception = InvalidParameterException.builder()
+                .awsErrorDetails(AwsErrorDetails.builder()
+                        .errorCode("InvalidParameter")
+                        .errorMessage("Invalid parameter: Policy Error: PrincipalNotFound").build())
+                .build();
+
+        when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))
+                .thenThrow(exception);
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
+                new CallbackContext(), proxyClient, logger);
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_Failure_FinalAttempt_InvalidParameterExceptionWithWrongPrincipal() {
+
+        final List<String> topics = new ArrayList<>();
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
+
+        Map<String, Object> policyDocument = getSNSPolicy();
+
+        final ResourceModel model = ResourceModel.builder()
+                .id("aws-sns-topic-policy-id-CfnInvalidRequestException")
+                .topics(topics)
+                .policyDocument(policyDocument)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
+                .desiredResourceState(model)
+                .build();
+
+        InvalidParameterException exception = InvalidParameterException.builder()
+                .awsErrorDetails(AwsErrorDetails.builder()
+                        .errorCode("InvalidParameter")
+                        .errorMessage("Invalid parameter: Policy Error: PrincipalNotFound").build())
+                .build();
+
+        when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))
+                .thenThrow(exception);
+
+        CallbackContext callbackContext = new CallbackContext();
+        callbackContext.setPrincipalRetryAttempts(1);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
+                callbackContext, proxyClient, logger);
+
+        assertThat(response.getCallbackContext().isPropagationDelay()).isFalse();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_Failure_NoAttempt_InvalidParameterExceptionWithWrongPrincipal() {
+
+        final List<String> topics = new ArrayList<>();
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
+
+        Map<String, Object> policyDocument = getSNSPolicy();
+
+        final ResourceModel model = ResourceModel.builder()
+                .id("aws-sns-topic-policy-id-CfnInvalidRequestException")
+                .topics(topics)
+                .policyDocument(policyDocument)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
+                .desiredResourceState(model)
+                .build();
+
+        InvalidParameterException exception = InvalidParameterException.builder()
+                .awsErrorDetails(AwsErrorDetails.builder()
+                        .errorCode("InvalidParameter")
+                        .errorMessage("Invalid parameter: Policy Error: PrincipalNotFound").build())
+                .build();
+
+        when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))
+                .thenThrow(exception);
+
+        CallbackContext callbackContext = new CallbackContext();
+        callbackContext.setPrincipalRetryAttempts(0);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
+                callbackContext, proxyClient, logger);
+
+        assertThat(response.getCallbackContext().isPropagationDelay()).isFalse();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
     }
 
     @Test

@@ -90,11 +90,10 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     } else if(e instanceof InvalidParameterException) {
       ex = new CfnInvalidRequestException(e);
       final String errorMessage = ((AwsServiceException) e).awsErrorDetails().errorMessage();
-      if (PRINCIPAL_NOT_FOUND_PATTERN.matcher(errorMessage).matches()) {
+      if (PRINCIPAL_NOT_FOUND_PATTERN.matcher(errorMessage).matches()&& callbackContext.getPrincipalRetryAttempts()>0) {
         callbackContext.setPropagationDelay(true);
-        if (callbackContext.isPropagationDelay() && callbackContext.getPrincipalRetryAttempts()>0) {
+        if (callbackContext.isPropagationDelay()) {
           callbackContext.minusOneAttempts();
-          System.out.println("Attempts left: "+callbackContext.getPrincipalRetryAttempts());
           if (callbackContext.getPrincipalRetryAttempts() == 0){
             callbackContext.setPropagationDelay(false);
           }
