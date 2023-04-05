@@ -40,7 +40,7 @@ public class CreateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> Create(proxy, proxyClient, request, progress, logger))
-                .then(progress -> ProgressEvent.defaultSuccessHandler(null));
+                .then(progress -> ProgressEvent.success(resourceModel, callbackContext));
     }
 
     protected ProgressEvent<ResourceModel, CallbackContext> Create(
@@ -60,6 +60,7 @@ public class CreateHandler extends BaseHandlerStd {
                     .makeServiceCall((awsRequest, client) -> {
                         SetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::setTopicAttributes);
                         logger.log(String.format("Resource Created in StackId: %s", request.getStackId()));
+                        model.setId(topicArn);
                         return response;
                     })
                     .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))

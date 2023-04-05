@@ -48,7 +48,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     private final ObjectMapper MAPPER = new ObjectMapper();
     private static final Pattern PRINCIPAL_NOT_FOUND_PATTERN = Pattern.compile("Invalid parameter: Policy Error: PrincipalNotFound");
-    public static int EVENTUAL_CONSISTENCY_DELAY_SECONDS = 5;
+    private static int EVENTUAL_CONSISTENCY_DELAY_SECONDS = 5;
 
     @Override
     public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
