@@ -68,9 +68,14 @@ public class AbstractTestBase {
 
     public Map<String, Object> getSNSPolicy() {
         final String key = "SNSTopicSPolicy";
-        final String topicArn = "arn:aws:sns:us-east-1:274642221111:dummy-topic", accountId = "123456789";
+        final String accountId = "123456789";
         Map<String, Object> policy = new HashMap<String, Object>();
 
+        policy.put(key, policDocument(accountId));
+        return policy;
+    }
+
+    public String policDocument(String accountId) {
         StringBuilder sb = new StringBuilder()
                 .append("{")
                 .append("    \"Version\": \"2008-10-17\",")
@@ -90,10 +95,9 @@ public class AbstractTestBase {
                 .append("          \"SNS:DeleteTopic\",")
                 .append("          \"SNS:Subscribe\",")
                 .append("          \"SNS:ListSubscriptionsByTopic\",")
-                .append("          \"SNS:Publish\",")
-                .append("          \"SNS:Receive\"")
+                .append("          \"SNS:Publish\"")
                 .append("        ],")
-                .append("        \"Resource\": \"").append(topicArn).append("\",")
+                .append("        \"Resource\": \"").append("*").append("\",")
                 .append("        \"Condition\": {")
                 .append("          \"StringEquals\": {")
                 .append("            \"AWS:SourceOwner\": \"").append(accountId).append("\"")
@@ -103,8 +107,7 @@ public class AbstractTestBase {
                 .append("    ]")
                 .append("}");
 
-        policy.put(key, sb.toString());
-        return policy;
+        return sb.toString();
     }
 
 }

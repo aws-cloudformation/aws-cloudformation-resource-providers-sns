@@ -1,6 +1,6 @@
 # AWS::SNS::TopicPolicy
 
-Resource Type definition for AWS::SNS::TopicPolicy, this resource associates Amazon SNS topics with a policy.
+Schema for AWS::SNS::TopicPolicy
 
 ## Syntax
 
