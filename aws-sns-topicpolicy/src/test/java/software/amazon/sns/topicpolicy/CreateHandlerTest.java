@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -227,6 +229,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                 new CallbackContext(), proxyClient, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
+
+        verify(proxyClient.client(), times(1)).setTopicAttributes(any(SetTopicAttributesRequest.class));
     }
 
     @Test
