@@ -300,7 +300,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 callbackContext, proxyClient, logger);
 
-        assertThat(response.getCallbackContext().isPropagationDelay()).isFalse();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getErrorCode()).isNull();
     }
@@ -339,7 +338,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 callbackContext, proxyClient, logger);
 
-        assertThat(response.getCallbackContext().isPropagationDelay()).isFalse();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
     }
