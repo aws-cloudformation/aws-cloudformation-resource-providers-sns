@@ -95,16 +95,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ex = new CfnInvalidRequestException(e);
             final String errorMessage = ((AwsServiceException) e).awsErrorDetails().errorMessage();
             if (PRINCIPAL_NOT_FOUND_PATTERN.matcher(errorMessage).matches() && callbackContext.getPrincipalRetryAttempts() > 0) {
-                callbackContext.setPropagationDelay(true);
-                if (callbackContext.isPropagationDelay()) {
-                    callbackContext.minusOneAttempts();
-                    if (callbackContext.getPrincipalRetryAttempts() == 0) {
-                        callbackContext.setPropagationDelay(false);
-                    }
-                    return ProgressEvent.defaultInProgressHandler(callbackContext,
+                callbackContext.minusOneAttempts();
+                return ProgressEvent.defaultInProgressHandler(callbackContext,
                             EVENTUAL_CONSISTENCY_DELAY_SECONDS, resourceModel);
-                }
-                return ProgressEvent.failed(resourceModel, callbackContext, ex.getErrorCode(), ex.getMessage());
             }
         } else {
             ex = new CfnGeneralServiceException(e);
