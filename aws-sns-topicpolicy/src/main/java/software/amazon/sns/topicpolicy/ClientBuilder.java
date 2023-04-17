@@ -23,7 +23,7 @@ public class ClientBuilder {
                     .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF) //default is 20s
                     .build();
 
-    private static final RetryPolicy EC2_RETRY_POLICY =
+    private static final RetryPolicy SNS_RETRY_POLICY =
             RetryPolicy.builder()
                     .numRetries(4)
                     .retryCondition(RetryCondition.defaultRetryCondition())
@@ -34,7 +34,7 @@ public class ClientBuilder {
             snsClient = SnsClient.builder()
                     .httpClient(LambdaWrapper.HTTP_CLIENT)
                     .overrideConfiguration(ClientOverrideConfiguration.builder()
-                            .retryPolicy(EC2_RETRY_POLICY)
+                            .retryPolicy(SNS_RETRY_POLICY)
                             .build())
                     .build();
         }
