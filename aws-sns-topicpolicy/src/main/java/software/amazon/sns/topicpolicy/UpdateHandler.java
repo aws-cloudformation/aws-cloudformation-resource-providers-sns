@@ -73,6 +73,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 return progressEvent;
             }
         }
+        callbackContext.setIgnoreNotFound(true);
         for (final String topicArn : previousTopics) {
             String defaultPolicy = getDefaultPolicy(request,topicArn);
             final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
