@@ -102,8 +102,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .thenThrow(NotFoundException.class);
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
                 new CallbackContext(), proxyClient, logger);
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.NotFound);
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
     }
 
     @Test

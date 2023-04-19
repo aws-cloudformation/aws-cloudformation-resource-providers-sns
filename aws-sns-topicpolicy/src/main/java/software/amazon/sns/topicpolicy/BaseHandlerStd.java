@@ -83,6 +83,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
         if (e instanceof NotFoundException) {
             ex = new CfnNotFoundException(e);
+            if(callbackContext.isIgnoreNotFound()){
+                return ProgressEvent.success(resourceModel, callbackContext);
+            }
         } else if (e instanceof InternalErrorException) {
             ex = new CfnServiceInternalErrorException(e);
         } else if (e instanceof AuthorizationErrorException) {

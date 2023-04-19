@@ -47,6 +47,7 @@ public class DeleteHandler extends BaseHandlerStd {
             final Logger logger) {
         final ResourceModel model = request.getDesiredResourceState();
         final CallbackContext callbackContext = progress.getCallbackContext();
+        callbackContext.setIgnoreNotFound(true);
         List<String> topics = model.getTopics();
         for (final String topicArn : topics) {
             String policy = getDefaultPolicy(request,topicArn);
