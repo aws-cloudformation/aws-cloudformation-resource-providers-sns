@@ -10,7 +10,8 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class UpdateHandler extends BaseHandlerStd {
     private software.amazon.cloudformation.proxy.Logger logger;
@@ -52,9 +53,9 @@ public class UpdateHandler extends BaseHandlerStd {
         final ResourceModel previousState = request.getPreviousResourceState();
         final String policy = getPolicyDocument(request);
         // new topics
-        List<String> newTopics = model.getTopics();
+        final Set<String> newTopics = new HashSet<>(model.getTopics());
         // previous topics
-        List<String> previousTopics = previousState.getTopics();
+        final Set<String> previousTopics = new HashSet<>(previousState.getTopics());
         // extract the topics that needs to be deleted.
         previousTopics.removeAll(newTopics);
         final CallbackContext callbackContext = progress.getCallbackContext();
