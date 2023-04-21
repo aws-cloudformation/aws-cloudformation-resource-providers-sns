@@ -10,7 +10,8 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DeleteHandler extends BaseHandlerStd {
     private software.amazon.cloudformation.proxy.Logger logger;
@@ -48,7 +49,7 @@ public class DeleteHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
         final CallbackContext callbackContext = progress.getCallbackContext();
         callbackContext.setIgnoreNotFound(true);
-        List<String> topics = model.getTopics();
+        final Set<String> topics = new HashSet<>(model.getTopics());
         for (final String topicArn : topics) {
             String policy = getDefaultPolicy(request,topicArn);
             final ProgressEvent<ResourceModel, CallbackContext> progressEvent = proxy
