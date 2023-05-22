@@ -3,14 +3,14 @@
     "description": "Schema for AWS::SNS::TopicInlinePolicy",
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-sns.git",
     "additionalProperties": false,
-    "properties" : {
-        "PolicyDocument" : {
-            "description" : "A policy document that contains permissions to add to the specified SNS topics.",
-            "type" : "object"
+    "properties": {
+        "PolicyDocument": {
+            "description": "A policy document that contains permissions to add to the specified SNS topics.",
+            "type": "object"
         },
-        "TopicArn" : {
-            "description" : "The Amazon Resource Name (ARN) of the topic to which you want to add the policy.",
-            "type" : "string"
+        "TopicArn": {
+            "description": "The Amazon Resource Name (ARN) of the topic to which you want to add the policy.",
+            "type": "string"
         }
     },
     "tagging": {
@@ -19,14 +19,14 @@
         "tagUpdatable": false,
         "cloudFormationSystemTags": false
     },
-    "required" : [
+    "required": [
         "PolicyDocument",
         "TopicArn"
     ],
-    "primaryIdentifier" : [
+    "primaryIdentifier": [
         "/properties/TopicArn"
     ],
-    "createOnlyProperties" : [
+    "createOnlyProperties": [
         "/properties/TopicArn"
     ],
     "handlers": {
