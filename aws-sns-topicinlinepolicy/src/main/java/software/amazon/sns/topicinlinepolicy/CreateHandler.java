@@ -31,7 +31,6 @@ public class CreateHandler extends BaseHandlerStd {
         }
 
         if(checkDefaultPolicy(request, resourceModel)){
-            System.out.print("Default Policy is trying to create");
             return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, DEFAULT_POLICY_ERROR_MESSAGE);
         }
 
