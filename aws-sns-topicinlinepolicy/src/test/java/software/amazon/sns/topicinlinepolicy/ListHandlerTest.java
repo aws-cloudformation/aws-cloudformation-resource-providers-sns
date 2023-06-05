@@ -57,7 +57,7 @@ public class ListHandlerTest {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         assertThat(response).isNotNull();
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
-        assertThat(response.getMessage()).isEqualTo("List operation is not supported.");
+        assertThat(response.getMessage()).isEqualTo("Unsupported operation LIST for resource AWS::SNS::TopicInlinePolicy.");
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
     }
 

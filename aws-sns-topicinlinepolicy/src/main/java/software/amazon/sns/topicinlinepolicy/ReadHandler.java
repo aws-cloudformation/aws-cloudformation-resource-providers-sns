@@ -32,11 +32,14 @@ public class ReadHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("StackId: %s, ClientRequestToken: %s] Calling Read TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
-        if (!doesTopicPolicyExist(proxyClient, request, model)) {
-            return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.NotFound, noSuchPolicyErrorMessage(model));
-        }
         String TopicArn = model.getTopicArn();
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+                .then(progress -> {
+                    if (!doesTopicPolicyExist(proxyClient, request, model)) {
+                        return ProgressEvent.failed(null, callbackContext, HandlerErrorCode.NotFound, noSuchPolicyErrorMessage(model));
+                    }
+                    return progress;
+                })
                 .then(progress -> proxy.initiate("AWS-SNS-TopicInlinePolicy::Read", proxyClient, model, callbackContext)
                         .translateToServiceRequest((resourceModel) -> Translator.translateToGetRequest(TopicArn))
                         .makeServiceCall((awsRequest, client) -> {

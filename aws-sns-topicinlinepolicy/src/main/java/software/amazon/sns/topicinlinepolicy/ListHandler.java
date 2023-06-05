@@ -17,8 +17,9 @@ public class ListHandler extends BaseHandlerStd {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
         ResourceModel resourceModel = request.getDesiredResourceState();
+        logger.log(String.format("StackId: %s, ClientRequestToken: %s] Calling List TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
         return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest,
-                "List operation is not supported.");
+                "Unsupported operation LIST for resource AWS::SNS::TopicInlinePolicy.");
     }
 
 }
