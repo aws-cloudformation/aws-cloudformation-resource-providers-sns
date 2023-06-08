@@ -39,7 +39,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     public static final String EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE = "Policy and TopicArn cannot be empty";
     public static final String DEFAULT_POLICY_ERROR_MESSAGE = "Cannot set policy to the default policy";
-    public static final int STABILIZATION_DELAY_IN_SECONDS = 5;
+    public static final int STABILIZATION_DELAY_IN_SECONDS = 30;
 
     protected BaseHandlerStd() {
         this(ClientBuilder.getClient());
