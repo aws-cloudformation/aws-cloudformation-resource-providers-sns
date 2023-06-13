@@ -22,11 +22,15 @@ public class DeleteHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
+        final String action = "Delete";
         ResourceModel resourceModel = request.getDesiredResourceState();
 
         if (resourceModel == null || StringUtils.isNullOrEmpty(resourceModel.getTopicArn())) {
-            return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, "TopicArn can not be empty" );
+            return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, EMPTY_TOPICARN_ERROR_MESSAGE );
         }
+
+        final String topicArn = resourceModel.getTopicArn();
+        String policy = getDefaultPolicy(request,topicArn);
 
         logger.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Delete TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
 
@@ -37,7 +41,7 @@ public class DeleteHandler extends BaseHandlerStd {
                     }
                     return progress;
                 })
-                .then(progress -> Delete(proxy, proxyClient, request, progress, logger))
+                .then(progress -> updateTopicPolicy(proxy, proxyClient, request, progress, logger, action, policy, topicArn))
                 .then(progress -> {
                     if (!callbackContext.isPropagationDelay()) {
                         callbackContext.setPropagationDelay(true);
@@ -52,24 +56,4 @@ public class DeleteHandler extends BaseHandlerStd {
                 });
     }
 
-    protected ProgressEvent<ResourceModel, CallbackContext> Delete(
-            final AmazonWebServicesClientProxy proxy,
-            final ProxyClient<SnsClient> proxyClient,
-            final ResourceHandlerRequest<ResourceModel> request,
-            ProgressEvent<ResourceModel, CallbackContext> progress,
-            final Logger logger) {
-        final ResourceModel model = request.getDesiredResourceState();
-        final CallbackContext callbackContext = progress.getCallbackContext();
-        final String topicArn = model.getTopicArn();
-        String policy = getDefaultPolicy(request,topicArn);
-        return proxy.initiate("AWS-SNS-TopicInlinePolicy::Delete", proxyClient, model, callbackContext)
-                .translateToServiceRequest((resourceModel) -> Translator.translateToSetRequest(topicArn, policy))
-                .makeServiceCall((awsRequest, client) -> {
-                    SetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::setTopicAttributes);
-                    logger.log ("Delete in progress");
-                    return response;
-                })
-                .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))
-                .progress();
-    }
 }

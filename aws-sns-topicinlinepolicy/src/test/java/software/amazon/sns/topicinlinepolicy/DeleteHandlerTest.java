@@ -23,6 +23,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_TOPICARN_ERROR_MESSAGE;
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE;
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.DEFAULT_POLICY_ERROR_MESSAGE;
+
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest extends AbstractTestBase {
 
@@ -213,7 +217,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         assertThat(response).isNotNull();
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
-        assertThat(response.getMessage()).isEqualTo("TopicArn can not be empty");
+        assertThat(response.getMessage()).isEqualTo(EMPTY_TOPICARN_ERROR_MESSAGE);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
     }
 
@@ -336,7 +340,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         assertThat(response).isNotNull();
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
-        assertThat(response.getMessage()).isEqualTo("TopicArn can not be empty");
+        assertThat(response.getMessage()).isEqualTo(EMPTY_TOPICARN_ERROR_MESSAGE);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
 
     }

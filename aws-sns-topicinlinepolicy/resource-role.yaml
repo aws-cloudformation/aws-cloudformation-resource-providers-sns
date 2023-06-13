@@ -30,8 +30,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "sns: GetTopicAttributes"
-                - "sns: SetTopicAttributes"
+                - "sns:GetTopicAttributes"
+                - "sns:SetTopicAttributes"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

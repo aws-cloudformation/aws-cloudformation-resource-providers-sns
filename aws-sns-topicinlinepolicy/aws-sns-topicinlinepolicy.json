@@ -32,25 +32,25 @@
     "handlers": {
         "create": {
             "permissions": [
-                "sns: SetTopicAttributes",
-                "sns: GetTopicAttributes"
+                "sns:SetTopicAttributes",
+                "sns:GetTopicAttributes"
             ]
         },
         "read": {
             "permissions": [
-                "sns: GetTopicAttributes"
+                "sns:GetTopicAttributes"
             ]
         },
         "delete": {
             "permissions": [
-                "sns: SetTopicAttributes",
-                "sns: GetTopicAttributes"
+                "sns:SetTopicAttributes",
+                "sns:GetTopicAttributes"
             ]
         },
         "update": {
             "permissions": [
-                "sns: SetTopicAttributes",
-                "sns: GetTopicAttributes"
+                "sns:SetTopicAttributes",
+                "sns:GetTopicAttributes"
             ]
         },
         "list": {

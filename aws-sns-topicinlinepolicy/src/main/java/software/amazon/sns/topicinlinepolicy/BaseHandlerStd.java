@@ -3,15 +3,7 @@ package software.amazon.sns.topicinlinepolicy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.NotFoundException;
-import software.amazon.awssdk.services.sns.model.InternalErrorException;
-import software.amazon.awssdk.services.sns.model.InvalidParameterException;
-import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
-import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
-import software.amazon.awssdk.services.sns.model.ThrottledException;
-import software.amazon.awssdk.services.sns.model.SnsRequest;
-import software.amazon.awssdk.services.sns.model.GetTopicAttributesRequest;
-import software.amazon.awssdk.services.sns.model.GetTopicAttributesResponse;
+import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -38,6 +30,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     private final SnsClient snsClient;
 
     public static final String EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE = "Policy and TopicArn cannot be empty";
+    public static final String EMPTY_TOPICARN_ERROR_MESSAGE = "TopicArn cannot be empty";
     public static final String DEFAULT_POLICY_ERROR_MESSAGE = "Cannot set policy to the default policy";
     public static final int STABILIZATION_DELAY_IN_SECONDS = 30;
 
@@ -54,7 +47,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
 
     private final ObjectMapper MAPPER = new ObjectMapper();
-    private static final Pattern PRINCIPAL_NOT_FOUND_PATTERN = Pattern.compile("Invalid parameter: Policy Error: PrincipalNotFound");
+    public static final Pattern PRINCIPAL_NOT_FOUND_PATTERN = Pattern.compile("Invalid parameter: Policy Error: PrincipalNotFound");
+
     private static final int EVENTUAL_CONSISTENCY_DELAY_SECONDS = 5;
 
     @Override
@@ -144,6 +138,28 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         Map<String, Object> curPolicy = model.getPolicyDocument();
         Map<String, Object> defaultPolicy = Translator.convertStringToObject(getDefaultPolicy(request, model.getTopicArn()));
         return (curPolicy.equals(defaultPolicy));
+    }
+
+    protected ProgressEvent<ResourceModel, CallbackContext> updateTopicPolicy(
+            final AmazonWebServicesClientProxy proxy,
+            final ProxyClient<SnsClient> proxyClient,
+            final ResourceHandlerRequest<ResourceModel> request,
+            ProgressEvent<ResourceModel, CallbackContext> progress,
+            final Logger logger,
+            final String Action,
+            final String policy,
+            final String topic){
+        final ResourceModel model = request.getDesiredResourceState();
+        final CallbackContext callbackContext = progress.getCallbackContext();
+        return proxy.initiate("AWS-SNS-TopicInlinePolicy::" + Action, proxyClient, model, callbackContext)
+                .translateToServiceRequest((resourceModel) -> Translator.translateToSetRequest(topic, policy))
+                .makeServiceCall((awsRequest, client) -> {
+                    SetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::setTopicAttributes);
+                    logger.log (Action + " in progress");
+                    return response;
+                })
+                .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))
+                .progress();
     }
 
     /*

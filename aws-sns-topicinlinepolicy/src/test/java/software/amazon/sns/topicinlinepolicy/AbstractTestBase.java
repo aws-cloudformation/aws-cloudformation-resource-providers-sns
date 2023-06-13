@@ -17,15 +17,15 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.proxy.*;
+import software.amazon.cloudformation.proxy.LoggerProxy;
+import software.amazon.cloudformation.proxy.Credentials;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_TOPICARN_ERROR_MESSAGE;
 
 public class AbstractTestBase {
     protected static final Credentials MOCK_CREDENTIALS;
     protected static final LoggerProxy logger;
-
-    public static final String EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE = "Policy and TopicArn cannot be empty";
-
-    public static final String DEFAULT_POLICY_ERROR_MESSAGE = "Cannot set policy to the default policy";
 
     static {
         MOCK_CREDENTIALS = new Credentials("accessKey", "secretKey", "token");

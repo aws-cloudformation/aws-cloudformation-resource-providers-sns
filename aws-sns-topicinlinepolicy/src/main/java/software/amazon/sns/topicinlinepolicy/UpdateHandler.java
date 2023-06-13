@@ -23,6 +23,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         this.logger = logger;
         ResourceModel resourceModel = request.getDesiredResourceState();
+        final String action = "Update";
 
         if (resourceModel == null || StringUtils.isNullOrEmpty(resourceModel.getTopicArn())
                 || CollectionUtils.isNullOrEmpty(resourceModel.getPolicyDocument())) {
@@ -42,7 +43,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     }
                     return progress;
                 })
-                .then(progress -> Update(proxy, proxyClient, request, progress, logger))
+                .then(progress -> updateTopicPolicy(proxy, proxyClient, request, progress, logger, action, getPolicyDocument(request), resourceModel.getTopicArn()))
                 .then(progress -> {
                     if (!callbackContext.isPropagationDelay()) {
                         callbackContext.setPropagationDelay(true);
@@ -55,27 +56,6 @@ public class UpdateHandler extends BaseHandlerStd {
                     progress.getCallbackContext().setPropagationDelay(true);
                     return ProgressEvent.defaultSuccessHandler(progress.getResourceModel());
                 });
-    }
-
-    protected ProgressEvent<ResourceModel, CallbackContext> Update(
-            final AmazonWebServicesClientProxy proxy,
-            final ProxyClient<SnsClient> proxyClient,
-            final ResourceHandlerRequest<ResourceModel> request,
-            ProgressEvent<ResourceModel, CallbackContext> progress,
-            final Logger logger) {
-        final ResourceModel model = request.getDesiredResourceState();
-        final String policy = getPolicyDocument(request);
-        final CallbackContext callbackContext = progress.getCallbackContext();
-        final String topicArn = model.getTopicArn();
-        return proxy.initiate("AWS-SNS-TopicInlinePolicy::Update", proxyClient, model, callbackContext)
-                .translateToServiceRequest((resourceModel) -> Translator.translateToSetRequest(topicArn, policy))
-                .makeServiceCall((awsRequest, client) -> {
-                    SetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::setTopicAttributes);
-                    logger.log ("Update in progress");
-                    return response;
-                })
-                .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))
-                .progress();
     }
 
 }

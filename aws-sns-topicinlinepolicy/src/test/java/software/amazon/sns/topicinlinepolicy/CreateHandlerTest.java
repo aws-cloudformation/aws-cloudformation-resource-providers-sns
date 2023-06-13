@@ -37,6 +37,10 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE;
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.DEFAULT_POLICY_ERROR_MESSAGE;
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.PRINCIPAL_NOT_FOUND_PATTERN;
+
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
 
@@ -54,6 +58,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     private final Map<String, String> attributes = getDefaultTestMap();
 
     private final Map<String, String> attributesWithWrongPolicy = getTestMap();
+    private static final String PRINCIPAL_NOT_FOUND_PATTERN_Message = PRINCIPAL_NOT_FOUND_PATTERN.toString();
 
     @BeforeEach
     public void setup() {
@@ -371,7 +376,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         InvalidParameterException exception = InvalidParameterException.builder()
                 .awsErrorDetails(AwsErrorDetails.builder()
                         .errorCode("InvalidParameter")
-                        .errorMessage("Invalid parameter: Policy Error: PrincipalNotFound").build())
+                        .errorMessage(PRINCIPAL_NOT_FOUND_PATTERN_Message).build())
                 .build();
 
         when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))
@@ -406,7 +411,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         InvalidParameterException exception = InvalidParameterException.builder()
                 .awsErrorDetails(AwsErrorDetails.builder()
                         .errorCode("InvalidParameter")
-                        .errorMessage("Invalid parameter: Policy Error: PrincipalNotFound").build())
+                        .errorMessage(PRINCIPAL_NOT_FOUND_PATTERN_Message).build())
                 .build();
 
         when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))
@@ -445,7 +450,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         InvalidParameterException exception = InvalidParameterException.builder()
                 .awsErrorDetails(AwsErrorDetails.builder()
                         .errorCode("InvalidParameter")
-                        .errorMessage("Invalid parameter: Policy Error: PrincipalNotFound").build())
+                        .errorMessage(PRINCIPAL_NOT_FOUND_PATTERN_Message).build())
                 .build();
 
         when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))

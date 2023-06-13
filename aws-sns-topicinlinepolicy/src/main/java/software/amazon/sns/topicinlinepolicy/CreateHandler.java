@@ -23,6 +23,7 @@ public class CreateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
+        final String action = "Create";
         ResourceModel resourceModel = request.getDesiredResourceState();
 
         if (resourceModel == null || StringUtils.isNullOrEmpty(resourceModel.getTopicArn())
@@ -43,7 +44,7 @@ public class CreateHandler extends BaseHandlerStd {
                     }
                     return progress;
                 })
-                .then(progress -> Create(proxy, proxyClient, request, progress, logger))
+                .then(progress -> updateTopicPolicy(proxy, proxyClient, request, progress, logger, action, getPolicyDocument(request), resourceModel.getTopicArn()))
                 .then(progress -> {
                     if (!callbackContext.isPropagationDelay()) {
                         callbackContext.setPropagationDelay(true);
@@ -56,27 +57,6 @@ public class CreateHandler extends BaseHandlerStd {
                     progress.getCallbackContext().setPropagationDelay(true);
                     return ProgressEvent.defaultSuccessHandler(progress.getResourceModel());
                 });
-    }
-
-    protected ProgressEvent<ResourceModel, CallbackContext> Create(
-            final AmazonWebServicesClientProxy proxy,
-            final ProxyClient<SnsClient> proxyClient,
-            final ResourceHandlerRequest<ResourceModel> request,
-            ProgressEvent<ResourceModel, CallbackContext> progress,
-            final Logger logger) {
-        final ResourceModel model = request.getDesiredResourceState();
-        final CallbackContext callbackContext = progress.getCallbackContext();
-        final String policy = getPolicyDocument(request);
-        final String topic = model.getTopicArn();
-        return proxy.initiate("AWS-SNS-TopicInlinePolicy::Create", proxyClient, model, callbackContext)
-                .translateToServiceRequest((resourceModel) -> Translator.translateToSetRequest(topic, policy))
-                .makeServiceCall((awsRequest, client) -> {
-                    SetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::setTopicAttributes);
-                    logger.log ("Create in progress");
-                    return response;
-                })
-                .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))
-                .progress();
     }
 
 }

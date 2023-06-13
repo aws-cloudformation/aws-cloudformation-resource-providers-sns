@@ -24,6 +24,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE;
+
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest extends AbstractTestBase {
 

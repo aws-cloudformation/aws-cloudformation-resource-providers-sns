@@ -22,7 +22,7 @@ public class Translator {
 
     static SetTopicAttributesRequest translateToSetRequest(final String topicArn, String topicPolicy) {
         return SetTopicAttributesRequest.builder()
-                .attributeName(TopicAttribute.Policy.name())
+                .attributeName("Policy")
                 .attributeValue(topicPolicy)
                 .topicArn(topicArn)
                 .build();
