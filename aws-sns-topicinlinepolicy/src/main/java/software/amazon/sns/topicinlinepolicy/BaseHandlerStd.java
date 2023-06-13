@@ -133,7 +133,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return !existedPolicy.equals(defaultPolicy);
     }
 
-    protected boolean checkDefaultPolicy(final ResourceHandlerRequest<ResourceModel> request,
+    protected boolean isDefaultPolicy(final ResourceHandlerRequest<ResourceModel> request,
                                            final ResourceModel model) {
         Map<String, Object> curPolicy = model.getPolicyDocument();
         Map<String, Object> defaultPolicy = Translator.convertStringToObject(getDefaultPolicy(request, model.getTopicArn()));

@@ -29,7 +29,7 @@ public class UpdateHandler extends BaseHandlerStd {
             return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE );
         }
 
-        if(checkDefaultPolicy(request, resourceModel)) {
+        if(isDefaultPolicy(request, resourceModel)) {
             return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, DEFAULT_POLICY_ERROR_MESSAGE);
         }
 
