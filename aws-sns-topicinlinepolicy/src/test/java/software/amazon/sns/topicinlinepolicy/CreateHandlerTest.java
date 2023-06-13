@@ -41,6 +41,7 @@ import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_POLICY_
 import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.DEFAULT_POLICY_ERROR_MESSAGE;
 import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.PRINCIPAL_NOT_FOUND_PATTERN;
 
+
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
 

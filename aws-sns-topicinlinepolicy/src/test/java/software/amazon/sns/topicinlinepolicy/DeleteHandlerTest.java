@@ -24,8 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_TOPICARN_ERROR_MESSAGE;
-import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE;
-import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.DEFAULT_POLICY_ERROR_MESSAGE;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest extends AbstractTestBase {

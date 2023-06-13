@@ -3,7 +3,6 @@ package software.amazon.sns.topicinlinepolicy;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.GetTopicAttributesResponse;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -11,7 +10,6 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
-import java.util.Map;
 
 public class ReadHandler extends BaseHandlerStd {
     private Logger logger;

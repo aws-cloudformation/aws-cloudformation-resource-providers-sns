@@ -3,7 +3,6 @@ package software.amazon.sns.topicinlinepolicy;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.SetTopicAttributesResponse;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;

@@ -21,7 +21,7 @@ import software.amazon.cloudformation.proxy.LoggerProxy;
 import software.amazon.cloudformation.proxy.Credentials;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import static software.amazon.sns.topicinlinepolicy.BaseHandlerStd.EMPTY_TOPICARN_ERROR_MESSAGE;
+
 
 public class AbstractTestBase {
     protected static final Credentials MOCK_CREDENTIALS;
