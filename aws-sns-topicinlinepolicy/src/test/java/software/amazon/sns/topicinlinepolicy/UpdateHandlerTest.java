@@ -62,10 +62,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @BeforeEach
     public void setup() {
-        handler = new UpdateHandler();
         proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
         snsClient = mock(SnsClient.class);
         proxyClient = MOCK_PROXY(proxy, snsClient);
+        handler = new UpdateHandler();
     }
 
     @Test

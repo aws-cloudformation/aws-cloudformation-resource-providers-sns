@@ -36,24 +36,11 @@ import java.util.regex.Pattern;
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
-    private final SnsClient snsClient;
-
     public static final String EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE = "Policy and TopicArn cannot be empty";
     public static final String EMPTY_TOPICARN_ERROR_MESSAGE = "TopicArn cannot be empty";
     public static final String DEFAULT_POLICY_ERROR_MESSAGE = "Cannot set policy to the default policy";
     public static final int STABILIZATION_DELAY_IN_SECONDS = 30;
 
-    protected BaseHandlerStd() {
-        this(ClientBuilder.getClient());
-    }
-
-    protected BaseHandlerStd(SnsClient snsClient) {
-        this.snsClient = requireNonNull(snsClient);
-    }
-
-    private SnsClient getSnsClient() {
-        return snsClient;
-    }
 
     private final ObjectMapper MAPPER = new ObjectMapper();
     public static final Pattern PRINCIPAL_NOT_FOUND_PATTERN = Pattern.compile("Invalid parameter: Policy Error: PrincipalNotFound");
@@ -70,7 +57,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                 proxy,
                 request,
                 callbackContext != null ? callbackContext : new CallbackContext(),
-                proxy.newProxy(this::getSnsClient),
+                proxy.newProxy(ClientBuilder::getClient),
                 logger
         );
     }
