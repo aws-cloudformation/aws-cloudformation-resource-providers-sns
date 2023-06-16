@@ -1,0 +1,51 @@
+{
+    "CreateInputs": {
+        "Topics": [
+            "{{awssnstopicinlinepolicycto1}}"
+        ],
+        "PolicyDocument": {
+            "Version": "2008-10-17",
+            "Id": "__default_policy_ID",
+            "Statement": [
+                {
+                    "Sid": "__default_statement_ID",
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "*"
+                    },
+                    "Action": [
+                        "SNS:GetTopicAttributes",
+                        "SNS:SetTopicAttributes"
+                    ],
+                    "Resource": "{{awssnstopicinlinepolicycto1}}"
+                }
+            ]
+        }
+    },
+    "PatchInputs": [
+        {
+            "op": "replace",
+            "path": "/PolicyDocument",
+            "value": {
+                "Version": "2008-10-17",
+                "Id": "__default_policy_ID",
+                "Statement": [
+                    {
+                        "Sid": "__default_statement_ID",
+                        "Effect": "Allow",
+                        "Principal": {
+                            "AWS": "*"
+                        },
+                        "Action": [
+                            "SNS:GetTopicAttributes",
+                            "SNS:SetTopicAttributes",
+                            "SNS:AddPermission",
+                            "SNS:RemovePermission"
+                        ],
+                        "Resource": "{{awssnstopicinlinepolicycto1}}"
+                    }
+                ]
+            }
+        }
+    ]
+}
