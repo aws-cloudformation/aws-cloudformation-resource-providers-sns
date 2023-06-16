@@ -1,0 +1,9 @@
+Resources:
+  ContractSNSTopic:
+    Type: 'AWS::SNS::Topic'
+
+Outputs:
+  ContractName:
+    Value: !Ref ContractSNSTopic
+    Export:
+      Name: awssnstopicinlinepolicycto1
