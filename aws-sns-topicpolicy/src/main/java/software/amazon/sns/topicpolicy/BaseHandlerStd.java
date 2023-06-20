@@ -29,6 +29,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import static java.util.Objects.requireNonNull;
 
 import java.util.regex.Pattern;
+import java.util.Map;
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
@@ -116,11 +117,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      * @return Returns policy document
      */
     protected String getPolicyDocument(final ResourceHandlerRequest<ResourceModel> request) {
-        try {
-            return MAPPER.writeValueAsString(request.getDesiredResourceState().getPolicyDocument());
-        } catch (JsonProcessingException e) {
-            throw new CfnInvalidRequestException(e);
+        if (request.getDesiredResourceState().getPolicyDocument() instanceof Map){
+            try {
+                return MAPPER.writeValueAsString(request.getDesiredResourceState().getPolicyDocument());
+            } catch (JsonProcessingException e) {
+                throw new CfnInvalidRequestException(e);
+            }
         }
+        return (String) request.getDesiredResourceState().getPolicyDocument();
     }
 
     /*

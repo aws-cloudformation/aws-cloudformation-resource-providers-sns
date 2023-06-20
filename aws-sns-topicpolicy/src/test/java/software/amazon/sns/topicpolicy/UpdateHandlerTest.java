@@ -178,7 +178,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceModel model = ResourceModel.builder()
                 .id("aws-sns-topic-policy-id-InternalErrorException")
                 .topics(topics)
-                .policyDocument(new HashMap<>())
+                .policyDocument(null)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()

@@ -32,7 +32,7 @@ public class UpdateHandler extends BaseHandlerStd {
         else if (CollectionUtils.isNullOrEmpty(resourceModel.getTopics())) {
             return ProgressEvent.failed(resourceModel, callbackContext, null, "Value of property Topics must be of type List of String");
         }
-        else if (CollectionUtils.isNullOrEmpty(resourceModel.getPolicyDocument())) {
+        else if (resourceModel.getPolicyDocument() == null) {
             return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, "Invalid parameter: Policy Error: null");
         }
 

@@ -96,6 +96,41 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
+    public void handleRequest_SimpleSuccess_WithStringPolicy() {
+
+        final List<String> topics = new ArrayList<>();
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic1");
+        topics.add("arn:aws:sns:us-east-1:123456789:my-topic2");
+
+        String policyDocument = policDocument("abcd");
+
+        final ResourceModel model = ResourceModel.builder()
+                .id("aws-sns-topic-policy-id")
+                .topics(topics)
+                .policyDocument(policyDocument)
+                .build();
+
+        final SetTopicAttributesResponse setTopicAttributesResponse = SetTopicAttributesResponse.builder().build();
+        when(proxyClient.client().setTopicAttributes(any(SetTopicAttributesRequest.class)))
+                .thenReturn(setTopicAttributesResponse);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request,
+                new CallbackContext(), proxyClient, logger);
+
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
     public void handleRequest_Failure_NotFoundException() {
 
         final List<String> topics = new ArrayList<>();
@@ -124,21 +159,18 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_Failure_Empty_policyDocument() {
-
         final List<String> topics = new ArrayList<>();
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic110");
         topics.add("arn:aws:sns:us-east-1:123456789:my-topic220");
-
         final ResourceModel model = ResourceModel.builder()
                 .id("aws-sns-topic-policy-id-InternalErrorException")
                 .topics(topics)
-                .policyDocument(new HashMap<>())
+                .policyDocument(null)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel> builder()
                 .desiredResourceState(model)
                 .build();
-
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         assertThat(response).isNotNull();
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InvalidRequest);
