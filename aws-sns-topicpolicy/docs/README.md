@@ -12,7 +12,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::SNS::TopicPolicy",
     "Properties" : {
-        "<a href="#policydocument" title="PolicyDocument">PolicyDocument</a>" : <i>Map</i>,
+        "<a href="#policydocument" title="PolicyDocument">PolicyDocument</a>" : <i>Map, String</i>,
         "<a href="#topics" title="Topics">Topics</a>" : <i>[ String, ... ]</i>
     }
 }
@@ -23,7 +23,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::SNS::TopicPolicy
 Properties:
-    <a href="#policydocument" title="PolicyDocument">PolicyDocument</a>: <i>Map</i>
+    <a href="#policydocument" title="PolicyDocument">PolicyDocument</a>: <i>Map, String</i>
     <a href="#topics" title="Topics">Topics</a>: <i>
       - String</i>
 </pre>
@@ -36,7 +36,7 @@ A policy document that contains permissions to add to the specified SNS topics.
 
 _Required_: Yes
 
-_Type_: Map
+_Type_: Map, String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
