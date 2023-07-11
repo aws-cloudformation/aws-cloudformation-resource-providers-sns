@@ -41,9 +41,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     public static final String DEFAULT_POLICY_ERROR_MESSAGE = "Cannot set policy to the default policy";
     public static final int STABILIZATION_DELAY_IN_SECONDS = 30;
 
-
-    private final ObjectMapper MAPPER = new ObjectMapper();
-    public static final Pattern PRINCIPAL_NOT_FOUND_PATTERN = Pattern.compile("Invalid parameter: Policy Error: PrincipalNotFound");
+    public  static final String PRINCIPAL_NOT_FOUND_PATTERN = "Invalid parameter: Policy Error: PrincipalNotFound";
 
     private static final int EVENTUAL_CONSISTENCY_DELAY_SECONDS = 5;
 
@@ -91,7 +89,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         } else if (e instanceof InvalidParameterException) {
             ex = new CfnInvalidRequestException(e);
             final String errorMessage = ((AwsServiceException) e).awsErrorDetails().errorMessage();
-            if (PRINCIPAL_NOT_FOUND_PATTERN.matcher(errorMessage).matches() && callbackContext.getPrincipalRetryAttempts() > 0) {
+            if (PRINCIPAL_NOT_FOUND_PATTERN.equals(errorMessage) && callbackContext.getPrincipalRetryAttempts() > 0) {
                 callbackContext.minusOneAttempts();
                 return ProgressEvent.defaultInProgressHandler(callbackContext,
                             EVENTUAL_CONSISTENCY_DELAY_SECONDS, resourceModel);
@@ -110,6 +108,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
      * @return Returns policy document
      */
     protected String getPolicyDocument(final ResourceHandlerRequest<ResourceModel> request) {
+        ObjectMapper MAPPER = new ObjectMapper();
         try {
             return MAPPER.writeValueAsString(request.getDesiredResourceState().getPolicyDocument());
         } catch (JsonProcessingException e) {

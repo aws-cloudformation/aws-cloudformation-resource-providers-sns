@@ -10,7 +10,7 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
 public class DeleteHandler extends BaseHandlerStd {
-    private software.amazon.cloudformation.proxy.Logger logger;
+    private software.amazon.cloudformation.proxy.Logger Log;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -19,7 +19,7 @@ public class DeleteHandler extends BaseHandlerStd {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
 
-        this.logger = logger;
+        this.Log = logger;
         final String action = "Delete";
         ResourceModel resourceModel = request.getDesiredResourceState();
 
@@ -30,7 +30,7 @@ public class DeleteHandler extends BaseHandlerStd {
         final String topicArn = resourceModel.getTopicArn();
         String policy = getDefaultPolicy(request,topicArn);
 
-        logger.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Delete TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
+        Log.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Delete TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> {
@@ -47,7 +47,7 @@ public class DeleteHandler extends BaseHandlerStd {
                                 STABILIZATION_DELAY_IN_SECONDS,
                                 resourceModel);
                     }
-                    logger.log(String.format("Resource deleted in StackId: %s in Topic: %s",
+                    Log.log(String.format("Resource deleted in StackId: %s in Topic: %s",
                             request.getStackId(), resourceModel.getTopicArn()));
                     progress.getCallbackContext().setPropagationDelay(true);
                     return ProgressEvent.defaultSuccessHandler(null);
