@@ -12,7 +12,7 @@ import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
 
 public class CreateHandler extends BaseHandlerStd {
-    private software.amazon.cloudformation.proxy.Logger logger;
+    private software.amazon.cloudformation.proxy.Logger Log;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -21,7 +21,7 @@ public class CreateHandler extends BaseHandlerStd {
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
 
-        this.logger = logger;
+        this.Log = logger;
         final String action = "Create";
         ResourceModel resourceModel = request.getDesiredResourceState();
 
@@ -34,7 +34,7 @@ public class CreateHandler extends BaseHandlerStd {
             return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, DEFAULT_POLICY_ERROR_MESSAGE);
         }
 
-        logger.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Create SNS TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
+        Log.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Create SNS TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> {
@@ -51,7 +51,7 @@ public class CreateHandler extends BaseHandlerStd {
                                 STABILIZATION_DELAY_IN_SECONDS,
                                 resourceModel);
                     }
-                    logger.log(String.format("Resource created in StackId: %s in Topic: %s",
+                    Log.log(String.format("Resource created in StackId: %s in Topic: %s",
                             request.getStackId(), resourceModel.getTopicArn()));
                     progress.getCallbackContext().setPropagationDelay(true);
                     return ProgressEvent.defaultSuccessHandler(progress.getResourceModel());

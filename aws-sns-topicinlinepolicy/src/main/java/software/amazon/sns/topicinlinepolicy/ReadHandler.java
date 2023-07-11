@@ -12,7 +12,7 @@ import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
 
 public class ReadHandler extends BaseHandlerStd {
-    private Logger logger;
+    private Logger Log;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -20,7 +20,7 @@ public class ReadHandler extends BaseHandlerStd {
             final CallbackContext callbackContext,
             final ProxyClient<SnsClient> proxyClient,
             final Logger logger) {
-        this.logger = logger;
+        this.Log = logger;
 
 
         final ResourceModel model = request.getDesiredResourceState();
@@ -29,7 +29,7 @@ public class ReadHandler extends BaseHandlerStd {
             return ProgressEvent.failed(model, callbackContext, HandlerErrorCode.InvalidRequest, EMPTY_POLICY_AND_TOPICARN_ERROR_MESSAGE );
         }
 
-        logger.log(String.format("StackId: %s, ClientRequestToken: %s] Calling Read TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
+        Log.log(String.format("StackId: %s, ClientRequestToken: %s] Calling Read TopicInlinePolicy", request.getStackId(), request.getClientRequestToken()));
         String TopicArn = model.getTopicArn();
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress -> {
@@ -42,7 +42,7 @@ public class ReadHandler extends BaseHandlerStd {
                         .translateToServiceRequest((resourceModel) -> Translator.translateToGetRequest(TopicArn))
                         .makeServiceCall((awsRequest, client) -> {
                             GetTopicAttributesResponse response = proxyClient.injectCredentialsAndInvokeV2(awsRequest, client.client()::getTopicAttributes);
-                            logger.log(String.format("Resource Read in StackId: %s", request.getStackId()));
+                            Log.log(String.format("Resource Read in StackId: %s", request.getStackId()));
                             return response;
                         })
                         .handleError((awsRequest, exception, client, rModel, context) -> handleError(awsRequest, exception, client, rModel, context))
