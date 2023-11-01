@@ -1,26 +1,14 @@
 package software.amazon.sns.subscription;
 
+import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.SubscribeResponse;
-import software.amazon.awssdk.services.sns.model.SubscribeRequest;
-import software.amazon.awssdk.services.sns.model.SubscriptionLimitExceededException;
-import software.amazon.awssdk.services.sns.model.FilterPolicyLimitExceededException;
-import software.amazon.awssdk.services.sns.model.InvalidParameterException;
-import software.amazon.awssdk.services.sns.model.InternalErrorException;
-import software.amazon.awssdk.services.sns.model.NotFoundException;
-import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
-import software.amazon.awssdk.services.sns.model.InvalidSecurityException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
-import software.amazon.cloudformation.exceptions.CfnInternalFailureException;
-import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
-import software.amazon.cloudformation.exceptions.CfnInvalidCredentialsException;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
+
 
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -33,52 +21,24 @@ public class CreateHandler extends BaseHandlerStd {
         final Logger logger) {
 
         this.logger = logger;
+        ResourceModel resourceModel = request.getDesiredResourceState();
 
-        final ResourceModel model = request.getDesiredResourceState();
-
-        return ProgressEvent.progress(model, callbackContext)
-                    .then(progress ->
-                        proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToCreateRequest)
-                        .makeServiceCall((subscribeRequest, client) -> createSubscription(subscribeRequest, client, model))
-                        .progress())
-                    .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-
-    }
-
-    private SubscribeResponse createSubscription(
-        final SubscribeRequest subscribeRequest,
-        final ProxyClient<SnsClient> proxyClient,
-        final ResourceModel model)  {
-
-        final SubscribeResponse subscribeResponse;
-
-        // exception thrown if topic not found
-        retrieveTopicAttributes(Translator.translateToCheckTopicRequest(model), proxyClient);
-
-        try {
-            subscribeResponse = proxyClient.injectCredentialsAndInvokeV2(subscribeRequest, proxyClient.client()::subscribe);
-            model.setSubscriptionArn(subscribeResponse.subscriptionArn());
-        } catch (final SubscriptionLimitExceededException e) {
-            throw new CfnServiceLimitExceededException(e);
-        } catch (final FilterPolicyLimitExceededException e) {
-            throw new CfnServiceLimitExceededException(e);
-        } catch (final InvalidParameterException e) {
-            throw new CfnInvalidRequestException(e);
-        } catch (final InternalErrorException e) {
-            throw new CfnInternalFailureException(e);
-        } catch (final NotFoundException e) {
-            throw new CfnNotFoundException(e);
-        } catch (final AuthorizationErrorException e) {
-            throw new CfnAccessDeniedException(e);
-        } catch (final InvalidSecurityException e) {
-            throw new CfnInvalidCredentialsException(e);
-        }  catch (final Exception e) {
-            throw new CfnInternalFailureException(e);
+        if (resourceModel == null || StringUtils.isNullOrEmpty(resourceModel.getProtocol())) {
+            return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, "Protocol is required");
+        } else if (StringUtils.isNullOrEmpty(resourceModel.getTopicArn())) {
+            return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, "Topic ARN is required");
         }
 
-        logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
-        return subscribeResponse;
-    }
+        logger.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Create SNS Subscription", request.getStackId(),
+                request.getClientRequestToken()));
 
+        return proxy.initiate("AWS-SNS-Subscription::Create", proxyClient, resourceModel, callbackContext)
+                    .translateToServiceRequest(Translator::translateToCreateRequest)
+                    .makeServiceCall((subscribeRequest, client) -> client.injectCredentialsAndInvokeV2(subscribeRequest, client.client()::subscribe))
+                    .handleError((awsRequest, exception, client, model, context) -> handleError(awsRequest, exception, client, model, context))
+                    .done((subscribeRequest, subscribeResponse, client, model, callbackContext1) -> {
+                        model.setSubscriptionArn(subscribeResponse.subscriptionArn());
+                        return ProgressEvent.success(model, callbackContext1);
+                    });
+    }
 }

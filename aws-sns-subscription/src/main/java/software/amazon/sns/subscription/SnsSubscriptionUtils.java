@@ -9,6 +9,7 @@ import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 
 import java.util.Map;
 
+
 public final class SnsSubscriptionUtils {
 
     public static Map<String,Object> convertToJson(String jsonString) {

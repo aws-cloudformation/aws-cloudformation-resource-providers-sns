@@ -1,7 +1,12 @@
 package software.amazon.sns.subscription;
 
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesRequest;
+import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesResponse;
+import software.amazon.awssdk.services.sns.model.SetSubscriptionAttributesRequest;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsResponse;
+import software.amazon.awssdk.services.sns.model.ListSubscriptionsRequest;
+import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,28 +38,23 @@ public class Translator {
   static ResourceModel translateFromReadResponse(final GetSubscriptionAttributesResponse getSubscriptionAttributesResponse) {
     final Map<String, String> attributes = getSubscriptionAttributesResponse.attributes();
 
-    Boolean rawMessageDelivery = attributes.get(Definitions.rawMessageDelivery) != null ? Boolean.valueOf(attributes.get(Definitions.rawMessageDelivery)) : null;
-    return ResourceModel.builder().subscriptionArn(attributes.get(Definitions.subscriptionArn))
+    return ResourceModel.builder()
+                            .subscriptionArn(attributes.get(Definitions.subscriptionArn))
                             .topicArn(attributes.get(Definitions.topicArn))
                             .endpoint(attributes.get(Definitions.endpoint))
                             .protocol(attributes.get(Definitions.protocol))
                             .filterPolicy(attributes.get(Definitions.filterPolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.filterPolicy)) : null)
                             .redrivePolicy(attributes.get(Definitions.redrivePolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.redrivePolicy)) : null)
                             .deliveryPolicy(attributes.get(Definitions.deliveryPolicy) != null ? SnsSubscriptionUtils.convertToJson(attributes.get(Definitions.deliveryPolicy)) : null)
-                            .rawMessageDelivery(rawMessageDelivery)
+                            .rawMessageDelivery(attributes.get(Definitions.rawMessageDelivery) != null ? Boolean.valueOf(attributes.get(Definitions.rawMessageDelivery)) : null)
                             .subscriptionRoleArn(attributes.get(Definitions.subscriptionRoleArn))
+                            .filterPolicyScope(attributes.get(Definitions.filterPolicyScope))
                             .build();
   }
 
   static UnsubscribeRequest translateToDeleteRequest(final ResourceModel model) {
     return UnsubscribeRequest.builder()
         .subscriptionArn(model.getSubscriptionArn())
-        .build();
-  }
-
-  static GetTopicAttributesRequest translateToCheckTopicRequest(final ResourceModel model) {
-    return GetTopicAttributesRequest.builder()
-        .topicArn(model.getTopicArn())
         .build();
   }
 
@@ -85,17 +85,19 @@ public class Translator {
             .orElseGet(Stream::empty);
   }
 
+  static List<ResourceModel>  translateFromListRequest(final ListSubscriptionsResponse listSubscriptionsResponse) {
+    return streamOfOrEmpty(listSubscriptionsResponse.subscriptions())
+            .map(subscription -> ResourceModel.builder()
+                    .protocol(subscription.protocol())
+                    .topicArn(subscription.topicArn())
+                    .subscriptionArn(subscription.subscriptionArn())
+                    .build())
+            .collect(Collectors.toList());
+  }
 
-  static List<ResourceModel>  translateFromListRequest(final ListSubscriptionsByTopicResponse listSubscriptionsByTopicResponse) {
-    return streamOfOrEmpty(listSubscriptionsByTopicResponse.subscriptions()).map(subscription ->
-      ResourceModel.builder().protocol(subscription.protocol()).topicArn(subscription.topicArn()).subscriptionArn(subscription.subscriptionArn()).build())
-      .collect(Collectors.toList());
-   }
-
-  static ListSubscriptionsByTopicRequest translateToListSubscriptionsByTopicRequest(final ResourceHandlerRequest<ResourceModel> request) {
-      return ListSubscriptionsByTopicRequest.builder()
-              .nextToken(request.getNextToken())
-              .topicArn(request.getDesiredResourceState().getTopicArn())
-              .build();
+  static ListSubscriptionsRequest translateToListSubscriptionsRequest(final String nextToken) {
+    return ListSubscriptionsRequest.builder()
+            .nextToken(nextToken)
+            .build();
   }
 }
