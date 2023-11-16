@@ -32,6 +32,13 @@ pre-commit run --all-files
 mvn verify
 ```
 
+Check the README files in these folders:
+```
+./aws-sns-subscription
+./aws-sns-topic
+./aws-sns-topicpolicy
+```
+
 Deploying SNS Resources to an AWS Account
 -----------------------------------------
 

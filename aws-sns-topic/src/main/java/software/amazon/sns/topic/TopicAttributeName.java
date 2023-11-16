@@ -7,7 +7,9 @@ public enum TopicAttributeName {
 	CONTENT_BASED_DEDUPLICATION("ContentBasedDeduplication"),
 	FIFO_TOPIC("FifoTopic"),
 	SIGNATURE_VERSION("SignatureVersion"),
-	TRACING_CONFIG("TracingConfig");
+	TRACING_CONFIG("TracingConfig"),
+	ARCHIVE_POLICY("ArchivePolicy"),
+	;
 
 	private final String value;
 

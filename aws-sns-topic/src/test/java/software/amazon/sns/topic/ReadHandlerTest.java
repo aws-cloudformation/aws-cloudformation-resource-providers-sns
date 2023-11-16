@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
+import com.google.common.collect.ImmutableMap;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.*;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
@@ -76,6 +77,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .tracingConfig(TracingMode.PASS_THROUGH.toString())
                 .tags(tags)
                 .dataProtectionPolicy(policy)
+                .archivePolicy(ImmutableMap.of("MessageRetentionPeriod", "30"))
                 .build();
 
 
@@ -84,6 +86,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
         attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.PASS_THROUGH.toString());
+        attributes.put(TopicAttributeName.ARCHIVE_POLICY.toString(), "{\"MessageRetentionPeriod\":\"30\"}");
 
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
@@ -133,6 +136,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         final String topicDisplayName = "topic-display-name";
         final String signatureVersion = "2";
         final String tracingConfig = TracingMode.ACTIVE.toString();
+        final Map<String, Object> archivePolicy = ImmutableMap.of("MessageRetentionPeriod", "60");
 
         final ResourceModel model = ResourceModel.builder()
                 .topicArn(topicArn)
@@ -141,6 +145,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .subscription(subscriptions)
                 .signatureVersion(signatureVersion)
                 .tracingConfig(tracingConfig)
+                .archivePolicy(archivePolicy)
                 .tags(tags)
                 .build();
 
@@ -151,6 +156,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), signatureVersion);
         attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), tracingConfig);
         attributes.put(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), "true");
+        attributes.put(TopicAttributeName.ARCHIVE_POLICY.toString(), "{\"MessageRetentionPeriod\":\"60\"}");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
@@ -362,5 +368,56 @@ public class ReadHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
         assertThrows(CfnThrottlingException.class, () -> handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+    }
+
+    @Test
+    public void handleRequest_driftArchivePolicyWhenSetEmpty() {
+        final List<Subscription> subscriptions = new ArrayList<>();
+        final List<Tag> tags = new ArrayList<>();
+        tags.add(Tag.builder().key("key1").value("value1").build());
+
+        final String topicArn = "arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo";
+        final String topicName = "sns-topic-name.fifo";
+        final String topicDisplayName = "topic-display-name";
+        final String signatureVersion = "2";
+        final String tracingConfig = TracingMode.ACTIVE.toString();
+        final Map<String, Object> archivePolicy = new HashMap<>();
+
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn(topicArn)
+                .topicName(topicName)
+                .displayName(topicDisplayName)
+                .subscription(subscriptions)
+                .signatureVersion(signatureVersion)
+                .tracingConfig(tracingConfig)
+                .archivePolicy(archivePolicy)
+                .tags(tags)
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.DISPLAY_NAME.toString(), topicDisplayName);
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), topicArn);
+        attributes.put(TopicAttributeName.FIFO_TOPIC.toString(), "true");
+        attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), signatureVersion);
+        attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), tracingConfig);
+        attributes.put(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), "true");
+        final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
+                .attributes(attributes)
+                .build();
+        when(proxyClient.client().getTopicAttributes(any(GetTopicAttributesRequest.class))).thenReturn(getTopicAttributesResponse);
+        when(proxyClient.client().listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class))).thenReturn(ListSubscriptionsByTopicResponse.builder().build());
+        when(proxyClient.client().listTagsForResource(any(ListTagsForResourceRequest.class))).thenReturn(ListTagsForResourceResponse.builder().build());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getResourceModel().getArchivePolicy()).isNotNull();
+        assertThat(response.getResourceModel().getArchivePolicy()).isEmpty();
+
+        verify(proxyClient.client()).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client()).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).listTagsForResource(any(ListTagsForResourceRequest.class));
+        verify(proxyClient.client(), never()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
     }
 }

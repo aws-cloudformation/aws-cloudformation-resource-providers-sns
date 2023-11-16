@@ -18,6 +18,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#subscription" title="Subscription">Subscription</a>" : <i>[ [ <a href="subscription.md">Subscription</a>, ... ], ... ]</i>,
         "<a href="#fifotopic" title="FifoTopic">FifoTopic</a>" : <i>Boolean</i>,
         "<a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>" : <i>Boolean</i>,
+        "<a href="#archivepolicy" title="ArchivePolicy">ArchivePolicy</a>" : <i>Map</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#topicname" title="TopicName">TopicName</a>" : <i>String</i>,
         "<a href="#signatureversion" title="SignatureVersion">SignatureVersion</a>" : <i>String</i>,
@@ -39,6 +40,7 @@ Properties:
       - <a href="subscription.md">Subscription</a></i>
     <a href="#fifotopic" title="FifoTopic">FifoTopic</a>: <i>Boolean</i>
     <a href="#contentbaseddeduplication" title="ContentBasedDeduplication">ContentBasedDeduplication</a>: <i>Boolean</i>
+    <a href="#archivepolicy" title="ArchivePolicy">ArchivePolicy</a>: <i>Map</i>
     <a href="#tags" title="Tags">Tags</a>: <i>
       - <a href="tag.md">Tag</a></i>
     <a href="#topicname" title="TopicName">TopicName</a>: <i>String</i>
@@ -119,6 +121,16 @@ When you set ContentBasedDeduplication to true, Amazon SNS uses a SHA-256 hash t
 _Required_: No
 
 _Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ArchivePolicy
+
+The archive policy determines the number of days Amazon SNS retains messages. You can set a retention period from 1 to 365 days.
+
+_Required_: No
+
+_Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

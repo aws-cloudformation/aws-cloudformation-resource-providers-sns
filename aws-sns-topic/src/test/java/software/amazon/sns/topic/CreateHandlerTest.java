@@ -1,5 +1,6 @@
 package software.amazon.sns.topic;
 
+import com.google.common.collect.ImmutableMap;
 import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -149,6 +150,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .displayName("sns-topic")
                 .kmsMasterKeyId("dummy-kms-key-id")
                 .signatureVersion("2")
+                .archivePolicy(ImmutableMap.of("MessageRetentionPeriod", "90"))
                 .tracingConfig(TracingMode.ACTIVE.toString())
                 .build();
 
@@ -156,6 +158,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
         attributes.put(TopicAttributeName.SIGNATURE_VERSION.toString(), "2");
         attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.ACTIVE.toString());
+        attributes.put(TopicAttributeName.ARCHIVE_POLICY.toString(), "\"MessageRetentionPeriod\":\"90\"");
         final GetTopicAttributesResponse getTopicAttributesResponse = GetTopicAttributesResponse.builder()
                 .attributes(attributes)
                 .build();
