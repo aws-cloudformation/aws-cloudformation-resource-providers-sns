@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import static software.amazon.sns.topic.Translator.EMPTY_POLICY;
+
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
 
@@ -98,6 +100,17 @@ public class UpdateHandler extends BaseHandlerStd {
                     if(!StringUtils.equals(previousVal, desiredVal)) {
                         return proxy.initiate("AWS-SNS-Topic::Update::TracingConfig", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.TRACING_CONFIG, desiredVal))
+                                .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    String previousArchivePolicy = Translator.getArchivePolicyAsString(previousModel, EMPTY_POLICY);
+                    String desiredArchivePolicy = Translator.getArchivePolicyAsString(model, EMPTY_POLICY);
+                    if(!StringUtils.equals(previousArchivePolicy, desiredArchivePolicy)) {
+                        return proxy.initiate("AWS-SNS-Topic::Update::ArchivePolicy", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(m -> Translator.translateToSetAttributesRequest(m.getTopicArn(), TopicAttributeName.ARCHIVE_POLICY, desiredArchivePolicy))
                                 .makeServiceCall((setTopicAttributesRequest, client) -> proxy.injectCredentialsAndInvokeV2(setTopicAttributesRequest, client.client()::setTopicAttributes))
                                 .progress();
                     }

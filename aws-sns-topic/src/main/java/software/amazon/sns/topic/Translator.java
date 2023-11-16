@@ -38,6 +38,7 @@ import java.util.stream.Stream;
  */
 
 public class Translator {
+    public static final String EMPTY_POLICY = "{}";
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     static CreateTopicRequest translateToCreateTopicRequest(final ResourceModel model, Map<String, String> desiredResourceTags) {
@@ -137,6 +138,7 @@ public class Translator {
                 .displayName(nullIfEmpty(attributes.get(TopicAttributeName.DISPLAY_NAME.toString())))
                 .kmsMasterKeyId(nullIfEmpty(attributes.get(TopicAttributeName.KMS_MASTER_KEY_ID.toString())))
                 .signatureVersion(nullIfEmpty(attributes.get(TopicAttributeName.SIGNATURE_VERSION.toString())))
+                .archivePolicy(convertArchivePolicyToMap(attributes.get(TopicAttributeName.ARCHIVE_POLICY.toString())))
                 .tracingConfig(nullIfEmpty(attributes.get(TopicAttributeName.TRACING_CONFIG.toString())))
                 .fifoTopic(nullIfEmptyBoolean(attributes.get(TopicAttributeName.FIFO_TOPIC.toString())))
                 .contentBasedDeduplication(nullIfEmptyBoolean(attributes.get(TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString())))
@@ -238,6 +240,53 @@ public class Translator {
         }
     }
 
+    /**
+     * null -> null
+     * Empty Map -> "{}"
+     */
+    public static String getArchivePolicyAsString(ResourceModel model) {
+        return getArchivePolicyAsString(model, null);
+    }
+
+    /**
+     * null -> defaultOnNull
+     * Empty Map -> "{}"
+     */
+    public static String getArchivePolicyAsString(ResourceModel model, String defaultOnNull) {
+        if (model.getArchivePolicy() == null) {
+            return defaultOnNull;
+        }
+        try {
+            return MAPPER.writeValueAsString(model.getArchivePolicy());
+        } catch (JsonProcessingException e) {
+            throw new CfnInvalidRequestException(e);
+        }
+    }
+
+    /**
+     * null -> Empty Map
+     * "" -> Empty Map
+     * " " -> Empty Map
+     * "{}" -> Empty Map
+     */
+    private static Map<String,Object> convertArchivePolicyToMap(String jsonString) {
+        if (StringUtils.isBlank(jsonString)) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            return MAPPER.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            throw new CfnInvalidRequestException(e);
+        }
+    }
+
+    /**
+     * null -> null
+     * "" -> null
+     * " " -> null
+     * "{}" -> Empty Map
+     */
     private static Map<String,Object> convertToJson(String jsonString) {
         Map<String, Object> obj = null;
 
@@ -264,6 +313,7 @@ public class Translator {
         putIfNotNull(attributes, TopicAttributeName.KMS_MASTER_KEY_ID.toString(), model.getKmsMasterKeyId());
         putIfNotNull(attributes, TopicAttributeName.SIGNATURE_VERSION.toString(), model.getSignatureVersion());
         putIfNotNull(attributes, TopicAttributeName.TRACING_CONFIG.toString(), model.getTracingConfig());
+        putIfNotNull(attributes, TopicAttributeName.ARCHIVE_POLICY.toString(), getArchivePolicyAsString(model));
         putIfNotNull(attributes, TopicAttributeName.FIFO_TOPIC.toString(), model.getFifoTopic());
         putIfNotNull(attributes, TopicAttributeName.CONTENT_BASED_DEDUPLICATION.toString(), model.getContentBasedDeduplication());
         return attributes;

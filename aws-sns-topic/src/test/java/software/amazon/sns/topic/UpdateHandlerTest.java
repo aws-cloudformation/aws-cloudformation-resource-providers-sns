@@ -1,5 +1,6 @@
 package software.amazon.sns.topic;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -146,6 +147,34 @@ public class UpdateHandlerTest extends AbstractTestBase {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TopicAttributeName.TRACING_CONFIG.toString(), TracingMode.ACTIVE.toString());
         attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name");
+        setupUpdateHandlerMocks(attributes);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        validateResponseSuccess(response);
+        verify(proxyClient.client()).setTopicAttributes(any(SetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).getTopicAttributes(any(GetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(1)).setTopicAttributes(any(SetTopicAttributesRequest.class));
+        verify(proxyClient.client(), times(2)).listSubscriptionsByTopic(any(ListSubscriptionsByTopicRequest.class));
+        verify(proxyClient.client()).getDataProtectionPolicy(any(GetDataProtectionPolicyRequest.class));
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess_UpdateArchivePolicy() {
+        final ResourceModel model = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo")
+                .archivePolicy(ImmutableMap.of("MessageRetentionPeriod", "1"))
+                .build();
+
+        final ResourceModel previousModel = ResourceModel.builder()
+                .topicArn("arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo")
+                .archivePolicy(ImmutableMap.of("MessageRetentionPeriod", "365"))
+                .build();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(TopicAttributeName.ARCHIVE_POLICY.toString(), "{\"MessageRetentionPeriod\":\"365\"}");
+        attributes.put(TopicAttributeName.TOPIC_ARN.toString(), "arn:aws:sns:us-east-1:123456789012:sns-topic-name.fifo");
         setupUpdateHandlerMocks(attributes);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder().desiredResourceState(model).previousResourceState(previousModel).build();

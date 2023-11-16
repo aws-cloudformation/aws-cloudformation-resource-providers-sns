@@ -7,6 +7,8 @@ The [AWS::SNS::Topic](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserG
 To make changes to the **Topic** resource:
 
 1. Update the JSON schema `aws-sns-topic.json`
+1. Update contract tests
+1. Generate sources
 1. Implement your changes to the resource handlers
 
 The CloudFormation CLI automatically generates the correct resource model from the schema, whenever the project is built via Maven. You can also do this manually, using the following command: `cfn generate`.
