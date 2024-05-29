@@ -50,6 +50,10 @@
             "description": "The filter policy JSON assigned to the subscription. Enables the subscriber to filter out unwanted messages. For more information, see [GetSubscriptionAttributes](https://docs.aws.amazon.com/sns/latest/api/API_GetSubscriptionAttributes.html) in the <i>Amazon Simple Notification Service API Reference</i> and [Message Filtering](https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html) in the <i>Amazon SNS Developer Guide</i>.",
             "type": "object"
         },
+        "FilterPolicyScope": {
+            "description": "This attribute lets you choose the filtering scope.",
+            "type": "string"
+        },
         "RedrivePolicy": {
             "description": "When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.",
             "type": "object"
@@ -77,47 +81,35 @@
     "readOnlyProperties": [
         "/properties/SubscriptionArn"
     ],
+    "writeOnlyProperties": [
+        "/properties/Region"
+    ],
     "handlers": {
         "create": {
             "permissions": [
-                "sns:Subscribe",
-                "sns:GetSubscriptionAttributes",
-                "sns:GetTopicAttributes",
-                "iam:GetRole",
-                "iam:PassRole",
-                "iam:PutRolePolicy"
+                "sns:Subscribe"
             ]
         },
         "read": {
             "permissions": [
-                "sns:GetSubscriptionAttributes",
-                "sns:GetTopicAttributes"
+                "sns:GetSubscriptionAttributes"
             ]
         },
         "update": {
             "permissions": [
                 "sns:SetSubscriptionAttributes",
-                "sns:GetSubscriptionAttributes",
-                "sns:GetTopicAttributes",
-                "iam:GetRole",
-                "iam:PassRole",
-                "iam:PutRolePolicy",
-                "iam:UpdateRole"
+                "sns:GetSubscriptionAttributes"
             ]
         },
         "delete": {
             "permissions": [
-                "sns:GetSubscriptionAttributes",
-                "sns:GetTopicAttributes",
                 "sns:Unsubscribe",
-                "iam:DeleteRolePolicy",
-                "iam:DetachRolePolicy"
+                "sns:GetSubscriptionAttributes"
             ]
         },
         "list": {
             "permissions": [
-                "sns:GetTopicAttributes",
-                "sns:ListSubscriptionsByTopic"
+                "sns:ListSubscriptions"
             ]
         }
     }

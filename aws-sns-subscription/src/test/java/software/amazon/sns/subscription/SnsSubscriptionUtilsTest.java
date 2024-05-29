@@ -1,11 +1,9 @@
 package software.amazon.sns.subscription;
 
-
-import org.junit.jupiter.api.Test;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 
 import java.util.Map;
-
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

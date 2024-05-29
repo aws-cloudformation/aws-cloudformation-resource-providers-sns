@@ -1,5 +1,6 @@
 package software.amazon.sns.subscription;
 
+
 class Configuration extends BaseConfiguration {
 
     public Configuration() {

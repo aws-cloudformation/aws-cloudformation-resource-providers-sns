@@ -1,9 +1,13 @@
 package software.amazon.sns.subscription;
 
-
+import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesRequest;
-import software.amazon.cloudformation.proxy.*;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
 
 public class ReadHandler extends BaseHandlerStd {
@@ -17,25 +21,19 @@ public class ReadHandler extends BaseHandlerStd {
         final Logger logger) {
 
         this.logger = logger;
+        ResourceModel resourceModel = request.getDesiredResourceState();
 
-        final ResourceModel model = request.getDesiredResourceState();
-        logger.log("subscription arn: " + model.getSubscriptionArn());
+        if (resourceModel == null || StringUtils.isNullOrEmpty(resourceModel.getSubscriptionArn())) {
+            return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, "Subscription ARN is required");
+        }
 
-        return ProgressEvent.progress(model, callbackContext)
-            .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
-            .then(progress -> preliminaryGetSubscriptionCheck(Translator.translateToReadRequest(model), proxyClient, progress))
-            .then(progress ->
-                    proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToReadRequest)
-                        .makeServiceCall((getSubscriptionAttributesRequest, client) -> readSubscriptionAttributes(getSubscriptionAttributesRequest, proxyClient))
-            .done(getSubscriptionAttributesResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(getSubscriptionAttributesResponse))));
-    }
+        logger.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Read SNS Subscription", request.getStackId(),
+                request.getClientRequestToken()));
 
-    private ProgressEvent<ResourceModel, CallbackContext> preliminaryGetSubscriptionCheck(
-            GetSubscriptionAttributesRequest getSubscriptionAttributesRequest,
-            ProxyClient<SnsClient> proxyClient,
-            ProgressEvent<ResourceModel, CallbackContext> progress)  {
-        readSubscriptionAttributes(getSubscriptionAttributesRequest, proxyClient);
-        return progress;
+        return proxy.initiate("AWS-SNS-Subscription::Read", proxyClient, resourceModel, callbackContext)
+                .translateToServiceRequest(Translator::translateToReadRequest)
+                .makeServiceCall((getSubscriptionAttributesRequest, client) -> client.injectCredentialsAndInvokeV2(getSubscriptionAttributesRequest, client.client()::getSubscriptionAttributes))
+                .handleError((awsRequest, exception, client, model, context) -> handleError(awsRequest, exception, client, model, context))
+                .done(getSubscriptionAttributesResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(getSubscriptionAttributesResponse)));
     }
 }

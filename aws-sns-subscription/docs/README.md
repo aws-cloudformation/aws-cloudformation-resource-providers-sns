@@ -20,6 +20,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#subscriptionrolearn" title="SubscriptionRoleArn">SubscriptionRoleArn</a>" : <i>String</i>,
         "<a href="#topicarn" title="TopicArn">TopicArn</a>" : <i>String</i>,
         "<a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>" : <i>Map</i>,
+        "<a href="#filterpolicyscope" title="FilterPolicyScope">FilterPolicyScope</a>" : <i>String</i>,
         "<a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>" : <i>Map</i>
     }
 }
@@ -38,6 +39,7 @@ Properties:
     <a href="#subscriptionrolearn" title="SubscriptionRoleArn">SubscriptionRoleArn</a>: <i>String</i>
     <a href="#topicarn" title="TopicArn">TopicArn</a>: <i>String</i>
     <a href="#filterpolicy" title="FilterPolicy">FilterPolicy</a>: <i>Map</i>
+    <a href="#filterpolicyscope" title="FilterPolicyScope">FilterPolicyScope</a>: <i>String</i>
     <a href="#redrivepolicy" title="RedrivePolicy">RedrivePolicy</a>: <i>Map</i>
 </pre>
 
@@ -134,6 +136,16 @@ _Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### FilterPolicyScope
+
+This attribute lets you choose the filtering scope.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 #### RedrivePolicy
 
 When specified, sends undeliverable messages to the specified Amazon SQS dead-letter queue. Messages that can't be delivered due to client errors (for example, when the subscribed endpoint is unreachable) or server errors (for example, when the service that powers the subscribed endpoint becomes unavailable) are held in the dead-letter queue for further analysis or reprocessing.
@@ -159,3 +171,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### SubscriptionArn
 
 This is the subscription amazon resource name generated at creation time.
+

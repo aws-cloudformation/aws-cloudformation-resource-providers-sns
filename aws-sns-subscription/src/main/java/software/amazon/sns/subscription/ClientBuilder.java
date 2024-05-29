@@ -4,6 +4,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.cloudformation.LambdaWrapper;
 import software.amazon.awssdk.regions.Region;
 
+
 public class ClientBuilder {
 
   public static SnsClient getClient() {

@@ -1,12 +1,17 @@
 package software.amazon.sns.subscription;
 
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.*;
-import software.amazon.cloudformation.exceptions.*;
-import software.amazon.cloudformation.proxy.*;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 
 
 public class DeleteHandler extends BaseHandlerStd {
+    final private int EVENTUAL_CONSISTENCY_DELAY_SECONDS = 60;
+    final private String ARN_SEPERATOR =":";
     private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -17,56 +22,39 @@ public class DeleteHandler extends BaseHandlerStd {
         final Logger logger) {
 
         this.logger = logger;
+        ResourceModel resourceModel = request.getDesiredResourceState();
+        final String subscriptionArn = resourceModel.getSubscriptionArn();
 
-        final ResourceModel model = request.getDesiredResourceState();
-
-        return ProgressEvent.progress(model, callbackContext)
-                    .then(progress -> checkTopicExists(proxy, proxyClient, model, progress, logger))
-                    .then(progress -> checkSubscriptionExists(proxy, proxyClient, model, progress, logger))
-                    .then(process -> proxy.initiate("AWS-SNS-Subscription::Check-Subscription-Not-Pending", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToReadRequest)
-                        .makeServiceCall((getSubscriptionAttributesRequest, client) -> {
-                            if (!checkSubscriptionNotPending(model.getSubscriptionArn(), proxyClient, logger))
-                                throw new CfnInvalidRequestException(new Exception(String.format("subscription %s cannot be deleted if pending confirmation", model.getSubscriptionArn())));
-
-                            return true;
-                        })
-                        .progress())
-                    .then(process -> proxy.initiate("AWS-SNS-Subscription::Unsubscribe", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToDeleteRequest)
-                        .makeServiceCall(this::deleteSubscription)
-                        .done(awsResponse -> ProgressEvent.<ResourceModel, CallbackContext>builder()
-                            .status(OperationStatus.SUCCESS)
-                            .build()));
-    }
-
-    private Boolean deleteSubscription(
-        final UnsubscribeRequest unsubscribeRequest,
-        final ProxyClient<SnsClient> proxyClient) {
-
-        try {
-            logger.log(String.format("Deleting subscription for subscription arn: %s", unsubscribeRequest.subscriptionArn()));
-            proxyClient.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe);
-        } catch (final SubscriptionLimitExceededException e) {
-            throw new CfnServiceLimitExceededException(e);
-        } catch (final FilterPolicyLimitExceededException e) {
-            throw new CfnServiceLimitExceededException(e);
-        } catch (final InvalidParameterException e) {
-            throw new CfnInvalidRequestException(e);
-        } catch (final InternalErrorException e) {
-            throw new CfnInternalFailureException(e);
-        } catch (final NotFoundException e) {
-            throw new CfnNotFoundException(e);
-        } catch (final AuthorizationErrorException e) {
-            throw new CfnAccessDeniedException(e);
-        } catch (final InvalidSecurityException e) {
-            throw new CfnInvalidCredentialsException(e);
-        } catch (final Exception e) {
-            throw new CfnInternalFailureException(e);
+        //Note that although we check the existence of Subscription ARN, it does not necessarily mean it's a valid one
+        //Subscription could be PendingConfirmation
+        if (resourceModel == null || com.amazonaws.util.StringUtils.isNullOrEmpty(subscriptionArn)) {
+            return ProgressEvent.failed(resourceModel, callbackContext, HandlerErrorCode.InvalidRequest, "Subscription ARN is required");
         }
 
-        logger.log(String.format("%s successfully deleted.", ResourceModel.IDENTIFIER_KEY_SUBSCRIPTIONARN));
-        return true;
-    }
+        final String topicArn = subscriptionArn.substring(0, subscriptionArn.lastIndexOf(ARN_SEPERATOR));
+        request.getDesiredResourceState().setTopicArn(topicArn);
 
+        logger.log(String.format("[StackId: %s, ClientRequestToken: %s] Calling Delete SNS Subscription", request.getStackId(),
+                request.getClientRequestToken()));
+
+        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+                .then(progress -> checkSubscriptionExistsAndSetSubscriptionArn(proxy, proxyClient, request, progress, callbackContext, true, logger))
+                .then(progress -> proxy.initiate("AWS-SNS-Subscription::Delete", proxyClient, resourceModel, callbackContext)
+                                    .translateToServiceRequest(Translator::translateToDeleteRequest)
+                                    .makeServiceCall((unsubscribeRequest, client) -> client.injectCredentialsAndInvokeV2(unsubscribeRequest, proxyClient.client()::unsubscribe))
+                                    .handleError((awsRequest, exception, client, model, context) -> handleError(awsRequest, exception, client, model, context))
+                                    .progress())
+                .then(progress -> {
+                    if (progress.getCallbackContext().isPropagationDelay()) {
+                        logger.log("Propagation delay completed");
+                        return ProgressEvent.progress(progress.getResourceModel(), progress.getCallbackContext());
+                    }
+                    progress.getCallbackContext().setPropagationDelay(true);
+                    callbackContext.setItFirstTime(false);
+                    logger.log("Setting propagation delay");
+                    return ProgressEvent.defaultInProgressHandler(progress.getCallbackContext(),
+                            EVENTUAL_CONSISTENCY_DELAY_SECONDS, progress.getResourceModel());
+                })
+                .then(progress -> ProgressEvent.defaultSuccessHandler(progress.getResourceModel()));
+    }
 }
